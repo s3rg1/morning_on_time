@@ -1,0 +1,238 @@
+# **Product Requirements Document (PRD)**
+
+## **Product Name (Working Title)**
+
+**Morning On Time**
+
+## **Product Vision**
+
+Help families arrive at school on time consistently by turning mornings into a lightweight, voice‑driven game that motivates children without adding friction, screens, or extra tasks.
+
+*The app does not organize the morning. It accompanies it.*
+
+---
+
+## **Problem Statement**
+
+Families with school‑age children often arrive late despite good intentions. Mornings are chaotic, children lack a sense of urgency, and parents are forced into constant reminders and pressure. Existing solutions rely on checklists, screens, or complex routines that add cognitive load rather than reduce it.
+
+---
+
+## **Target Users**
+
+### **Primary User**
+
+* Parent or caregiver of children aged 5–12
+
+### **Secondary User**
+
+* Child, who experiences the product mainly through voice and notifications
+
+---
+
+## **Goals & Success Criteria**
+
+### **User Goals**
+
+* Arrive at school on time consistently  
+* Reduce morning stress and conflict  
+* Increase child autonomy and motivation
+
+### **Product Goals**
+
+* Establish a daily on‑time habit  
+* Encourage consistency through streaks and rewards  
+* Minimize required interaction
+
+### **Success Metrics (MVP)**
+
+* % of school days marked as on‑time  
+* Average streak length  
+* Weekly active users (parents)  
+* Retention after 14 and 30 days
+
+---
+
+## **Core Principles**
+
+1. **Single Objective**: Arrive on time  
+2. **Minimal Interaction**: No checklists, no task tracking  
+3. **Voice First**: Audio over screens  
+4. **Automatic by Default**: The app activates itself  
+5. **Positive Motivation**: No punishment, no guilt
+
+---
+
+## **MVP Scope**
+
+### **In Scope**
+
+* Time‑based activation  
+* Voice encouragement  
+* Key moment notifications  
+* Manual arrival confirmation  
+* Daily success/failure tracking  
+* Streak system  
+* Parent‑defined rewards
+
+---
+
+## **User Flow (Daily)**
+
+1. App activates automatically at wake‑up time  
+2. Voice message sets the daily mission  
+3. One optional check‑in via lock‑screen notification ("Going well" / "Running tight")  
+4. Timely voice notifications at key moments  
+5. Arrival confirmation by parent  
+6. Success or failure is recorded  
+7. Streak and reward progress updated
+
+---
+
+## **Functional Requirements**
+
+### **1\. Initial Setup**
+
+* Parent sets:  
+  * Wake‑up time  
+  * Leave‑home time  
+  * Latest arrival time  
+* Parent defines optional weekly rewards (e.g., "Movie night on Friday")  
+* Settings are accessible from the home screen and can be changed at any time.
+
+---
+
+### **2\. Automatic Morning Activation**
+
+* App starts daily without user action  
+* Plays a short voice message such as:  
+  "Good morning\! Today’s mission is to arrive at school on time. Let’s go\!"
+
+---
+
+### **3\. Voice & Notification Engine**
+
+#### **Key Moments**
+
+* X minutes before leaving home  
+* X minutes before leaving home  
+* Leave‑home time. The count down automatically starts.  
+* X minutes before arrival deadline
+
+#### **Behavior**
+
+* Tone adapts based on check‑in response  
+* Messages are short, encouraging, and urgent when needed
+
+Examples:
+
+* "You have 2 minutes to leave. Let’s move\!"  
+* "If we arrive in the next 3 minutes, we keep the streak alive\!"
+
+---
+
+### **4\. Check‑In Interaction**
+
+* One lock‑screen notification per morning  
+* Quick responses:  
+  * "Going well"  
+  * "Running tight"
+
+Purpose:
+
+* Adjust urgency and tone  
+* Create a sense of dialogue
+
+---
+
+### **5\. Arrival Registration**
+
+* At arrival window, user receives:  
+  "Have we arrived?"  
+* Single action:  
+  * "Arrived"
+
+Rules:
+
+* If confirmed before arrival deadline → success  
+* If not confirmed by deadline → failure
+
+---
+
+### **6\. Daily Outcome Logic**
+
+#### **Success**
+
+* Day marked as on‑time  
+* Streak increments  
+* Celebration voice \+ sound
+
+Example:
+
+"Yes\! Another day achieved. That’s a 4‑day streak\!"
+
+#### **Failure**
+
+* Day marked as failed  
+* Streak resets (unless freeze is applied)  
+* Neutral message
+
+Example:
+
+"We didn’t make it today. Tomorrow we try again."
+
+---
+
+### **7\. Streak System**
+
+* One streak per user  
+* Visible streak counter  
+* Celebrations at milestones (3, 7, 14 days)  
+* Home screen displays current streak as well as a monthly view of achieved/failed days for this month.
+
+---
+
+### **8\. Rewards System (Parent‑Driven)**
+
+* Parent defines rewards with a required streak length  
+* App references rewards in voice messages
+
+Example:
+
+"Only 2 more days to earn movie night with popcorn 🍿"
+
+---
+
+## **Non‑Functional Requirements**
+
+* App must work offline during mornings  
+* Notifications must work with locked screen  
+* Voice playback must not require app foreground  
+* Battery usage must be minimal
+
+---
+
+## **Risks & Mitigations**
+
+| Risk | Mitigation |
+| ----- | ----- |
+| Users forget to confirm arrival | Clear arrival notification \+ grace period |
+| Too many notifications | Strict limit to key moments only |
+| Children ignore voice | Customizable voice tone and energy |
+
+---
+
+## **MVP Definition of Done**
+
+* A parent can configure times in under 2 minutes  
+* The app runs a full school morning without manual opening  
+* Daily success/failure is recorded reliably  
+* Streaks and rewards update correctly  
+* Families feel less rushed after 2 weeks of use
+
+---
+
+## **Product Statement**
+
+**Morning On Time helps families win the morning without adding anything to it.**
+

@@ -1,0 +1,189 @@
+{
+  "@@locale": "en",
+  "appTitle": "Morning On Time",
+  "@appTitle": {
+    "description": "The application title"
+  },
+  "todaysMission": "Today's Mission",
+  "@todaysMission": {
+    "description": "Title for today's mission section"
+  },
+  "arriveOnTime": "Arrive at school on time!",
+  "@arriveOnTime": {
+    "description": "Mission description"
+  },
+  "daysStreak": "{count, plural, =1{Day Streak} other{Days Streak}}",
+  "@daysStreak": {
+    "description": "Streak counter label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goodMorning": "🌅 Good Morning!",
+  "@goodMorning": {
+    "description": "Morning notification title"
+  },
+  "missionMessage": "Today's mission is to arrive at school on time. Let's go!",
+  "@missionMessage": {
+    "description": "Morning notification message"
+  },
+  "quickCheckIn": "⏰ Quick Check-In",
+  "@quickCheckIn": {
+    "description": "Check-in notification title"
+  },
+  "howAreThings": "How are things going this morning?",
+  "@howAreThings": {
+    "description": "Check-in notification message"
+  },
+  "goingWell": "Going Well",
+  "@goingWell": {
+    "description": "Status button - things are going well"
+  },
+  "runningTight": "Running Tight",
+  "@runningTight": {
+    "description": "Status button - running behind schedule"
+  },
+  "leaveHomeSoon": "🏃 Leave Home Soon!",
+  "@leaveHomeSoon": {
+    "description": "Leave home soon notification title"
+  },
+  "leaveHomeSoonMessage": "In five minutes we must leave home, hurry up!!",
+  "@leaveHomeSoonMessage": {
+    "description": "Leave home soon notification message"
+  },
+  "leaveHomeNow": "🚪 Leave Home Now!",
+  "@leaveHomeNow": {
+    "description": "Leave home now notification title"
+  },
+  "leaveHomeNowMessage": "We leave home now or we'll be late.",
+  "@leaveHomeNowMessage": {
+    "description": "Leave home now notification message"
+  },
+  "arrivalCheck": "🎯 Have we arrived on time?",
+  "@arrivalCheck": {
+    "description": "Arrival check notification title"
+  },
+  "arrivalCheckMessage": "Tap to confirm your arrival status",
+  "@arrivalCheckMessage": {
+    "description": "Arrival check notification message"
+  },
+  "yesWeHave": "Yes, we have",
+  "@yesWeHave": {
+    "description": "Arrived on time confirmation button"
+  },
+  "noWeHavent": "No, we haven't",
+  "@noWeHavent": {
+    "description": "Did not arrive on time button"
+  },
+  "arrivedAtSchool": "Arrived at School",
+  "@arrivedAtSchool": {
+    "description": "Button to confirm arrival"
+  },
+  "wakeUp": "Wake up",
+  "@wakeUp": {
+    "description": "Wake up time label"
+  },
+  "leaveHome": "Leave home",
+  "@leaveHome": {
+    "description": "Leave home time label"
+  },
+  "arriveBy": "Arrive by",
+  "@arriveBy": {
+    "description": "Arrival deadline label"
+  },
+  "todaysSchedule": "Today's Schedule",
+  "@todaysSchedule": {
+    "description": "Schedule section title"
+  },
+  "monthlyView": "Monthly View",
+  "@monthlyView": {
+    "description": "Monthly view button"
+  },
+  "rewards": "Rewards",
+  "@rewards": {
+    "description": "Rewards button"
+  },
+  "greatJob": "Great job! You arrived on time today!",
+  "@greatJob": {
+    "description": "Success message for on-time arrival"
+  },
+  "didntMakeIt": "We didn't make it today. Tomorrow is a new day!",
+  "@didntMakeIt": {
+    "description": "Message for late arrival"
+  },
+  "arrivalConfirmation": "Arrival Confirmation",
+  "@arrivalConfirmation": {
+    "description": "Arrival dialog title"
+  },
+  "arrivedOnTime": "You arrived on time!",
+  "@arrivedOnTime": {
+    "description": "On-time arrival message"
+  },
+  "arrivedLate": "You arrived a bit late, but that's okay. Tomorrow is a new opportunity!",
+  "@arrivedLate": {
+    "description": "Late arrival message"
+  },
+  "confirm": "Confirm",
+  "@confirm": {
+    "description": "Confirm button"
+  },
+  "setupMorningRoutine": "Set Up Your Morning Routine",
+  "@setupMorningRoutine": {
+    "description": "Setup screen title"
+  },
+  "setupDescription": "Let's plan your morning to help you arrive at school on time!",
+  "@setupDescription": {
+    "description": "Setup screen description"
+  },
+  "wakeUpTime": "Wake-up Time",
+  "@wakeUpTime": {
+    "description": "Wake-up time input label"
+  },
+  "leaveHomeTime": "Leave Home Time",
+  "@leaveHomeTime": {
+    "description": "Leave home time input label"
+  },
+  "latestArrivalTime": "Latest Arrival Time",
+  "@latestArrivalTime": {
+    "description": "Arrival deadline input label"
+  },
+  "startTheJourney": "Start the Journey",
+  "@startTheJourney": {
+    "description": "Start button on setup screen"
+  },
+  "settingUpRoutine": "Setting up your morning routine...",
+  "@settingUpRoutine": {
+    "description": "Loading message when saving settings"
+  },
+  "routineSaved": "✅ Morning routine saved successfully!",
+  "@routineSaved": {
+    "description": "Success message after saving settings"
+  },
+  "errorSavingSettings": "Error saving settings: {error}",
+  "@errorSavingSettings": {
+    "description": "Error message when saving fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "Settings label"
+  },
+  "onTime": "On Time",
+  "@onTime": {
+    "description": "On time status"
+  },
+  "late": "Late",
+  "@late": {
+    "description": "Late status"
+  },
+  "noData": "No data",
+  "@noData": {
+    "description": "No data available"
+  }
+}
