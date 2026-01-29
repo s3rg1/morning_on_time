@@ -129,7 +129,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get latestArrivalTime => 'Latest Arrival Time';
 
   @override
-  String get startTheJourney => 'Start the Journey';
+  String get startTheJourney => 'Save Plan';
 
   @override
   String get settingUpRoutine => 'Setting up your morning routine...';

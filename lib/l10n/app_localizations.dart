@@ -314,10 +314,10 @@ abstract class AppLocalizations {
   /// **'Latest Arrival Time'**
   String get latestArrivalTime;
 
-  /// Start button on setup screen
+  /// Save button on setup screen
   ///
   /// In en, this message translates to:
-  /// **'Start the Journey'**
+  /// **'Save Plan'**
   String get startTheJourney;
 
   /// Loading message when saving settings

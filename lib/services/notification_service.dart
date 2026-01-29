@@ -217,18 +217,6 @@ class NotificationService {
           channelDescription: _channel.description,
           importance: Importance.high,
           priority: Priority.high,
-          actions: const [
-            AndroidNotificationAction(
-              'going_well',
-              '✅ Going Well',
-              showsUserInterface: false,
-            ),
-            AndroidNotificationAction(
-              'running_tight',
-              '⚡ Running Tight',
-              showsUserInterface: false,
-            ),
-          ],
         ),
         iOS: const DarwinNotificationDetails(
           presentAlert: true,

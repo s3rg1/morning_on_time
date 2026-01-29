@@ -36,7 +36,7 @@
   "wakeUpTime": "Hora de Despertar",
   "leaveHomeTime": "Hora de Salir de Casa",
   "latestArrivalTime": "Hora Límite de Llegada",
-  "startTheJourney": "Comenzar el Viaje",
+  "startTheJourney": "Guardar Plan",
   "settingUpRoutine": "Configurando tu rutina matutina...",
   "routineSaved": "✅ ¡Rutina matutina guardada exitosamente!",
   "errorSavingSettings": "Error al guardar la configuración: {error}",

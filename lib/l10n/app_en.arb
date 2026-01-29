@@ -149,9 +149,9 @@
   "@latestArrivalTime": {
     "description": "Arrival deadline input label"
   },
-  "startTheJourney": "Start the Journey",
+  "startTheJourney": "Save Plan",
   "@startTheJourney": {
-    "description": "Start button on setup screen"
+    "description": "Save button on setup screen"
   },
   "settingUpRoutine": "Setting up your morning routine...",
   "@settingUpRoutine": {
