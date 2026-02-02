@@ -71,16 +71,18 @@ class NotificationService {
       // Check-in notification - handle action buttons
       if (response.actionId == 'going_well') {
         onCheckInResponse?.call(CheckInStatus.goingWell);
-      } else if (response.actionId == 'running_tight') {
-        onCheckInResponse?.call(CheckInStatus.runningTight);
       }
+      // Note: 'running_tight' removed - no longer supported
+    } else if (response.id == 4) {
+      // Leave home notification tapped - journey should be active
+      // The app will automatically check and restore journey state via didChangeAppLifecycleState
+      print('🚪 Leave home notification tapped - app will check journey state');
     } else if (response.id == 5) {
-      // Arrival check notification - handle confirmation buttons
+      // Arrival check notification - only 'Yes' button available
       if (response.actionId == 'arrived_yes') {
         onArrivalConfirmation?.call(true); // Arrived on time
-      } else if (response.actionId == 'arrived_no') {
-        onArrivalConfirmation?.call(false); // Did not arrive on time
       }
+      // Note: 'arrived_no' removed per PRD
     }
   }
 
@@ -111,143 +113,41 @@ class NotificationService {
         ?.requestPermissions(alert: true, badge: true, sound: true);
   }
 
-  Future<void> scheduleWakeUpNotification(TimeOfDay wakeUpTime) async {
-    final now = DateTime.now();
-    var scheduledDate = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      wakeUpTime.hour,
-      wakeUpTime.minute,
-    );
+  // Wake-up notification is now handled by AlarmService
+  // This method has been removed to prevent duplicate notifications
 
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
-
-    // Check if we can use exact alarms
-    final androidImplementation = _notifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    
-    bool canUseExactAlarms = false;
-    if (androidImplementation != null) {
-      canUseExactAlarms = await androidImplementation.canScheduleExactNotifications() ?? false;
-      
-      // If we can't schedule exact alarms, request permission again
-      if (!canUseExactAlarms) {
-        print('⚠️ Exact alarms not permitted. Requesting permission...');
-        await androidImplementation.requestExactAlarmsPermission();
-        // Check again after request
-        canUseExactAlarms = await androidImplementation.canScheduleExactNotifications() ?? false;
-      }
-    }
-
-    print('📅 Scheduling wake-up notification for: $scheduledDate');
-    print('⏰ Can use exact alarms: $canUseExactAlarms');
-
-    try {
-      await _notifications.zonedSchedule(
-        1,
-        '🌅 Good Morning!',
-        "Today's mission is to arrive at school on time. Let's go!",
-        tz.TZDateTime.from(scheduledDate, tz.local),
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            _channel.id,
-            _channel.name,
-            channelDescription: _channel.description,
-            importance: Importance.max,
-            priority: Priority.max,
-            fullScreenIntent: true,
-            category: AndroidNotificationCategory.alarm,
-          ),
-          iOS: const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-            interruptionLevel: InterruptionLevel.timeSensitive,
-          ),
-        ),
-        androidScheduleMode: canUseExactAlarms 
-            ? AndroidScheduleMode.exactAllowWhileIdle 
-            : AndroidScheduleMode.inexactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
-        matchDateTimeComponents: DateTimeComponents.time,
-      );
-      print('✅ Wake-up notification scheduled successfully');
-    } catch (e) {
-      print('❌ Error scheduling wake-up notification: $e');
-      rethrow;
-    }
-  }
-
-  Future<void> scheduleCheckInNotification(TimeOfDay leaveHomeTime) async {
-    final now = DateTime.now();
-    var scheduledDate = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      leaveHomeTime.hour,
-      leaveHomeTime.minute,
-    ).subtract(const Duration(minutes: 15));
-
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
-
-    // Check if we can use exact alarms
-    final androidImplementation = _notifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    
-    bool canUseExactAlarms = true;
-    if (androidImplementation != null) {
-      canUseExactAlarms = await androidImplementation.canScheduleExactNotifications() ?? false;
-    }
-
-    await _notifications.zonedSchedule(
-      2,
-      '⏰ Quick Check-In',
-      'How are things going this morning?',
-      tz.TZDateTime.from(scheduledDate, tz.local),
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          _channel.id,
-          _channel.name,
-          channelDescription: _channel.description,
-          importance: Importance.high,
-          priority: Priority.high,
-        ),
-        iOS: const DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
-      ),
-      androidScheduleMode: canUseExactAlarms 
-          ? AndroidScheduleMode.exactAllowWhileIdle 
-          : AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
-  }
+  // Check-in notifications are now handled by AlarmService
+  // This method has been removed to prevent duplicate notifications
 
   Future<void> showTimeToLeaveNotification(int minutes, CheckInStatus status) async {
-    String message;
-    if (status == CheckInStatus.runningTight) {
-      message = minutes <= 2 
-          ? "⚡ We need to leave RIGHT NOW! Let's move!"
-          : "🏃 $minutes minutes to leave! Time to hurry!";
+    // Format the countdown time
+    String timeText;
+    if (minutes >= 60) {
+      final hours = minutes ~/ 60;
+      final mins = minutes % 60;
+      timeText = mins > 0 ? '${hours}h ${mins}m' : '${hours}h';
     } else {
-      message = minutes <= 2
-          ? "⏰ Time to leave! Let's go!"
-          : "⏱️ $minutes minutes until we leave!";
+      timeText = '${minutes}m';
+    }
+    
+    String title;
+    String message;
+    
+    // Simplified: all countdown messages use same urgency based on time remaining
+    if (minutes <= 2) {
+      title = "🎯 Almost There!";
+      message = "Only $timeText left - you've got this!";
+    } else if (minutes <= 5) {
+      title = "⏱️ Final Stretch!";
+      message = "$timeText to arrival - stay focused!";
+    } else {
+      title = "✅ On Track!";
+      message = "$timeText remaining - doing great!";
     }
 
     await _notifications.show(
       3,
-      '🚀 Time Update',
+      title,
       message,
       NotificationDetails(
         android: AndroidNotificationDetails(
@@ -256,6 +156,9 @@ class NotificationService {
           channelDescription: _channel.description,
           importance: Importance.high,
           priority: Priority.high,
+          showWhen: true,
+          usesChronometer: true,
+          chronometerCountDown: true,
         ),
         iOS: const DarwinNotificationDetails(
           presentAlert: true,
@@ -328,57 +231,47 @@ class NotificationService {
       print('   Minutes before leaving (second warning): ${settings.minutesBeforeLeaving2}');
       print('   Minutes before arrival: ${settings.minutesBeforeArrival}\n');
       
-      // Calculate when each notification should fire
-      var wakeUpDate = DateTime(
-        now.year,
-        now.month,
-        now.day,
-        settings.wakeUpTime.hour,
-        settings.wakeUpTime.minute,
-      );
-      if (wakeUpDate.isBefore(now)) {
-        wakeUpDate = wakeUpDate.add(const Duration(days: 1));
-      }
-      
-      var checkInDate = DateTime(
-        now.year,
-        now.month,
-        now.day,
-        settings.leaveHomeTime.hour,
-        settings.leaveHomeTime.minute,
-      ).subtract(const Duration(minutes: 15));
-      if (checkInDate.isBefore(now)) {
-        checkInDate = checkInDate.add(const Duration(days: 1));
-      }
-      
       print('📅 Expected Notification Times:');
       print('   ─────────────────────────────────────────────────────────');
-      print('   1️⃣  Wake-up notification:');
-      print('      📍 Scheduled for: ${wakeUpDate.toString().substring(0, 19)}');
-      print('      ⏱️  Time until trigger: ${wakeUpDate.difference(now).inHours}h ${wakeUpDate.difference(now).inMinutes % 60}m');
+      print('   ℹ️  NOTE: Wake-up and check-in notifications are now managed by AlarmService');
+      print('   ℹ️  This service only handles manual notifications (Time to Leave, Arrival)\n');
+      
+      print('   1️⃣  Wake-up alarm (AlarmService):');
+      print('      📍 Managed by: AlarmService.scheduleWakeUpAlarm()');
+      print('      ⏱️  Fires at: ${formatTime(settings.wakeUpTime)}');
       print('      📢 Message: "🌅 Good Morning! Today\'s mission is to arrive at school on time."');
-      print('      ℹ️  Repeats: Daily at ${formatTime(settings.wakeUpTime)}\n');
+      print('      ℹ️  Repeats: Daily\n');
       
-      print('   2️⃣  Check-in notification:');
-      print('      📍 Scheduled for: ${checkInDate.toString().substring(0, 19)}');
-      print('      ⏱️  Time until trigger: ${checkInDate.difference(now).inHours}h ${checkInDate.difference(now).inMinutes % 60}m');
+      print('   2️⃣  Check-in alarms (AlarmService):');
+      print('      📍 Managed by: AlarmService.scheduleCheckInAlarms()');
+      print('      ⏱️  Fires: Every 8 minutes from wake-up until 6 min before leave time');
       print('      📢 Message: "⏰ Quick Check-In - How are things going?"');
-      print('      ℹ️  Repeats: Daily 15 minutes before leave time\n');
+      print('      ℹ️  Multiple alarms scheduled throughout morning\n');
       
-      print('   3️⃣  Time-to-leave updates (ID 3):');
-      print('      📍 Triggered: Dynamically based on check-in status');
-      print('      📢 Message: Countdown messages until leave time');
-      print('      ℹ️  Shows: Only after responding to check-in\n');
+      print('   3️⃣  Leave Home Soon alarm (AlarmService):');
+      print('      📍 Managed by: AlarmService.scheduleLeaveHomeSoonAlarm()');
+      print('      ⏱️  Fires: 5 minutes before ${formatTime(settings.leaveHomeTime)}');
+      print('      📢 Message: "🏃 Leave Home Soon!"');
+      print('      ℹ️  Repeats: Daily\n');
       
-      print('   4️⃣  Arrival prompt (ID 4):');
-      print('      📍 Triggered: At expected arrival time');
-      print('      📢 Message: "🎯 Have we arrived? Tap to confirm"');
-      print('      ℹ️  Shows: When journey tracking is active\n');
+      print('   4️⃣  Leave Home Now alarm (AlarmService):');
+      print('      📍 Managed by: AlarmService.scheduleLeaveHomeAlarm()');
+      print('      ⏱️  Fires at: ${formatTime(settings.leaveHomeTime)}');
+      print('      📢 Message: "🚪 Leave Home Now!" + starts countdown timer');
+      print('      ℹ️  Sets journey_active flag in SharedPreferences');
+      print('      ℹ️  When app opens, countdown timer appears automatically\n');
       
-      print('   5️⃣  Arrival confirmation (ID 5):');
-      print('      📍 Triggered: After arrival prompt');
-      print('      📢 Message: Confirms on-time or late arrival');
-      print('      ℹ️  Shows: Based on user confirmation\n');
+      print('   5️⃣  Countdown Timer (Auto-starts):');
+      print('      📍 Triggered by: Leave Home alarm setting journey_active flag');
+      print('      📢 Display: Visual countdown on home screen');
+      print('      ℹ️  Shows: Remaining time until arrival deadline');
+      print('      ℹ️  Colors change based on urgency (green → amber → orange → red)\n');
+      
+      print('   6️⃣  Arrival check alarm (AlarmService):');
+      print('      📍 Managed by: AlarmService.scheduleArrivalCheckAlarm()');
+      print('      ⏱️  Fires: 2 minutes before ${formatTime(settings.arrivalDeadline)}');
+      print('      📢 Message: "🎯 Have we arrived on time?"');
+      print('      ℹ️  Repeats: Daily\n');
     } else {
       print('⚠️  No settings configured yet. Run setup first.\n');
     }
@@ -494,9 +387,12 @@ class NotificationService {
   }
 
   Future<void> scheduleAllNotifications(AppSettings settings) async {
+    // Cancel all previous notifications
     await cancelAll();
-    await scheduleWakeUpNotification(settings.wakeUpTime);
-    await scheduleCheckInNotification(settings.leaveHomeTime);
+    
+    // Note: Wake-up and check-in notifications are now handled by AlarmService
+    // This method only cancels old notifications to prevent duplicates
+    // showTimeToLeaveNotification and showArrivalPrompt are called manually by AlarmService
   }
 
   // Test notification - fires in a few seconds

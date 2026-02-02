@@ -21,18 +21,11 @@ class VoiceService {
 
   Future<void> playTimeToLeaveMessage(int minutes, CheckInStatus status) async {
     String message;
-    if (status == CheckInStatus.runningTight) {
-      if (minutes <= 2) {
-        message = "We have $minutes minutes to leave. Let's move quickly!";
-      } else {
-        message = "We have $minutes minutes before we need to leave. Time to get ready!";
-      }
+    // Simplified: single voice message for all statuses
+    if (minutes <= 2) {
+      message = "Time to leave in $minutes minutes. Let's go!";
     } else {
-      if (minutes <= 2) {
-        message = "Time to leave in $minutes minutes. Let's go!";
-      } else {
-        message = "We have $minutes minutes before leaving. You're doing great!";
-      }
+      message = "We have $minutes minutes before leaving. You're doing great!";
     }
     await speak(message);
   }

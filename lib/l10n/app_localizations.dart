@@ -361,6 +361,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No data'**
   String get noData;
+
+  /// Countdown timer label
+  ///
+  /// In en, this message translates to:
+  /// **'Time Remaining'**
+  String get timeRemaining;
+
+  /// Critical urgency message (2 minutes or less)
+  ///
+  /// In en, this message translates to:
+  /// **'HURRY! Almost there!'**
+  String get hurryCritical;
+
+  /// Urgency message (5 minutes or less)
+  ///
+  /// In en, this message translates to:
+  /// **'Hurry up!'**
+  String get hurryUp;
+
+  /// On schedule message
+  ///
+  /// In en, this message translates to:
+  /// **'On track!'**
+  String get onTrack;
+
+  /// Journey active title
+  ///
+  /// In en, this message translates to:
+  /// **'Journey in Progress'**
+  String get journeyInProgress;
 }
 
 class _AppLocalizationsDelegate

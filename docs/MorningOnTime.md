@@ -81,11 +81,13 @@ Families with school‑age children often arrive late despite good intentions. M
 
 1. App activates automatically at wake‑up time  
 2. Voice message sets the daily mission  
-3. One optional check‑in via lock‑screen notification ("Going well" / "Running tight")  
-4. Timely voice notifications at key moments  
-5. Arrival confirmation by parent  
-6. Success or failure is recorded  
-7. Streak and reward progress updated
+3. A recurring voice message informs the family of the time they have to leave.
+4. Timely voice notifications at key moments, such as 5 minutes to leave or time to leave.
+5. When it's time to leave, a countdown timer appears to inform the family how much time they have left.
+6. Success arrival confirmation by parent through both the notification or home screen.
+7. At arrival time, if parent didn't confirm success, it's a failure. 
+7. Success or failure is recorded  
+8. Streak and reward progress updated
 
 ---
 
@@ -110,7 +112,11 @@ The app automatically schedules and fires alarms throughout the morning without 
 
 ### **3\. Voice & Notification Engine**
 
-The app schedules **5 different types of alarms** when settings are saved or updated:
+The app schedules **5 different types of alarms** when settings are saved or updated.
+
+The morning plan begins at wake-up time and finished at arrival time. The trip to school starts at leave time and finishes at arrival time.
+
+See below the diffent types of alarms:
 
 #### **3.1. Wake-Up Alarm (ID: 1)**
 
@@ -121,22 +127,21 @@ The app schedules **5 different types of alarms** when settings are saved or upd
   - Fires exactly at wake-up time using AlarmManager
   - Plays TTS message automatically in background (even when app is closed)
   - Shows notification with mission reminder
-  - Auto-reschedules for next day after firing
+  - Auto-schedule the next alarms: the checkpoint alarms, the leave home soon alarm, the leave home alarm, the pre arrival check alarm and the arrival alarm.
+  - Auto-reschedules for next day
 * **Reliability:** High (uses native Android AlarmManager, survives app closure and device restart)
 
-#### **3.2. Check-In Alarms (IDs: 100-119)**
+#### **3.2. Checkpoint Alarms (IDs: 100-119)**
 
-* **Trigger:** Every 8 minutes starting from wake-up time until 6 minutes before leave time
-* **Voice Message (TTS):** "Hey! How are things going this morning?"
-* **Notification:** "⏰ Quick Check-In" with two action buttons
-* **Action Buttons:**
-  - "✅ Going Well" - Morning is proceeding smoothly
-  - "⚡ Running Tight" - Running behind schedule
+* **Trigger:** Every 10 minutes starting from wake-up time until the leave time
+* **Voice Message (TTS):** "Hey! How are things going? We have x minutes left to go"
+* **Notification:** "⏰ How are we going?" with the minutes left to leave home
 * **Behavior:**
-  - Multiple alarms scheduled throughout the morning window
-  - Each plays TTS message automatically in background
-  - No need to open app - responds via notification actions
-  - Each alarm auto-reschedules individually for tomorrow
+  - The alarm is triggered 10 minutes after the wake up time
+  - It plays a TTS message that includes the minutes left to go, so the message is dynamic.
+  - The alarm auto-reschedules evey 10 minutes updating the TTS message with the minutes left to go.
+  - The alarm is disabled 5 minutes before time to leave.
+  - Each plays TTS message automatically in background. No need to open app
 * **Reliability:** High (uses AlarmManager for guaranteed delivery)
 
 #### **3.3. Leave Home Soon Alarm (ID: 3)**
@@ -145,9 +150,9 @@ The app schedules **5 different types of alarms** when settings are saved or upd
 * **Voice Message (TTS):** "In five minutes we must leave home, hurry up!!"
 * **Notification:** "🏃 Leave Home Soon!"
 * **Behavior:**
+  - The alarm is triggered 5 minutes before the time to leave
   - Creates sense of urgency as departure time approaches
   - Plays TTS message automatically
-  - Auto-reschedules for next day
 * **Reliability:** High (AlarmManager-based)
 
 #### **3.4. Leave Home Alarm (ID: 4)**
@@ -156,24 +161,33 @@ The app schedules **5 different types of alarms** when settings are saved or upd
 * **Voice Message (TTS):** "We leave home now or we'll be late."
 * **Notification:** "🚪 Leave Home Now!"
 * **Behavior:**
+  - The alarm is triggered at time to leave
   - Final reminder to depart
   - Plays TTS message automatically
-  - Auto-reschedules for next day
+  - A countdown timer begins from the leave home time to the arrival time so that the user can see how much time they have left
+  - The coundown timer is shown in the home screen.
 * **Reliability:** High (AlarmManager-based)
 
-#### **3.5. Arrival Check Alarm (ID: 5)**
+#### **3.5. Pre Arrival Check Alarm (ID: 5)**
 
-* **Trigger:** 2 minutes before arrival deadline
+* **Trigger:** Two minutes before the arrival deadline
 * **Notification:** "🎯 Have we arrived on time?"
 * **Message:** "Tap to confirm your arrival status"
 * **Action Buttons:**
-  - "✅ Yes, we have" - Arrived on time
-  - "❌ No, we haven't" - Did not arrive on time
+  - "✅ Yes, we have" - Arrived on time.
 * **Behavior:**
   - Shows notification with confirmation buttons
-  - Tapping "Yes" increments streak and marks day as achieved
-  - Tapping "No" marks day as missed
-  - Auto-reschedules for next day
+  - Tapping "Yes" increments streak and marks day as achieved. Also stops the countdown timer and disables Arrival Alarm since it's not needed
+* **Reliability:** High (AlarmManager-based)
+
+#### **3.6. Arrival Alarm (ID: 6)**
+
+* **Trigger:** At arrival deadline
+* **Notification:** "⌛ Time is up!"
+* **Message:** "Sorry, you did not make it today"
+* **Behavior:**
+  - This notification is triggered if the user hasn't confirmed they arrived on time
+  - It marks day as missed.
 * **Reliability:** High (AlarmManager-based)
 
 #### **Technical Implementation**
@@ -183,53 +197,10 @@ The app schedules **5 different types of alarms** when settings are saved or upd
 * Alarms persist through app closure, phone restart, and Doze mode
 * Each alarm callback runs in isolated background context
 * Battery optimization set to "unrestricted" for consistent delivery
-* When settings are updated, all previous alarms are cancelled and rescheduled with new times
+* When time settings are updated (wake up, leave at and arrival time), all previous alarms are cancelled and rescheduled with new times
 
 ---
 
-### **4\. Check‑In Interaction**
-
-* **Multiple notifications per morning** - every 8 minutes from wake-up until 6 minutes before leaving
-* **Lock-screen accessible** - no need to unlock phone or open app
-* **Quick action buttons:**
-  * "✅ Going Well" - Morning is proceeding smoothly
-  * "⚡ Running Tight" - Running behind schedule
-* **Purpose:**
-  - Provides regular awareness of time pressure throughout the morning
-  - Creates sense of dialogue with the app
-  - Future: Could adapt reminder tone/frequency based on status responses
-* **Voice Component:** TTS speaks "Hey! How are things going this morning?" when each notification fires
-* **No interaction required:** Notifications appear with voice regardless of user response
-
----
-
-### **5\. Arrival Registration**
-
-* **Trigger:** 2 minutes before arrival deadline
-* **Notification:** "🎯 Have we arrived on time?"
-* **Action buttons:**
-  * "✅ Yes, we have" - Confirms on-time arrival
-  * "❌ No, we haven't" - Confirms late arrival
-
-#### **On-Time Arrival (Yes button)**
-
-* Day marked as on-time
-* Streak increments by 1
-* Record saved to history
-* Celebration voice message plays
-* Reward progress checked and announced if close
-
-#### **Late Arrival (No button)**
-
-* Day marked as failed
-* Streak resets to 0
-* Record saved to history
-* Neutral message plays: "We didn't make it today. Tomorrow we try again."
-
-#### **Auto-Processing**
-
-* If no response by deadline, system can auto-process based on configured rules
-* Arrival confirmation integrates directly with streak tracking system
 
 ### **6\. Daily Outcome Logic**
 

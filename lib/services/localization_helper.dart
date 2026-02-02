@@ -160,18 +160,6 @@ class LocalizationHelper {
     }
   }
   
-  /// Get localized action button text for "Running Tight"
-  static Future<String> getRunningTightText() async {
-    final locale = await getLocale();
-    switch (locale) {
-      case 'es':
-        return '⚡ Voy Justo';
-      case 'en':
-      default:
-        return '⚡ Running Tight';
-    }
-  }
-  
   /// Get localized notification title for arrival check
   static Future<String> getArrivalCheckTitle() async {
     final locale = await getLocale();

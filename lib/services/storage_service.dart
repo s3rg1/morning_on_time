@@ -10,6 +10,10 @@ class StorageService {
   static const String _rewardsKey = 'rewards';
   static const String _currentStreakKey = 'current_streak';
   static const String _isSetupCompleteKey = 'is_setup_complete';
+  static const String _journeyActiveKey = 'journey_active';
+  static const String _journeyStartTimeKey = 'journey_start_time';
+  static const String _testArrivalDeadlineKey = 'test_arrival_deadline';
+  static const String _arrivalConfirmedKey = 'arrival_confirmed';
 
   Future<AppSettings?> loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
@@ -92,6 +96,62 @@ class StorageService {
   Future<void> setSetupComplete(bool complete) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_isSetupCompleteKey, complete);
+  }
+
+  Future<bool> isJourneyActive() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_journeyActiveKey) ?? false;
+  }
+
+  Future<void> setJourneyActive(bool active) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_journeyActiveKey, active);
+    if (active) {
+      await prefs.setString(_journeyStartTimeKey, DateTime.now().toIso8601String());
+    } else {
+      await prefs.remove(_journeyStartTimeKey);
+    }
+  }
+
+  Future<DateTime?> getJourneyStartTime() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? timeStr = prefs.getString(_journeyStartTimeKey);
+    if (timeStr == null) return null;
+    try {
+      return DateTime.parse(timeStr);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> setTestArrivalDeadline(DateTime? deadline) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (deadline != null) {
+      await prefs.setString(_testArrivalDeadlineKey, deadline.toIso8601String());
+    } else {
+      await prefs.remove(_testArrivalDeadlineKey);
+    }
+  }
+
+  Future<DateTime?> getTestArrivalDeadline() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? timeStr = prefs.getString(_testArrivalDeadlineKey);
+    if (timeStr == null) return null;
+    try {
+      return DateTime.parse(timeStr);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> setArrivalConfirmed(bool confirmed) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_arrivalConfirmedKey, confirmed);
+  }
+
+  Future<bool> getArrivalConfirmed() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_arrivalConfirmedKey) ?? false;
   }
 
   Future<void> clearAll() async {

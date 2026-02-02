@@ -43,5 +43,10 @@
   "settings": "Configuración",
   "onTime": "A Tiempo",
   "late": "Tarde",
-  "noData": "Sin datos"
+  "noData": "Sin datos",
+  "timeRemaining": "Tiempo Restante",
+  "hurryCritical": "¡APÚRATE! ¡Casi llegamos!",
+  "hurryUp": "¡Apúrate!",
+  "onTrack": "¡Vamos bien!",
+  "journeyInProgress": "Viaje en Progreso"
 }

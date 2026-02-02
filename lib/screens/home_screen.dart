@@ -5,14 +5,54 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/app_state.dart';
+import '../models/app_settings.dart';
 import '../models/check_in_status.dart';
 import '../services/alarm_service.dart';
+import '../widgets/countdown_timer.dart';
 import 'monthly_view_screen.dart';
 import 'rewards_screen.dart';
 import 'setup_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    
+    // Check journey state immediately when screen loads
+    // This ensures countdown appears even if user opens app directly (not via notification tap)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      print('🏠 HomeScreen loaded - checking journey state...');
+      _checkJourneyState();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // App came back from background - check if journey was started
+      print('🔄 App resumed - checking journey state...');
+      _checkJourneyState();
+    }
+  }
+
+  Future<void> _checkJourneyState() async {
+    final appState = Provider.of<AppState>(context, listen: false);
+    await appState.checkAndRestoreJourneyState();
+  }
 
   Future<bool> _checkExactAlarmPermission() async {
     final plugin = FlutterLocalNotificationsPlugin();
@@ -84,12 +124,140 @@ class HomeScreen extends StatelessWidget {
     }
   }
 
+  void _showTestMenu(BuildContext context, AppState appState) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('🧪 Test Countdown Journey'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'This will simulate a real morning:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              '1. Clears today\'s result\n'
+              '2. Wake-up: 15 min ago\n'
+              '3. Leave time: in ~90 sec\n'
+              '4. Arrival time: in 4 min\n'
+              '5. All alarms scheduled (standard flow)\n'
+              '6. Tap "Arrived" to succeed before time runs out',
+              style: TextStyle(fontSize: 13),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _startBackgroundTest(context, appState);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('🚀 Start Test'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _startBackgroundTest(BuildContext context, AppState appState) async {
+    print('🧪 Starting test - setting up test environment...');
+    
+    try {
+      final now = DateTime.now();
+      
+      // 1. Clear today's result if any
+      final today = DateTime(now.year, now.month, now.day);
+      // Note: We'll let the test overwrite any existing result naturally
+      // when arrival confirmation happens
+      print('🧪 Test will overwrite any existing result for today');
+      
+      // 2. Clear any ongoing journey/countdown
+      if (appState.isJourneyActive) {
+        await appState.stopJourney();
+        print('🧪 Stopped active journey');
+      }
+      
+      // 3. Create test settings with times relative to now
+      // Note: TimeOfDay only stores hour:minute, so we need enough buffer
+      // to ensure times don't become "in the past" after conversion
+      final wakeUpTime = now.subtract(const Duration(minutes: 15));
+      final leaveTime = now.add(const Duration(seconds: 90)); // 1.5 min to survive TimeOfDay conversion
+      final arrivalTime = now.add(const Duration(minutes: 4));
+      
+      // Set test deadline BEFORE saving settings
+      appState.setTestDeadline(arrivalTime);
+      print('🧪 Test deadline set BEFORE saving settings: $arrivalTime');
+      
+      final testSettings = AppSettings(
+        wakeUpTime: TimeOfDay(hour: wakeUpTime.hour, minute: wakeUpTime.minute),
+        leaveHomeTime: TimeOfDay(hour: leaveTime.hour, minute: leaveTime.minute),
+        arrivalDeadline: TimeOfDay(hour: arrivalTime.hour, minute: arrivalTime.minute),
+      );
+      
+      print('🧪 Test times:');
+      print('  Wake-up: $wakeUpTime (15 min ago)');
+      print('  Leave: $leaveTime (5 sec from now)');
+      print('  Arrival: $arrivalTime (3 min from now)');
+      
+      // 4. Save settings - this will trigger standard alarm scheduling
+      await appState.saveSettings(testSettings);
+      print('🧪 Test settings saved and all alarms scheduled');
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              '🧪 Test Started!\n'
+              '• Leave Home alarm fires in ~90 seconds\n'
+              '• Pre-Arrival Check in ~2 minutes\n'
+              '• Arrival deadline in 4 minutes\n'
+              '• Tap "Arrived at School" to succeed',
+            ),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 5),
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ Error setting up test: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.appTitle),
         actions: [
+          // Test button (remove in production)
+          IconButton(
+            icon: const Icon(Icons.science, color: Colors.orange),
+            tooltip: 'Test Countdown',
+            onPressed: () {
+              final appState = Provider.of<AppState>(context, listen: false);
+              _showTestMenu(context, appState);
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
@@ -203,8 +371,52 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // Today's Status
-                if (todayRecord != null)
+                // Journey Status - Show countdown if journey is active
+                if (appState.isJourneyActive && appState.arrivalDeadline != null)
+                  Card(
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)!.journeyInProgress,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          CountdownTimer(
+                            arrivalDeadline: appState.arrivalDeadline!,
+                            onComplete: () {
+                              appState.stopJourney();
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              _showArrivalDialog(context, appState);
+                            },
+                            icon: const Icon(Icons.school),
+                            label: Text(AppLocalizations.of(context)!.arrivedAtSchool),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                
+                // Today's Result - Show completion status if available
+                if (todayRecord != null && !appState.isJourneyActive) ...[
+                  const SizedBox(height: 16),
                   Card(
                     color: todayRecord.wasOnTime
                         ? Colors.green.shade50
@@ -233,66 +445,69 @@ class HomeScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                  )
-                else
-                  Card(
-                    color: Colors.amber.shade50,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        children: [
-                          const Icon(Icons.wb_sunny, size: 40, color: Colors.orange),
-                          const SizedBox(height: 12),
-                          Text(
-                            AppLocalizations.of(context)!.todaysMission,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            AppLocalizations.of(context)!.arriveOnTime,
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                          if (settings != null) ...[
-                            const SizedBox(height: 20),
-                            _ScheduleItem(
-                              icon: Icons.alarm,
-                              label: AppLocalizations.of(context)!.wakeUp,
-                              time: settings.wakeUpTime.format(context),
-                            ),
-                            _ScheduleItem(
-                              icon: Icons.directions_run,
-                              label: AppLocalizations.of(context)!.leaveHome,
-                              time: settings.leaveHomeTime.format(context),
-                            ),
-                            _ScheduleItem(
-                              icon: Icons.school,
-                              label: AppLocalizations.of(context)!.arriveBy,
-                              time: settings.arrivalDeadline.format(context),
-                            ),
-                          ],
-                          const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              _showArrivalDialog(context, appState);
-                            },
-                            icon: const Icon(Icons.school),
-                            label: Text(AppLocalizations.of(context)!.arrivedAtSchool),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 12,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
+                ],
+
+                // Mission Card - Always show
+                const SizedBox(height: 16),
+                Card(
+                          color: Colors.amber.shade50,
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              children: [
+                                const Icon(Icons.wb_sunny, size: 40, color: Colors.orange),
+                                const SizedBox(height: 12),
+                                Text(
+                                  AppLocalizations.of(context)!.todaysMission,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  AppLocalizations.of(context)!.arriveOnTime,
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                                if (settings != null) ...[
+                                  const SizedBox(height: 20),
+                                  _ScheduleItem(
+                                    icon: Icons.alarm,
+                                    label: AppLocalizations.of(context)!.wakeUp,
+                                    time: settings.wakeUpTime.format(context),
+                                  ),
+                                  _ScheduleItem(
+                                    icon: Icons.directions_run,
+                                    label: AppLocalizations.of(context)!.leaveHome,
+                                    time: settings.leaveHomeTime.format(context),
+                                  ),
+                                  _ScheduleItem(
+                                    icon: Icons.school,
+                                    label: AppLocalizations.of(context)!.arriveBy,
+                                    time: settings.arrivalDeadline.format(context),
+                                  ),
+                                ],
+                                const SizedBox(height: 16),
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    _showArrivalDialog(context, appState);
+                                  },
+                                  icon: const Icon(Icons.school),
+                                  label: Text(AppLocalizations.of(context)!.arrivedAtSchool),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                 const SizedBox(height: 24),
 
                 // Quick Actions

@@ -185,5 +185,25 @@
   "noData": "No data",
   "@noData": {
     "description": "No data available"
+  },
+  "timeRemaining": "Time Remaining",
+  "@timeRemaining": {
+    "description": "Countdown timer label"
+  },
+  "hurryCritical": "HURRY! Almost there!",
+  "@hurryCritical": {
+    "description": "Critical urgency message (2 minutes or less)"
+  },
+  "hurryUp": "Hurry up!",
+  "@hurryUp": {
+    "description": "Urgency message (5 minutes or less)"
+  },
+  "onTrack": "On track!",
+  "@onTrack": {
+    "description": "On schedule message"
+  },
+  "journeyInProgress": "Journey in Progress",
+  "@journeyInProgress": {
+    "description": "Journey active title"
   }
 }

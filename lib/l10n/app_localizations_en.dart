@@ -153,4 +153,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noData => 'No data';
+
+  @override
+  String get timeRemaining => 'Time Remaining';
+
+  @override
+  String get hurryCritical => 'HURRY! Almost there!';
+
+  @override
+  String get hurryUp => 'Hurry up!';
+
+  @override
+  String get onTrack => 'On track!';
+
+  @override
+  String get journeyInProgress => 'Journey in Progress';
 }

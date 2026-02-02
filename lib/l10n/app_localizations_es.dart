@@ -153,4 +153,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get noData => 'Sin datos';
+
+  @override
+  String get timeRemaining => 'Tiempo Restante';
+
+  @override
+  String get hurryCritical => '¡APÚRATE! ¡Casi llegamos!';
+
+  @override
+  String get hurryUp => '¡Apúrate!';
+
+  @override
+  String get onTrack => '¡Vamos bien!';
+
+  @override
+  String get journeyInProgress => 'Viaje en Progreso';
 }

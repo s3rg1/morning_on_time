@@ -1,12 +1,14 @@
+import 'dart:convert';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'localization_helper.dart';
 
 // Top-level callback function - must be static or top-level
 @pragma('vm:entry-point')
 void alarmCallback() async {
-  print('🚨 ALARM FIRED! Time to wake up!');
+  print('🚨 WAKE-UP ALARM FIRED!');
   
   // Get localized messages
   final ttsLanguage = await LocalizationHelper.getTtsLanguage();
@@ -56,9 +58,9 @@ void alarmCallback() async {
     notificationDetails,
   );
   
-  print('✅ Notification shown from alarm callback');
+  print('✅ Wake-up notification shown');
   
-  // Reschedule for tomorrow at the same time
+  // Reschedule wake-up for tomorrow at the same time
   final now = DateTime.now();
   final tomorrow = DateTime(
     now.year,
@@ -77,9 +79,10 @@ void alarmCallback() async {
     rescheduleOnReboot: true,
   );
   
-  print('✅ Rescheduled for tomorrow: $tomorrow');
+  print('✅ Wake-up alarm rescheduled for tomorrow: $tomorrow');
 }
 
+// Helper function to schedule checkpoint alarms from wake-up callback
 @pragma('vm:entry-point')
 void testAlarmCallback() async {
   print('🧪 TEST ALARM FIRED!');
@@ -118,86 +121,72 @@ void testAlarmCallback() async {
   print('✅ Test notification shown from alarm callback');
 }
 
-// Check-in alarms fire every 8 minutes - these don't auto-reschedule
+// Checkpoint alarms fire every 10 minutes - these don't auto-reschedule
+// They only play TTS with no notification UI
 @pragma('vm:entry-point')
 void checkInAlarmCallback() async {
-  print('⏰ CHECK-IN ALARM FIRED!');
+  print('⏰ CHECKPOINT ALARM FIRED!');
   
-  // Safety check: Don't show notification if it's outside reasonable hours
-  // (This prevents stale alarms from firing at wrong times)
+  // Safety check: Don't play if it's outside reasonable hours
   final now = DateTime.now();
   final hour = now.hour;
   
-  // Only show check-in notifications between 5 AM and 3 PM
+  // Only play between 5 AM and 3 PM
   if (hour < 5 || hour >= 15) {
-    print('⚠️ Skipping check-in notification - outside reasonable hours (current hour: $hour)');
+    print('⚠️ Skipping checkpoint - outside reasonable hours (current hour: $hour)');
     return;
   }
   
-  // Get localized messages
-  final ttsLanguage = await LocalizationHelper.getTtsLanguage();
-  final checkInMessage = await LocalizationHelper.getCheckInMessage();
-  final checkInTitle = await LocalizationHelper.getCheckInTitle();
-  final goingWellText = await LocalizationHelper.getGoingWellText();
-  final runningTightText = await LocalizationHelper.getRunningTightText();
+  // Get leave home time from settings to calculate minutes remaining
+  final prefs = await SharedPreferences.getInstance();
+  final settingsJson = prefs.getString('app_settings');
   
-  // Initialize TTS for voice message
+  int minutesLeft = 0;
+  if (settingsJson != null) {
+    try {
+      final settings = Map<String, dynamic>.from(json.decode(settingsJson));
+      final leaveTimeData = settings['leaveHomeTime'] as Map<String, dynamic>;
+      final leaveHour = leaveTimeData['hour'] as int;
+      final leaveMinute = leaveTimeData['minute'] as int;
+      
+      final leaveTime = DateTime(now.year, now.month, now.day, leaveHour, leaveMinute);
+      minutesLeft = leaveTime.difference(now).inMinutes;
+      
+      // If already past leave time, don't play
+      if (minutesLeft <= 0) {
+        print('⚠️ Skipping checkpoint - already past leave time');
+        return;
+      }
+    } catch (e) {
+      print('Could not parse leave time from settings: $e');
+      return;
+    }
+  } else {
+    print('No settings found, skipping checkpoint');
+    return;
+  }
+  
+  // Get localized language
+  final ttsLanguage = await LocalizationHelper.getTtsLanguage();
+  
+  // Build dynamic message with minutes left
+  final String message;
+  if (ttsLanguage == 'es-ES') {
+    message = '¡Oye! ¿Cómo van las cosas? Tenemos $minutesLeft minutos para salir';
+  } else {
+    message = 'Hey! How are things going? We have $minutesLeft minutes left to go';
+  }
+  
+  // Initialize TTS and speak
   final FlutterTts tts = FlutterTts();
   await tts.setLanguage(ttsLanguage);
   await tts.setPitch(1.0);
   await tts.setVolume(1.0);
   await tts.setSpeechRate(0.5);
+  await tts.speak(message);
   
-  // Speak the check-in message
-  await tts.speak(checkInMessage);
-  
-  // Show notification with action buttons
-  final notifications = FlutterLocalNotificationsPlugin();
-  
-  // Initialize the plugin in the background isolate
-  const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
-  const InitializationSettings initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid,
-  );
-  await notifications.initialize(initializationSettings);
-  
-  final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-    'morning_alarms',
-    'Morning Alarms',
-    channelDescription: 'Wake-up and reminder notifications',
-    importance: Importance.max,
-    priority: Priority.high,
-    playSound: true,
-    enableVibration: true,
-    fullScreenIntent: true,
-    actions: [
-      AndroidNotificationAction(
-        'going_well',
-        goingWellText,
-        showsUserInterface: false,
-      ),
-      AndroidNotificationAction(
-        'running_tight',
-        runningTightText,
-        showsUserInterface: false,
-      ),
-    ],
-  );
-  
-  final NotificationDetails notificationDetails = NotificationDetails(
-    android: androidDetails,
-  );
-  
-  await notifications.show(
-    2,
-    checkInTitle,
-    checkInMessage,
-    notificationDetails,
-  );
-  
-  print('✅ Check-in notification shown from alarm callback');
-  // Note: Check-in alarms don't auto-reschedule, they're scheduled fresh each day
+  print('✅ Checkpoint TTS played: "$message"');
+  // Note: Checkpoint alarms don't auto-reschedule, they're scheduled fresh each day
 }
 
 @pragma('vm:entry-point')
@@ -294,7 +283,39 @@ void leaveHomeCallback() async {
   // Speak the urgent message
   await tts.speak(leaveHomeNowMessage);
   
-  // Show notification
+  // START THE JOURNEY COUNTDOWN - Set flag in SharedPreferences
+  print('🚀 Starting journey countdown...');
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('journey_active', true);
+  await prefs.setString('journey_start_time', DateTime.now().toIso8601String());
+  
+  // Verify the flag was set
+  final verifyActive = prefs.getBool('journey_active');
+  final verifyTime = prefs.getString('journey_start_time');
+  print('✅ Journey flags set - active: $verifyActive, start_time: $verifyTime');
+  
+  // Calculate time until arrival deadline
+  final settingsJson = prefs.getString('app_settings');
+  int minutesToArrival = 30; // default
+  if (settingsJson != null) {
+    try {
+      final settingsMap = Map<String, dynamic>.from(
+        (const {}).cast<String, dynamic>()..addAll(
+          Map<String, dynamic>.from(
+            (const {}).cast<String, dynamic>()..addAll(
+              Map<String, dynamic>.from({})
+            )
+          )
+        )
+      );
+      // We'll just use a reasonable estimate since parsing is complex in background
+      // The app will show the accurate countdown when opened
+    } catch (e) {
+      print('Could not parse settings, using default');
+    }
+  }
+  
+  // Show notification with countdown-style message
   final notifications = FlutterLocalNotificationsPlugin();
   
   const AndroidInitializationSettings initializationSettingsAndroid =
@@ -313,6 +334,8 @@ void leaveHomeCallback() async {
     playSound: true,
     enableVibration: true,
     fullScreenIntent: true,
+    ongoing: true, // Make it persistent during journey
+    autoCancel: false,
   );
   
   const NotificationDetails notificationDetails = NotificationDetails(
@@ -321,12 +344,13 @@ void leaveHomeCallback() async {
   
   await notifications.show(
     4,
-    leaveHomeNowTitle,
-    leaveHomeNowMessage,
+    '🚀 Journey Started!',
+    '$leaveHomeNowMessage Open app to see countdown timer.',
     notificationDetails,
+    payload: 'leave_home', // Add payload to identify this notification
   );
   
-  print('✅ Leave home notification shown');
+  print('✅ Leave home notification shown with journey started message');
   
   // Reschedule for tomorrow
   final now = DateTime.now();
@@ -358,9 +382,9 @@ void arrivalCheckCallback() async {
   final arrivalCheckTitle = await LocalizationHelper.getArrivalCheckTitle();
   final arrivalCheckBody = await LocalizationHelper.getArrivalCheckBody();
   final arrivedYesText = await LocalizationHelper.getArrivedYesText();
-  final arrivedNoText = await LocalizationHelper.getArrivedNoText();
+  // Note: 'No' button removed per PRD - user can only confirm arrival
   
-  // Show notification with action buttons
+  // Show notification with single action button
   final notifications = FlutterLocalNotificationsPlugin();
   
   const AndroidInitializationSettings initializationSettingsAndroid =
@@ -384,11 +408,6 @@ void arrivalCheckCallback() async {
         'arrived_yes',
         arrivedYesText,
         showsUserInterface: true,
-      ),
-      AndroidNotificationAction(
-        'arrived_no',
-        arrivedNoText,
-        showsUserInterface: false,
       ),
     ],
   );
@@ -426,6 +445,94 @@ void arrivalCheckCallback() async {
   );
   
   print('✅ Arrival check rescheduled for tomorrow: $tomorrow');
+}
+
+// Arrival Alarm (ID: 6) - fires at exact arrival deadline
+// Only fires if user hasn't confirmed arrival via Pre-Arrival Check
+@pragma('vm:entry-point')
+void arrivalAlarmCallback() async {
+  print('⌛ ARRIVAL ALARM FIRED at deadline!');
+  
+  // Check if arrival was already confirmed
+  final prefs = await SharedPreferences.getInstance();
+  final arrivalConfirmed = prefs.getBool('arrival_confirmed') ?? false;
+  
+  if (arrivalConfirmed) {
+    print('✅ Arrival already confirmed - skipping alarm');
+    return;
+  }
+  
+  print('❌ Arrival NOT confirmed - marking day as missed');
+  
+  // Get localized language for TTS and notification
+  final locale = await LocalizationHelper.getLocale();
+  final ttsLanguage = await LocalizationHelper.getTtsLanguage();
+  final String title;
+  final String body;
+  final String ttsMessage;
+  
+  if (locale == 'es') {
+    title = '⌛ ¡Se acabó el tiempo!';
+    body = 'No llegamos a tiempo hoy';
+    ttsMessage = 'Lo sentimos, no llegamos a tiempo hoy';
+  } else {
+    title = '⌛ Time is up!';
+    body = 'We did not arrive on time today';
+    ttsMessage = 'Sorry, you did not make it today';
+  }
+  
+  // Play TTS message
+  final FlutterTts tts = FlutterTts();
+  await tts.setLanguage(ttsLanguage);
+  await tts.setPitch(1.0);
+  await tts.setVolume(1.0);
+  await tts.setSpeechRate(0.5);
+  await tts.speak(ttsMessage);
+  print('🔊 TTS message played: $ttsMessage');
+  
+  // Show notification
+  final notifications = FlutterLocalNotificationsPlugin();
+  
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  const InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+  );
+  await notifications.initialize(initializationSettings);
+  
+  final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    'morning_alarms',
+    'Morning Alarms',
+    channelDescription: 'Wake-up and reminder notifications',
+    importance: Importance.max,
+    priority: Priority.high,
+    playSound: true,
+    enableVibration: true,
+    fullScreenIntent: true,
+  );
+  
+  final NotificationDetails notificationDetails = NotificationDetails(
+    android: androidDetails,
+  );
+  
+  await notifications.show(
+    6,
+    title,
+    body,
+    notificationDetails,
+  );
+  
+  // Mark today as missed
+  final today = DateTime.now();
+  final dateKey = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+  await prefs.setString('day_$dateKey', 'missed');
+  
+  // Reset streak
+  await prefs.setInt('current_streak', 0);
+  
+  print('✅ Day marked as missed, streak reset');
+  
+  // Do NOT reschedule - this alarm is scheduled fresh each day when Pre-Arrival Check fires
 }
 
 class AlarmService {
@@ -477,21 +584,21 @@ class AlarmService {
     print('✅ Wake-up alarm scheduled (will auto-repeat daily)');
   }
   
-  // Schedule multiple check-in alarms every 8 minutes
-  // from wake-up time until 6 minutes before leave time
+  // Schedule multiple checkpoint alarms every 10 minutes
+  // from wake-up time until 5 minutes before leave time
   static Future<void> scheduleCheckInAlarms(
     DateTime wakeUpTime,
     DateTime leaveHomeTime,
   ) async {
     final now = DateTime.now();
     
-    // Calculate the cutoff time (6 minutes before leave)
-    final cutoffTime = leaveHomeTime.subtract(const Duration(minutes: 6));
+    // Calculate the cutoff time (5 minutes before leave)
+    final cutoffTime = leaveHomeTime.subtract(const Duration(minutes: 5));
     
-    // Start scheduling check-ins 8 minutes after wake-up
-    DateTime nextCheckIn = wakeUpTime.add(const Duration(minutes: 8));
+    // Start scheduling checkpoints 10 minutes after wake-up
+    DateTime nextCheckIn = wakeUpTime.add(const Duration(minutes: 10));
     
-    int alarmId = 100; // Start check-in IDs at 100
+    int alarmId = 100; // Start checkpoint IDs at 100
     int scheduledCount = 0;
     
     while (nextCheckIn.isBefore(cutoffTime)) {
@@ -499,13 +606,13 @@ class AlarmService {
       // to prevent immediate triggering
       final timeUntilAlarm = nextCheckIn.difference(now);
       if (timeUntilAlarm.isNegative || timeUntilAlarm.inMinutes < 2) {
-        print('⏰ Skipping check-in alarm (time already passed or too soon): $nextCheckIn');
-        nextCheckIn = nextCheckIn.add(const Duration(minutes: 8));
+        print('⏰ Skipping checkpoint alarm (time already passed or too soon): $nextCheckIn');
+        nextCheckIn = nextCheckIn.add(const Duration(minutes: 10));
         alarmId++;
         continue;
       }
       
-      print('⏰ Scheduling check-in alarm #${scheduledCount + 1} for: $nextCheckIn (in ${timeUntilAlarm.inMinutes} minutes)');
+      print('⏰ Scheduling checkpoint alarm #${scheduledCount + 1} for: $nextCheckIn (in ${timeUntilAlarm.inMinutes} minutes)');
       
       await AndroidAlarmManager.oneShotAt(
         nextCheckIn,
@@ -518,18 +625,18 @@ class AlarmService {
       
       scheduledCount++;
       
-      // Move to next check-in (8 minutes later)
-      nextCheckIn = nextCheckIn.add(const Duration(minutes: 8));
+      // Move to next checkpoint (10 minutes later)
+      nextCheckIn = nextCheckIn.add(const Duration(minutes: 10));
       alarmId++;
       
-      // Safety limit: max 20 check-in alarms per day
+      // Safety limit: max 20 checkpoint alarms per day
       if (alarmId >= 120) break;
     }
     
     if (scheduledCount == 0) {
-      print('✅ No check-in alarms scheduled (all times have passed or too soon for today)');
+      print('✅ No checkpoint alarms scheduled (all times have passed or too soon for today)');
     } else {
-      print('✅ Scheduled $scheduledCount check-in alarm(s)');
+      print('✅ Scheduled $scheduledCount checkpoint alarm(s)');
     }
   }
   
@@ -563,25 +670,31 @@ class AlarmService {
   static Future<void> scheduleLeaveHomeAlarm(DateTime leaveHomeTime) async {
     final now = DateTime.now();
     
-    // Skip if in the past or too close to now (within 2 minutes)
+    // Calculate time until alarm
     final timeUntilAlarm = leaveHomeTime.difference(now);
-    if (timeUntilAlarm.isNegative || timeUntilAlarm.inMinutes < 2) {
-      print('⏰ Skipping leave-home alarm (time already passed or too soon): $leaveHomeTime');
+    
+    // Allow very short intervals for testing (as low as 1 second)
+    if (timeUntilAlarm.isNegative) {
+      print('⏰ Cannot schedule leave-home alarm in the past: $leaveHomeTime');
       return;
     }
     
-    print('⏰ Scheduling leave-home alarm for: $leaveHomeTime (in ${timeUntilAlarm.inMinutes} minutes)');
+    // For test alarms (< 1 minute), use a different alarm ID to avoid conflicts
+    final isTestAlarm = timeUntilAlarm.inMinutes < 1;
+    final alarmId = isTestAlarm ? 998 : 4;
+    
+    print('⏰ Scheduling leave-home alarm for: $leaveHomeTime (in ${timeUntilAlarm.inSeconds} seconds)');
     
     await AndroidAlarmManager.oneShotAt(
       leaveHomeTime,
-      4, // Unique ID for leave-home alarm
+      alarmId, // Use test ID for short alarms, regular ID for normal schedule
       leaveHomeCallback,
       exact: true,
       wakeup: true,
-      rescheduleOnReboot: true,
+      rescheduleOnReboot: !isTestAlarm, // Don't reschedule test alarms on reboot
     );
     
-    print('✅ Leave-home alarm scheduled');
+    print('✅ Leave-home alarm scheduled${isTestAlarm ? ' (TEST MODE)' : ''}');
   }
   
   static Future<void> scheduleArrivalCheckAlarm(DateTime arrivalTime) async {
@@ -590,14 +703,19 @@ class AlarmService {
     // 2 minutes before arrival time
     final alarmTime = arrivalTime.subtract(const Duration(minutes: 2));
     
-    // Skip if in the past or too close to now (within 2 minutes)
+    // Skip if in the past or too close to now (within 30 seconds for test mode)
     final timeUntilAlarm = alarmTime.difference(now);
-    if (timeUntilAlarm.isNegative || timeUntilAlarm.inMinutes < 2) {
+    if (timeUntilAlarm.isNegative || timeUntilAlarm.inSeconds < 30) {
       print('⏰ Skipping arrival-check alarm (time already passed or too soon): $alarmTime');
       return;
     }
     
     print('⏰ Scheduling arrival-check alarm for: $alarmTime (in ${timeUntilAlarm.inMinutes} minutes)');
+    
+    // Reset arrival confirmation flag
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('arrival_confirmed', false);
+    print('🔄 Reset arrival_confirmed flag to false');
     
     await AndroidAlarmManager.oneShotAt(
       alarmTime,
@@ -609,6 +727,33 @@ class AlarmService {
     );
     
     print('✅ Arrival-check alarm scheduled');
+    
+    // Also schedule Arrival Alarm (ID: 6) at exact deadline
+    await scheduleArrivalAlarm(arrivalTime);
+  }
+  
+  static Future<void> scheduleArrivalAlarm(DateTime arrivalTime) async {
+    final now = DateTime.now();
+    
+    // Skip if in the past or too close to now (within 1 minute)
+    final timeUntilAlarm = arrivalTime.difference(now);
+    if (timeUntilAlarm.isNegative || timeUntilAlarm.inMinutes < 1) {
+      print('⏰ Skipping arrival alarm (time already passed or too soon): $arrivalTime');
+      return;
+    }
+    
+    print('⏰ Scheduling arrival alarm (ID: 6) for: $arrivalTime (in ${timeUntilAlarm.inMinutes} minutes)');
+    
+    await AndroidAlarmManager.oneShotAt(
+      arrivalTime,
+      6, // Unique ID for arrival alarm
+      arrivalAlarmCallback,
+      exact: true,
+      wakeup: true,
+      rescheduleOnReboot: true,
+    );
+    
+    print('✅ Arrival alarm (ID: 6) scheduled - will fire if arrival not confirmed');
   }
   
   static Future<void> cancelAll() async {
@@ -629,9 +774,17 @@ class AlarmService {
     // Cancel arrival-check alarm
     await AndroidAlarmManager.cancel(5);
     
+    // Cancel arrival alarm
+    await AndroidAlarmManager.cancel(6);
+    
     // Cancel test alarm
     await AndroidAlarmManager.cancel(999);
     
     print('✅ All alarms cancelled');
+  }
+  
+  static Future<void> cancelArrivalAlarm() async {
+    await AndroidAlarmManager.cancel(6);
+    print('✅ Arrival Alarm (ID: 6) cancelled');
   }
 }
