@@ -10,6 +10,11 @@ import 'localization_helper.dart';
 void alarmCallback() async {
   print('🚨 WAKE-UP ALARM FIRED!');
   
+  // Reset arrival confirmation flag for new day
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('arrival_confirmed', false);
+  print('🔄 Reset arrival_confirmed flag for new day');
+  
   // Get localized messages
   final ttsLanguage = await LocalizationHelper.getTtsLanguage();
   final wakeUpMessage = await LocalizationHelper.getWakeUpMessage();
@@ -283,37 +288,8 @@ void leaveHomeCallback() async {
   // Speak the urgent message
   await tts.speak(leaveHomeNowMessage);
   
-  // START THE JOURNEY COUNTDOWN - Set flag in SharedPreferences
-  print('🚀 Starting journey countdown...');
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setBool('journey_active', true);
-  await prefs.setString('journey_start_time', DateTime.now().toIso8601String());
-  
-  // Verify the flag was set
-  final verifyActive = prefs.getBool('journey_active');
-  final verifyTime = prefs.getString('journey_start_time');
-  print('✅ Journey flags set - active: $verifyActive, start_time: $verifyTime');
-  
-  // Calculate time until arrival deadline
-  final settingsJson = prefs.getString('app_settings');
-  int minutesToArrival = 30; // default
-  if (settingsJson != null) {
-    try {
-      final settingsMap = Map<String, dynamic>.from(
-        (const {}).cast<String, dynamic>()..addAll(
-          Map<String, dynamic>.from(
-            (const {}).cast<String, dynamic>()..addAll(
-              Map<String, dynamic>.from({})
-            )
-          )
-        )
-      );
-      // We'll just use a reasonable estimate since parsing is complex in background
-      // The app will show the accurate countdown when opened
-    } catch (e) {
-      print('Could not parse settings, using default');
-    }
-  }
+  // No need to set journey flag - countdown now computed purely from time!
+  print('🚀 Leave home time reached - countdown will appear automatically');
   
   // Show notification with countdown-style message
   final notifications = FlutterLocalNotificationsPlugin();

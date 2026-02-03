@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/app_settings.dart';
 import '../models/day_record.dart';
 import '../models/reward.dart';
@@ -24,8 +23,7 @@ class AppState extends ChangeNotifier {
   CheckInStatus _todayCheckIn = CheckInStatus.notStarted;
   bool _isLoading = true;
   bool _isSetupComplete = false;
-  bool _isJourneyActive = false;
-  DateTime? _journeyStartTime;
+  bool _arrivalConfirmedToday = false;
 
   AppSettings? get settings => _settings;
   List<DayRecord> get records => List.unmodifiable(_records);
@@ -34,8 +32,38 @@ class AppState extends ChangeNotifier {
   CheckInStatus get todayCheckIn => _todayCheckIn;
   bool get isLoading => _isLoading;
   bool get isSetupComplete => _isSetupComplete;
-  bool get isJourneyActive => _isJourneyActive;
-  DateTime? get journeyStartTime => _journeyStartTime;
+  
+  // Pure time-based computation - no state needed!
+  bool get isJourneyActive {
+    if (_settings == null) return false;
+    
+    // If arrival already confirmed today, journey is over
+    if (_arrivalConfirmedToday) return false;
+    
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    // Get leave and arrival times for today
+    final leaveTime = DateTime(
+      today.year,
+      today.month,
+      today.day,
+      _settings!.leaveHomeTime.hour,
+      _settings!.leaveHomeTime.minute,
+    );
+    
+    final arrivalTime = _testArrivalDeadline ?? DateTime(
+      today.year,
+      today.month,
+      today.day,
+      _settings!.arrivalDeadline.hour,
+      _settings!.arrivalDeadline.minute,
+    );
+    
+    // Journey is active ONLY between leave time and arrival time - at arrival time, time is up!
+    // Use >= for leave time so journey starts exactly at leave time (not just after)
+    return (now.isAfter(leaveTime) || now.isAtSameMomentAs(leaveTime)) && now.isBefore(arrivalTime);
+  }
   NotificationService get notificationService => _notifications;
   
   DateTime? _testArrivalDeadline;
@@ -114,75 +142,16 @@ class AppState extends ChangeNotifier {
     if (_testArrivalDeadline != null) {
       print('🧪 Test deadline loaded from storage: $_testArrivalDeadline');
     }
-
-    // Check if journey should be active (persists across app restarts until arrival time)
-    print('🔍 Checking journey state during app initialization...');
-    final isJourneyActive = await _storage.isJourneyActive();
-    print('🔍 Journey active in storage: $isJourneyActive');
-    if (isJourneyActive && _settings != null) {
-      final startTime = await _storage.getJourneyStartTime();
-      
-      // Validate journey and check if it should still be active
-      if (startTime != null) {
-        final now = DateTime.now();
-        final today = DateTime(now.year, now.month, now.day);
-        final startDate = DateTime(startTime.year, startTime.month, startTime.day);
-        
-        // Calculate arrival deadline
-        final arrivalTime = DateTime(
-          now.year,
-          now.month,
-          now.day,
-          _settings!.arrivalDeadline.hour,
-          _settings!.arrivalDeadline.minute,
-        );
-        
-        print('🔍 Validating journey: start=$startTime, now=$now');
-        print('🔍 Arrival deadline from settings: $arrivalTime');
-        print('🔍 Test deadline override: $_testArrivalDeadline');
-        
-        // Use test deadline if available, otherwise use settings
-        final effectiveArrivalTime = _testArrivalDeadline ?? arrivalTime;
-        print('🔍 Effective arrival deadline: $effectiveArrivalTime');
-        
-        // Journey is valid if:
-        // 1. Started today
-        // 2. Arrival deadline hasn't passed yet (with 30 min grace period)
-        final isToday = startDate.isAtSameMomentAs(today);
-        final beforeDeadline = now.isBefore(effectiveArrivalTime.add(const Duration(minutes: 30)));
-        
-        print('🔍 Journey validation: isToday=$isToday, beforeDeadline=$beforeDeadline');
-        print('🔍 Now: $now, Deadline+30min: ${effectiveArrivalTime.add(const Duration(minutes: 30))}');
-        
-        if (isToday && beforeDeadline) {
-          _isJourneyActive = true;
-          _journeyStartTime = startTime;
-          final minutesSinceStart = now.difference(startTime).inMinutes;
-          print('🚀 ═══════════════════════════════════════════');
-          print('🚀 JOURNEY RESTORED SUCCESSFULLY!');
-          print('🚀 _isJourneyActive set to: $_isJourneyActive');
-          print('🚀 arrivalDeadline: $arrivalDeadline');
-          print('🚀 Started ${minutesSinceStart} min ago');
-          print('🚀 ═══════════════════════════════════════════');
-          print('✅ COUNTDOWN TIMER SHOULD NOW BE VISIBLE!');
-          print('🔍 Calling notifyListeners() to rebuild UI...');
-          notifyListeners();
-          print('✅ notifyListeners() called - UI should update');
-        } else {
-          print('⚠️ Journey expired (isToday: $isToday, beforeDeadline: $beforeDeadline), clearing it');
-          await _storage.setJourneyActive(false);
-          // Clear test deadline if journey expired
-          _testArrivalDeadline = null;
-          await _storage.setTestArrivalDeadline(null);
-        }
-      } else {
-        print('⚠️ Journey active but no start time found, clearing state');
-        await _storage.setJourneyActive(false);
-        // Clear test deadline
-        _testArrivalDeadline = null;
-        await _storage.setTestArrivalDeadline(null);
-      }
+    
+    // Check if arrival was already confirmed today
+    final arrivalConfirmed = await _storage.getArrivalConfirmed();
+    _arrivalConfirmedToday = arrivalConfirmed;
+    if (_arrivalConfirmedToday) {
+      print('✅ Arrival already confirmed today - journey inactive');
     }
+
+    // Journey state is now computed on-demand from current time vs leave/arrival times
+    print('🔍 Journey status will be computed automatically based on current time');
 
     if (_settings != null) {
       // Reschedule all notifications and alarms with current settings
@@ -261,96 +230,23 @@ class AppState extends ChangeNotifier {
   }
 
   /// Check and restore journey state - called when app resumes from background
+  /// Now simplified: just reload test deadline and trigger UI update
   Future<void> checkAndRestoreJourneyState() async {
-    print('🔍 ═══════════════════════════════════════════');
-    print('🔍 checkAndRestoreJourneyState called');
-    print('🔍 ═══════════════════════════════════════════');
-    
-    // CRITICAL: Reload SharedPreferences to get latest values from background isolate
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.reload();
-    print('🔄 SharedPreferences reloaded to get latest values from alarm isolate');
+    print('🔍 Checking journey state (time-based computation)...');
     
     // Reload test deadline in case it was set during testing
     final testDeadline = await _storage.getTestArrivalDeadline();
     if (testDeadline != null) {
       _testArrivalDeadline = testDeadline;
-      print('🧪 Test deadline reloaded from storage: $_testArrivalDeadline');
+      print('🧪 Test deadline loaded: $_testArrivalDeadline');
     }
     
-    final isJourneyActive = await _storage.isJourneyActive();
-    print('🔍 Journey active flag in storage: $isJourneyActive');
-    print('🔍 Current _isJourneyActive state BEFORE: $_isJourneyActive');
-    print('🔍 Settings loaded: ${_settings != null}');
-    print('🔍 Arrival deadline available: ${arrivalDeadline != null}');
+    // isJourneyActive is now a computed getter - no state to restore!
+    print('🔍 Journey active (computed): $isJourneyActive');
+    print('🔍 Current time vs leave/arrival: ${DateTime.now()}');
     
-    if (isJourneyActive && _settings != null) {
-      print('✅ CONDITION MET: Journey active AND settings loaded');
-      // Journey is active - restore the countdown state
-      final startTime = await _storage.getJourneyStartTime();
-      print('🔍 Journey start time from storage: $startTime');
-      
-      // Validate journey and check if it should still be active
-      if (startTime != null) {
-        final now = DateTime.now();
-        final today = DateTime(now.year, now.month, now.day);
-        final startDate = DateTime(startTime.year, startTime.month, startTime.day);
-        
-        // Calculate arrival deadline (use test deadline if set, otherwise settings)
-        final settingsArrivalTime = DateTime(
-          now.year,
-          now.month,
-          now.day,
-          _settings!.arrivalDeadline.hour,
-          _settings!.arrivalDeadline.minute,
-        );
-        
-        final effectiveArrivalTime = _testArrivalDeadline ?? settingsArrivalTime;
-        
-        print('🔍 Settings arrival deadline: $settingsArrivalTime');
-        print('🔍 Test deadline override: $_testArrivalDeadline');
-        print('🔍 Effective arrival deadline: $effectiveArrivalTime');
-        print('🔍 Current time: $now');
-        
-        // Journey is valid if started today and arrival deadline hasn't passed
-        final isToday = startDate.isAtSameMomentAs(today);
-        final beforeDeadline = now.isBefore(effectiveArrivalTime.add(const Duration(minutes: 30)));
-        
-        print('🔍 Is today: $isToday, Before deadline: $beforeDeadline');
-        
-        if (isToday && beforeDeadline) {
-          _isJourneyActive = true;
-          _journeyStartTime = startTime;
-          final minutesSinceStart = now.difference(startTime).inMinutes;
-          print('🚀 Journey restored from background - starting countdown (started ${minutesSinceStart} min ago)');
-          notifyListeners();
-        } else {
-          print('⚠️ Journey expired (isToday: $isToday, beforeDeadline: $beforeDeadline), clearing it');
-          print('⚠️ ABOUT TO CLEAR FLAG - start=$startTime, now=$now, deadline=$effectiveArrivalTime');
-          await _storage.setJourneyActive(false);
-          print('⚠️ FLAG CLEARED BY checkAndRestoreJourneyState()');
-          // Clear test deadline if journey expired
-          _testArrivalDeadline = null;
-          await _storage.setTestArrivalDeadline(null);
-        }
-      } else {
-        print('⚠️ Journey active but no start time found, clearing state');
-        print('⚠️ FLAG WILL BE CLEARED BY checkAndRestoreJourneyState() - NO START TIME');
-        await _storage.setJourneyActive(false);
-        print('⚠️ FLAG CLEARED');
-        // Clear test deadline
-        _testArrivalDeadline = null;
-        await _storage.setTestArrivalDeadline(null);
-      }
-    } else if (!isJourneyActive && _isJourneyActive) {
-      // Journey was stopped externally
-      _isJourneyActive = false;
-      _journeyStartTime = null;
-      print('🛑 Journey was stopped externally');
-      notifyListeners();
-    } else {
-      print('❌ JOURNEY NOT RESTORED: isJourneyActive=$isJourneyActive, _settings=${_settings != null}');
-    }
+    // Just trigger UI update - countdown will appear if time is right
+    notifyListeners();
   }
 
   Future<void> saveSettings(AppSettings settings) async {
@@ -435,21 +331,14 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void startJourney() {
-    _isJourneyActive = true;
-    _journeyStartTime = DateTime.now();
-    _storage.setJourneyActive(true);
+  Future<void> resetArrivalConfirmation() async {
+    _arrivalConfirmedToday = false;
+    await _storage.setArrivalConfirmed(false);
     notifyListeners();
   }
 
-  Future<void> stopJourney() async {
-    _isJourneyActive = false;
-    _journeyStartTime = null;
-    await _storage.setJourneyActive(false);
-    // Don't auto-clear test deadline here - let caller decide
-    print('🛑 Journey stopped and state cleared');
-    notifyListeners();
-  }
+  // Journey start/stop removed - now purely time-based!
+  // Journey is automatically "active" when current time is between leave time and arrival time
 
   Future<void> confirmArrival(bool onTime) async {
     final today = DateTime.now();
@@ -457,13 +346,11 @@ class AppState extends ChangeNotifier {
 
     // Set arrival confirmed flag and cancel Arrival Alarm (ID: 6)
     await _storage.setArrivalConfirmed(true);
+    _arrivalConfirmedToday = true; // Update local state immediately
     await AlarmService.cancelArrivalAlarm();
     print('✅ Arrival confirmed - Arrival Alarm (ID: 6) cancelled');
-
-    // Stop the journey
-    await stopJourney();
     
-    // Clear test deadline after stopping journey
+    // Clear test deadline (journey will auto-stop based on confirmation)
     clearTestDeadline();
 
     // Check if we already have a record for today

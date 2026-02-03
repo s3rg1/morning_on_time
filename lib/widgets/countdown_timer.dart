@@ -5,12 +5,12 @@ import '../l10n/app_localizations.dart';
 
 class CountdownTimer extends StatefulWidget {
   final DateTime arrivalDeadline;
-  final VoidCallback? onComplete;
+  final Duration totalDuration;
 
   const CountdownTimer({
     super.key,
     required this.arrivalDeadline,
-    this.onComplete,
+    required this.totalDuration,
   });
 
   @override
@@ -52,7 +52,7 @@ class _CountdownTimerState extends State<CountdownTimer>
       setState(() {
         _remaining = Duration.zero;
       });
-      widget.onComplete?.call();
+      // No callback needed - journey state is computed purely from time
       _timer?.cancel();
     } else {
       setState(() {
@@ -83,13 +83,14 @@ class _CountdownTimerState extends State<CountdownTimer>
   }
 
   double _getProgress() {
-    // Calculate total journey duration (you might want to pass this as a parameter)
-    final totalSeconds = _remaining.inSeconds;
+    final totalSeconds = widget.totalDuration.inSeconds;
     if (totalSeconds <= 0) return 0.0;
     
-    // For visual purposes, let's say max journey is 60 minutes
-    final maxSeconds = 60 * 60;
-    return math.min(1.0, totalSeconds / maxSeconds);
+    final remainingSeconds = _remaining.inSeconds;
+    if (remainingSeconds <= 0) return 0.0;
+    
+    // Progress from 1.0 (full circle at start) to 0.0 (empty at deadline)
+    return math.min(1.0, remainingSeconds / totalSeconds);
   }
 
   @override

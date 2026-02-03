@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:confetti/confetti.dart';
+import 'dart:async';
+import 'dart:math';
 import '../l10n/app_localizations.dart';
 import '../providers/app_state.dart';
 import '../models/app_settings.dart';
@@ -21,10 +24,18 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  late ConfettiController _confettiController;
+  Timer? _journeyCheckTimer;
+  bool _wasJourneyActive = false;
+
   @override
   void initState() {
     super.initState();
+    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
     WidgetsBinding.instance.addObserver(this);
+    
+    // Start periodic timer to check journey state changes
+    _startJourneyStateMonitoring();
     
     // Check journey state immediately when screen loads
     // This ensures countdown appears even if user opens app directly (not via notification tap)
@@ -36,6 +47,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _journeyCheckTimer?.cancel();
+    _confettiController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -52,6 +65,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _checkJourneyState() async {
     final appState = Provider.of<AppState>(context, listen: false);
     await appState.checkAndRestoreJourneyState();
+  }
+
+  void _startJourneyStateMonitoring() {
+    // Check every 5 seconds for journey state changes
+    _journeyCheckTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!mounted) return;
+      
+      final appState = Provider.of<AppState>(context, listen: false);
+      final isActive = appState.isJourneyActive;
+      
+      // If journey state changed, trigger a rebuild
+      if (isActive != _wasJourneyActive) {
+        print('🔄 Journey state changed: $_wasJourneyActive → $isActive');
+        _wasJourneyActive = isActive;
+        setState(() {}); // Force rebuild to show/hide countdown
+      }
+    });
   }
 
   Future<bool> _checkExactAlarmPermission() async {
@@ -182,11 +212,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // when arrival confirmation happens
       print('🧪 Test will overwrite any existing result for today');
       
-      // 2. Clear any ongoing journey/countdown
-      if (appState.isJourneyActive) {
-        await appState.stopJourney();
-        print('🧪 Stopped active journey');
-      }
+      // 2. Reset arrival confirmation flag for testing
+      await appState.resetArrivalConfirmation();
+      print('🧪 Reset arrival_confirmed flag for testing');
       
       // 3. Create test settings with times relative to now
       // Note: TimeOfDay only stores hour:minute, so we need enough buffer
@@ -245,8 +273,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.appTitle),
         actions: [
           // Test button (remove in production)
@@ -372,11 +402,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 const SizedBox(height: 24),
 
                 // Journey Status - Show countdown if journey is active
-                if (appState.isJourneyActive && appState.arrivalDeadline != null)
+                if (appState.isJourneyActive && appState.arrivalDeadline != null) ...[
+                  const SizedBox(height: 16),
                   Card(
                     elevation: 4,
                     child: Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(20),
                       child: Column(
                         children: [
                           Text(
@@ -389,9 +420,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           const SizedBox(height: 16),
                           CountdownTimer(
                             arrivalDeadline: appState.arrivalDeadline!,
-                            onComplete: () {
-                              appState.stopJourney();
-                            },
+                            totalDuration: appState.arrivalDeadline!.difference(
+                              DateTime(
+                                appState.arrivalDeadline!.year,
+                                appState.arrivalDeadline!.month,
+                                appState.arrivalDeadline!.day,
+                                appState.settings!.leaveHomeTime.hour,
+                                appState.settings!.leaveHomeTime.minute,
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 16),
                           ElevatedButton.icon(
@@ -413,6 +450,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 24),
+                ],
                 
                 // Today's Result - Show completion status if available
                 if (todayRecord != null && !appState.isJourneyActive) ...[
@@ -448,67 +487,53 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
                 ],
 
-                // Mission Card - Always show
-                const SizedBox(height: 16),
-                Card(
-                          color: Colors.amber.shade50,
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              children: [
-                                const Icon(Icons.wb_sunny, size: 40, color: Colors.orange),
-                                const SizedBox(height: 12),
-                                Text(
-                                  AppLocalizations.of(context)!.todaysMission,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  AppLocalizations.of(context)!.arriveOnTime,
-                                  style: const TextStyle(fontSize: 16),
-                                ),
-                                if (settings != null) ...[
-                                  const SizedBox(height: 20),
-                                  _ScheduleItem(
-                                    icon: Icons.alarm,
-                                    label: AppLocalizations.of(context)!.wakeUp,
-                                    time: settings.wakeUpTime.format(context),
-                                  ),
-                                  _ScheduleItem(
-                                    icon: Icons.directions_run,
-                                    label: AppLocalizations.of(context)!.leaveHome,
-                                    time: settings.leaveHomeTime.format(context),
-                                  ),
-                                  _ScheduleItem(
-                                    icon: Icons.school,
-                                    label: AppLocalizations.of(context)!.arriveBy,
-                                    time: settings.arrivalDeadline.format(context),
-                                  ),
-                                ],
-                                const SizedBox(height: 16),
-                                ElevatedButton.icon(
-                                  onPressed: () {
-                                    _showArrivalDialog(context, appState);
-                                  },
-                                  icon: const Icon(Icons.school),
-                                  label: Text(AppLocalizations.of(context)!.arrivedAtSchool),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 12,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                // Mission Card - Show only when journey is NOT active
+                if (!appState.isJourneyActive) ...[
+                  const SizedBox(height: 16),
+                  Card(
+                    color: Colors.amber.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          const Icon(Icons.wb_sunny, size: 40, color: Colors.orange),
+                          const SizedBox(height: 12),
+                          Text(
+                            AppLocalizations.of(context)!.todaysMission,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                const SizedBox(height: 24),
+                          const SizedBox(height: 8),
+                          Text(
+                            AppLocalizations.of(context)!.arriveOnTime,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          if (settings != null) ...[
+                            const SizedBox(height: 20),
+                            _ScheduleItem(
+                              icon: Icons.alarm,
+                              label: AppLocalizations.of(context)!.wakeUp,
+                              time: settings.wakeUpTime.format(context),
+                            ),
+                            _ScheduleItem(
+                              icon: Icons.directions_run,
+                              label: AppLocalizations.of(context)!.leaveHome,
+                              time: settings.leaveHomeTime.format(context),
+                            ),
+                            _ScheduleItem(
+                              icon: Icons.school,
+                              label: AppLocalizations.of(context)!.arriveBy,
+                              time: settings.arrivalDeadline.format(context),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
 
                 // Quick Actions
                 Row(
@@ -547,8 +572,29 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
           );
         },
-      ),
-    );
+      ),        ),
+        // Confetti overlay
+        Align(
+          alignment: Alignment.topCenter,
+          child: ConfettiWidget(
+            confettiController: _confettiController,
+            blastDirection: pi / 2, // Down
+            maxBlastForce: 5,
+            minBlastForce: 2,
+            emissionFrequency: 0.05,
+            numberOfParticles: 20,
+            gravity: 0.3,
+            colors: const [
+              Colors.green,
+              Colors.blue,
+              Colors.yellow,
+              Colors.orange,
+              Colors.pink,
+              Colors.purple,
+            ],
+          ),
+        ),
+      ],    );
   }
 
   void _showArrivalDialog(BuildContext context, AppState appState) {
@@ -602,6 +648,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             onPressed: () {
               appState.confirmArrival(isOnTime);
               Navigator.of(ctx).pop();
+              
+              // Celebrate success with confetti!
+              if (isOnTime) {
+                _confettiController.play();
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue,
