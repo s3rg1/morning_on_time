@@ -67,6 +67,45 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     await appState.checkAndRestoreJourneyState();
   }
 
+  Map<String, dynamic> _getStreakLevelInfo(int streak) {
+    if (streak < 10) {
+      return {
+        'image': 'assets/images/streak/level_0.png',
+        'color': Colors.orange,
+        'level': 'Beginner Runner',
+        'next': 10,
+      };
+    } else if (streak < 20) {
+      return {
+        'image': 'assets/images/streak/level_1.png',
+        'color': Colors.green,
+        'level': 'Occasional Runner',
+        'next': 20,
+      };
+    } else if (streak < 30) {
+      return {
+        'image': 'assets/images/streak/level_2.png',
+        'color': Colors.purple,
+        'level': 'Pro Runner',
+        'next': 30,
+      };
+    } else if (streak < 40) {
+      return {
+        'image': 'assets/images/streak/level_3.png',
+        'color': Colors.red,
+        'level': 'Champion Runner',
+        'next': 40,
+      };
+    } else {
+      return {
+        'image': 'assets/images/streak/level_4.png',
+        'color': Colors.amber.shade700,
+        'level': 'Ultimate Jaguar',
+        'next': null,
+      };
+    }
+  }
+
   void _startJourneyStateMonitoring() {
     // Check every 5 seconds for journey state changes
     _journeyCheckTimer = Timer.periodic(const Duration(seconds: 5), (_) {
@@ -366,7 +405,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
                 const SizedBox(height: 16),
                 
-                // Streak Card
+                // Streak Card with Level-Up Character
                 Card(
                   elevation: 4,
                   color: Colors.blue.shade50,
@@ -375,27 +414,155 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(24),
-                    child: Column(
-                      children: [
-                        const Icon(Icons.local_fire_department,
-                            size: 60, color: Colors.orange),
-                        const SizedBox(height: 12),
-                        Text(
-                          '${appState.currentStreak}',
-                          style: const TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
-                        ),
-                        Text(
-                          AppLocalizations.of(context)!.daysStreak(appState.currentStreak),
-                          style: const TextStyle(
-                            fontSize: 20,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
+                    child: Builder(
+                      builder: (context) {
+                        final levelInfo = _getStreakLevelInfo(appState.currentStreak);
+                        final daysToNext = levelInfo['next'] != null 
+                            ? levelInfo['next'] - appState.currentStreak 
+                            : null;
+                        
+                        return Column(
+                          children: [
+                            // Character with colored circle background
+                            Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // Colored circle background
+                                Container(
+                                  width: 140,
+                                  height: 140,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: (levelInfo['color'] as Color).withOpacity(0.2),
+                                    border: Border.all(
+                                      color: levelInfo['color'] as Color,
+                                      width: 3,
+                                    ),
+                                  ),
+                                ),
+                                // Character image
+                                Image.asset(
+                                  levelInfo['image'] as String,
+                                  width: 120,
+                                  height: 120,
+                                  fit: BoxFit.contain,
+                                ),
+                                // Fire badge overlay
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: Colors.orange,
+                                        width: 2,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.1),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.local_fire_department,
+                                          size: 20,
+                                          color: Colors.orange,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '${appState.currentStreak}',
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.orange,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            // Streak text
+                            Text(
+                              AppLocalizations.of(context)!.daysStreak(appState.currentStreak),
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            // Level name
+                            Text(
+                              levelInfo['level'] as String,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: levelInfo['color'] as Color,
+                              ),
+                            ),
+                            // Progress to next level
+                            if (daysToNext != null) ...[
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: (levelInfo['color'] as Color).withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  daysToNext == 1
+                                      ? '1 day until next level! 🎉'
+                                      : '$daysToNext days until next level! 🚀',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: levelInfo['color'] as Color,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ] else ...[
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Text(
+                                  'Maximum level reached! 🏆',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.amber,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ],
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),

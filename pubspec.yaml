@@ -35,3 +35,4 @@ flutter:
   generate: true
   assets:
     - assets/sounds/
+    - assets/images/streak/

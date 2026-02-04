@@ -84,10 +84,11 @@ Families with school‑age children often arrive late despite good intentions. M
 3. A recurring voice message informs the family of the time they have to leave.
 4. Timely voice notifications at key moments, such as 5 minutes to leave or time to leave.
 5. When it's time to leave, a countdown timer appears to inform the family how much time they have left.
-6. Success arrival confirmation by parent through both the notification or home screen.
-7. At arrival time, if parent didn't confirm success, it's a failure. 
-7. Success or failure is recorded  
-8. Streak and reward progress updated
+6. After time to leave, the user can state that they have arrived at school. If they confirm that have arrived before arrival time, it's a success so the countdown timer stops.
+7. If success, the app celebrates the achievement with a confetti animation.
+8. At arrival time, if parent didn't confirm success, it's a failure. 
+9. Success or failure is recorded hidding the countdown timer and updating the streak and monthly history
+10. Streak and reward progress updated
 
 ---
 
