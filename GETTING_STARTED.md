@@ -125,11 +125,13 @@ morning_on_time/
 │   │   └── streak_service.dart    # Streak calculations
 │   ├── providers/                 # State management
 │   │   └── app_state.dart         # Central app state
+│   ├── widgets/                   # Reusable widgets
+│   │   ├── reward_card.dart       # Reward progress display
+│   │   └── reward_management_dialog.dart  # Reward editor
 │   └── screens/                   # UI pages
 │       ├── home_screen.dart       # Main dashboard
 │       ├── setup_screen.dart      # Initial configuration
-│       ├── monthly_view_screen.dart  # Calendar view
-│       └── rewards_screen.dart    # Rewards management
+│       └── monthly_view_screen.dart  # Calendar view
 ├── android/                       # Android-specific files
 ├── ios/                          # iOS-specific files
 ├── BUILD.md                      # Detailed build instructions

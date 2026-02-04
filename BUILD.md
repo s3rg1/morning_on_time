@@ -129,8 +129,7 @@ lib/
 └── screens/                  # UI screens
     ├── home_screen.dart
     ├── setup_screen.dart
-    ├── monthly_view_screen.dart
-    └── rewards_screen.dart
+    └── monthly_view_screen.dart
 ```
 
 ## Troubleshooting

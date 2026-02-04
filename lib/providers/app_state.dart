@@ -33,6 +33,15 @@ class AppState extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isSetupComplete => _isSetupComplete;
   
+  // Get the current active reward (single reward system)
+  Reward? get currentReward {
+    try {
+      return _rewards.firstWhere((r) => r.isActive);
+    } catch (e) {
+      return null;
+    }
+  }
+  
   // Pure time-based computation - no state needed!
   bool get isJourneyActive {
     if (_settings == null) return false;
@@ -136,6 +145,14 @@ class AppState extends ChangeNotifier {
     _rewards = await _storage.loadRewards();
     _currentStreak = _streakService.calculateCurrentStreak(_records);
     _isSetupComplete = await _storage.isSetupComplete();
+    
+    // Initialize default reward if no rewards exist
+    if (_rewards.isEmpty) {
+      final defaultReward = Reward.defaultReward();
+      _rewards.add(defaultReward);
+      await _storage.saveRewards(_rewards);
+      print('🎁 Created default reward: ${defaultReward.name}');
+    }
     
     // Load test deadline BEFORE checking journey state (critical for testing!)
     _testArrivalDeadline = await _storage.getTestArrivalDeadline();
@@ -381,6 +398,17 @@ class AppState extends ChangeNotifier {
     if (onTime) {
       await _voice.playSuccessMessage(_currentStreak);
       
+      // Check if reward is achieved
+      final reward = currentReward;
+      if (reward != null && reward.isAchieved(_currentStreak)) {
+        print('🎉 Reward achieved: ${reward.name}');
+        // Reward celebration will be handled in the UI
+        // Mark reward as completed after a short delay to show celebration first
+        Future.delayed(const Duration(seconds: 2), () async {
+          await markRewardAsCompleted();
+        });
+      }
+      
       // Check for reward eligibility
       final nextReward = _getNextReward();
       if (nextReward != null) {
@@ -417,6 +445,48 @@ class AppState extends ChangeNotifier {
   Future<void> deleteReward(String id) async {
     _rewards.removeWhere((r) => r.id == id);
     await _storage.saveRewards(_rewards);
+    notifyListeners();
+  }
+
+  // Update the current active reward
+  Future<void> updateCurrentReward({required String name, required int requiredStreak}) async {
+    final current = currentReward;
+    if (current != null) {
+      final updated = current.copyWith(
+        name: name,
+        requiredStreakLength: requiredStreak,
+      );
+      await updateReward(current.id, updated);
+    } else {
+      // Create new reward if none exists
+      final newReward = Reward(
+        id: 'reward_${DateTime.now().millisecondsSinceEpoch}',
+        name: name,
+        requiredStreakLength: requiredStreak,
+        creationDate: DateTime.now(),
+        isActive: true,
+      );
+      await addReward(newReward);
+    }
+  }
+
+  // Mark current reward as completed
+  Future<void> markRewardAsCompleted() async {
+    final current = currentReward;
+    if (current != null && current.isAchieved(_currentStreak)) {
+      final completed = current.copyWith(
+        completionDate: DateTime.now(),
+        isActive: false,
+      );
+      await updateReward(current.id, completed);
+      print('🏆 Reward completed: ${current.name}');
+    }
+  }
+
+  // Reset reward progress (when streak resets)
+  Future<void> resetRewardProgress() async {
+    // Reward stays active, just the progress resets with the streak
+    // No changes needed to the reward itself
     notifyListeners();
   }
 

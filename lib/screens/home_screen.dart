@@ -12,8 +12,8 @@ import '../models/app_settings.dart';
 import '../models/check_in_status.dart';
 import '../services/alarm_service.dart';
 import '../widgets/countdown_timer.dart';
+import '../widgets/reward_card.dart';
 import 'monthly_view_screen.dart';
-import 'rewards_screen.dart';
 import 'setup_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -566,6 +566,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
                   ),
                 ),
+
+                // Reward Card - Below streak card
+                const RewardCard(),
+
                 const SizedBox(height: 24),
 
                 // Journey Status - Show countdown if journey is active
@@ -703,36 +707,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ],
 
                 // Quick Actions
-                Row(
-                  children: [
-                    Expanded(
-                      child: _QuickActionButton(
-                        icon: Icons.calendar_month,
-                        label: AppLocalizations.of(context)!.monthlyView,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const MonthlyViewScreen(),
-                            ),
-                          );
-                        },
+                _QuickActionButton(
+                  icon: Icons.calendar_month,
+                  label: AppLocalizations.of(context)!.monthlyView,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MonthlyViewScreen(),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _QuickActionButton(
-                        icon: Icons.star,
-                        label: AppLocalizations.of(context)!.rewards,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const RewardsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
 
               ],
