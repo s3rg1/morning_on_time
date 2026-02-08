@@ -15,6 +15,8 @@ class _SetupScreenState extends State<SetupScreen> {
   TimeOfDay _wakeUpTime = const TimeOfDay(hour: 6, minute: 30);
   TimeOfDay _leaveHomeTime = const TimeOfDay(hour: 7, minute: 45);
   TimeOfDay _arrivalDeadline = const TimeOfDay(hour: 8, minute: 0);
+  Set<int> _activeDaysOfWeek = {1, 2, 3, 4, 5}; // Default: Weekdays (Mon-Fri)
+  Set<DateTime> _skipDates = {};
 
   @override
   void initState() {
@@ -27,6 +29,8 @@ class _SetupScreenState extends State<SetupScreen> {
           _wakeUpTime = appState.settings!.wakeUpTime;
           _leaveHomeTime = appState.settings!.leaveHomeTime;
           _arrivalDeadline = appState.settings!.arrivalDeadline;
+          _activeDaysOfWeek = Set<int>.from(appState.settings!.activeDaysOfWeek);
+          _skipDates = Set<DateTime>.from(appState.settings!.skipDates);
         });
       }
     });
@@ -145,6 +149,26 @@ class _SetupScreenState extends State<SetupScreen> {
     }
   }
 
+  DateTime _getTomorrowDate() {
+    final now = DateTime.now();
+    final tomorrow = now.add(const Duration(days: 1));
+    return DateTime(tomorrow.year, tomorrow.month, tomorrow.day);
+  }
+
+  String _getTomorrowDateString() {
+    final tomorrow = _getTomorrowDate();
+    final weekdays = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return '${weekdays[tomorrow.weekday]} ${tomorrow.month}/${tomorrow.day}';
+  }
+
+  bool _isSkippingTomorrow() {
+    final tomorrow = _getTomorrowDate();
+    return _skipDates.any((skipDate) {
+      final normalizedSkipDate = DateTime(skipDate.year, skipDate.month, skipDate.day);
+      return normalizedSkipDate == tomorrow;
+    });
+  }
+
   void _saveSettings() async {
     try {
       final appState = Provider.of<AppState>(context, listen: false);
@@ -152,6 +176,8 @@ class _SetupScreenState extends State<SetupScreen> {
         wakeUpTime: _wakeUpTime,
         leaveHomeTime: _leaveHomeTime,
         arrivalDeadline: _arrivalDeadline,
+        activeDaysOfWeek: _activeDaysOfWeek,
+        skipDates: _skipDates,
       );
       
       // Show loading indicator
@@ -206,18 +232,19 @@ class _SetupScreenState extends State<SetupScreen> {
         ),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 40),
-              const Icon(
-                Icons.wb_sunny,
-                size: 80,
-                color: Colors.orange,
-              ),
-              const SizedBox(height: 24),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 40),
+                const Icon(
+                  Icons.wb_sunny,
+                  size: 80,
+                  color: Colors.orange,
+                ),
+                const SizedBox(height: 24),
               Text(
                 AppLocalizations.of(context)!.appTitle,
                 style: const TextStyle(
@@ -256,7 +283,179 @@ class _SetupScreenState extends State<SetupScreen> {
                 time: _arrivalDeadline,
                 onTap: () => _selectTime(context, 'arrival'),
               ),
-              const Spacer(),
+              const SizedBox(height: 32),
+              // Active Days Section
+              Text(
+                'Active Days',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 12),
+              // Day toggles
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _DayToggle(
+                    label: 'Mon',
+                    day: 1,
+                    isActive: _activeDaysOfWeek.contains(1),
+                    onToggle: (active) {
+                      setState(() {
+                        if (active) {
+                          _activeDaysOfWeek.add(1);
+                        } else {
+                          _activeDaysOfWeek.remove(1);
+                        }
+                      });
+                    },
+                  ),
+                  _DayToggle(
+                    label: 'Tue',
+                    day: 2,
+                    isActive: _activeDaysOfWeek.contains(2),
+                    onToggle: (active) {
+                      setState(() {
+                        if (active) {
+                          _activeDaysOfWeek.add(2);
+                        } else {
+                          _activeDaysOfWeek.remove(2);
+                        }
+                      });
+                    },
+                  ),
+                  _DayToggle(
+                    label: 'Wed',
+                    day: 3,
+                    isActive: _activeDaysOfWeek.contains(3),
+                    onToggle: (active) {
+                      setState(() {
+                        if (active) {
+                          _activeDaysOfWeek.add(3);
+                        } else {
+                          _activeDaysOfWeek.remove(3);
+                        }
+                      });
+                    },
+                  ),
+                  _DayToggle(
+                    label: 'Thu',
+                    day: 4,
+                    isActive: _activeDaysOfWeek.contains(4),
+                    onToggle: (active) {
+                      setState(() {
+                        if (active) {
+                          _activeDaysOfWeek.add(4);
+                        } else {
+                          _activeDaysOfWeek.remove(4);
+                        }
+                      });
+                    },
+                  ),
+                  _DayToggle(
+                    label: 'Fri',
+                    day: 5,
+                    isActive: _activeDaysOfWeek.contains(5),
+                    onToggle: (active) {
+                      setState(() {
+                        if (active) {
+                          _activeDaysOfWeek.add(5);
+                        } else {
+                          _activeDaysOfWeek.remove(5);
+                        }
+                      });
+                    },
+                  ),
+                  _DayToggle(
+                    label: 'Sat',
+                    day: 6,
+                    isActive: _activeDaysOfWeek.contains(6),
+                    onToggle: (active) {
+                      setState(() {
+                        if (active) {
+                          _activeDaysOfWeek.add(6);
+                        } else {
+                          _activeDaysOfWeek.remove(6);
+                        }
+                      });
+                    },
+                  ),
+                  _DayToggle(
+                    label: 'Sun',
+                    day: 7,
+                    isActive: _activeDaysOfWeek.contains(7),
+                    onToggle: (active) {
+                      setState(() {
+                        if (active) {
+                          _activeDaysOfWeek.add(7);
+                        } else {
+                          _activeDaysOfWeek.remove(7);
+                        }
+                      });
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Quick presets
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        setState(() {
+                          _activeDaysOfWeek = {1, 2, 3, 4, 5}; // Weekdays
+                        });
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.blue),
+                      ),
+                      child: const Text('Weekdays Only'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        setState(() {
+                          _activeDaysOfWeek = {1, 2, 3, 4, 5, 6, 7}; // Every day
+                        });
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.blue),
+                      ),
+                      child: const Text('Every Day'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Skip Tomorrow toggle
+              SwitchListTile(
+                title: const Text('Skip Tomorrow'),
+                subtitle: _isSkippingTomorrow()
+                    ? Text(
+                        'Alarms disabled for ${_getTomorrowDateString()}',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      )
+                    : const Text('Enable to skip alarms tomorrow'),
+                value: _isSkippingTomorrow(),
+                onChanged: (bool value) {
+                  setState(() {
+                    final tomorrow = _getTomorrowDate();
+                    if (value) {
+                      _skipDates.add(tomorrow);
+                    } else {
+                      _skipDates.remove(tomorrow);
+                    }
+                  });
+                },
+                activeColor: Colors.orange,
+              ),
+              const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _saveSettings,
                 style: ElevatedButton.styleFrom(
@@ -277,6 +476,7 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }
@@ -328,6 +528,50 @@ class _TimeCard extends StatelessWidget {
               const SizedBox(width: 8),
               const Icon(Icons.chevron_right, color: Colors.grey),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DayToggle extends StatelessWidget {
+  final String label;
+  final int day;
+  final bool isActive;
+  final Function(bool) onToggle;
+
+  const _DayToggle({
+    required this.label,
+    required this.day,
+    required this.isActive,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => onToggle(!isActive),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: 45,
+        height: 45,
+        decoration: BoxDecoration(
+          color: isActive ? Colors.blue : Colors.grey[200],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isActive ? Colors.blue : Colors.grey[400]!,
+            width: 2,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: isActive ? Colors.white : Colors.grey[600],
+            ),
           ),
         ),
       ),

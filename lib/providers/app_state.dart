@@ -217,26 +217,11 @@ class AppState extends ChangeNotifier {
         arrivalDeadline = _testArrivalDeadline!;
       }
       
-      // Schedule wake-up alarm
-      await AlarmService.scheduleWakeUpAlarm(wakeUpDate);
-      print('✅ Wake-up alarm scheduled for: $wakeUpDate');
-      
-      // Schedule checkpoint alarms (every 10 min from wake-up to 5 min before leave)
-      await AlarmService.scheduleCheckInAlarms(wakeUpDate, leaveHomeDate);
-      
-      // Schedule leave-home-soon (5 min before leave)
-      await AlarmService.scheduleLeaveHomeSoonAlarm(leaveHomeDate);
-      
-      // Schedule leave-home alarm
-      await AlarmService.scheduleLeaveHomeAlarm(leaveHomeDate);
-      
-      // Schedule pre-arrival check (2 min before arrival)
-      await AlarmService.scheduleArrivalCheckAlarm(arrivalDeadline);
-      
-      // Schedule arrival alarm (at exact deadline)
-      await AlarmService.scheduleArrivalAlarm(arrivalDeadline);
-      
-      print('✅ All alarms scheduled');
+      // === 7-DAY ROLLING WINDOW SCHEDULING ===
+      // Instead of scheduling individual alarms, use the new 7-day rolling window approach
+      print('🗓️  Scheduling 7-day rolling window...');
+      await AlarmService.scheduleAlarmsFor7Days(_settings!);
+      print('✅ 7-day rolling window scheduled');
     }
 
     // List all scheduled notifications on app launch
@@ -272,10 +257,24 @@ class AppState extends ChangeNotifier {
     await _storage.setSetupComplete(true);
     _isSetupComplete = true;
     
+    // Clear test deadline if this is NOT a test save (test save = deadline set within last 30 sec)
+    // This ensures that changing settings cancels any ongoing test journey
+    final now = DateTime.now();
+    if (_testArrivalDeadline != null) {
+      final deadlineAge = _testArrivalDeadline!.difference(now).inSeconds;
+      // If deadline is more than 30 seconds in the future or in the past, clear it (not a fresh test)
+      if (deadlineAge < 10 || deadlineAge > 1200) { // Keep only if 10 sec < deadline < 20 min
+        print('🧹 Clearing stale test deadline (was: $_testArrivalDeadline)');
+        _testArrivalDeadline = null;
+        await _storage.setTestArrivalDeadline(null);
+        notifyListeners(); // Trigger journey state recalculation
+      } else {
+        print('🧪 Keeping fresh test deadline: $_testArrivalDeadline (test in progress)');
+      }
+    }
+    
     // Cancel all previous alarms
     await AlarmService.cancelAll();
-    
-    final now = DateTime.now();
     
     // Schedule ALL alarms upfront
     var wakeUpDate = DateTime(
@@ -319,26 +318,11 @@ class AppState extends ChangeNotifier {
       arrivalDeadline = _testArrivalDeadline!;
     }
     
-    // Schedule wake-up alarm
-    await AlarmService.scheduleWakeUpAlarm(wakeUpDate);
-    print('✅ Wake-up alarm scheduled for: $wakeUpDate');
-    
-    // Schedule checkpoint alarms (every 10 min from wake-up to 5 min before leave)
-    await AlarmService.scheduleCheckInAlarms(wakeUpDate, leaveHomeDate);
-    
-    // Schedule leave-home-soon (5 min before leave)
-    await AlarmService.scheduleLeaveHomeSoonAlarm(leaveHomeDate);
-    
-    // Schedule leave-home alarm
-    await AlarmService.scheduleLeaveHomeAlarm(leaveHomeDate);
-    
-    // Schedule pre-arrival check (2 min before arrival)
-    await AlarmService.scheduleArrivalCheckAlarm(arrivalDeadline);
-    
-    // Schedule arrival alarm (at exact deadline)
-    await AlarmService.scheduleArrivalAlarm(arrivalDeadline);
-    
-    print('✅ All alarms scheduled');
+    // === 7-DAY ROLLING WINDOW SCHEDULING ===
+    // Instead of scheduling individual alarms, use the new 7-day rolling window approach
+    print('🗓️  Scheduling 7-day rolling window...');
+    await AlarmService.scheduleAlarmsFor7Days(settings);
+    print('✅ 7-day rolling window scheduled');
     
     notifyListeners();
   }

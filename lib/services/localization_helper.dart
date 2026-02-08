@@ -45,7 +45,7 @@ class LocalizationHelper {
     final locale = await getLocale();
     switch (locale) {
       case 'es':
-        return '¡Buenos días! La misión de hoy es llegar a la escuela a tiempo. ¡Vamos!';
+        return '¡Buenos días! Hoy vamos a llegar a la escuela a tiempo. ¡Vamos!';
       case 'en':
       default:
         return "Good morning! Today's mission is to arrive at school on time. Let's go!";
@@ -69,7 +69,7 @@ class LocalizationHelper {
     final locale = await getLocale();
     switch (locale) {
       case 'es':
-        return '¡En cinco minutos debemos salir de casa, apúrate!';
+        return '¡En cinco minutos debemos salir de casa, vamos!';
       case 'en':
       default:
         return 'In five minutes we must leave home, hurry up!';

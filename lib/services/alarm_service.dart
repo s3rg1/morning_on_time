@@ -4,6 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'localization_helper.dart';
+import '../models/app_settings.dart';
 
 // Top-level callback function - must be static or top-level
 @pragma('vm:entry-point')
@@ -65,26 +66,69 @@ void alarmCallback() async {
   
   print('✅ Wake-up notification shown');
   
-  // Reschedule wake-up for tomorrow at the same time
-  final now = DateTime.now();
-  final tomorrow = DateTime(
-    now.year,
-    now.month,
-    now.day,
-    now.hour,
-    now.minute,
-  ).add(const Duration(days: 1));
-  
-  await AndroidAlarmManager.oneShotAt(
-    tomorrow,
-    1,
-    alarmCallback,
-    exact: true,
-    wakeup: true,
-    rescheduleOnReboot: true,
-  );
-  
-  print('✅ Wake-up alarm rescheduled for tomorrow: $tomorrow');
+  // === 7-DAY ROLLING WINDOW EXTENSION ===
+  // Extend the 7-day window by scheduling day 8 alarms
+  try {
+    // Load settings from SharedPreferences
+    final settingsJson = prefs.getString('app_settings');
+    if (settingsJson != null) {
+      final settingsMap = jsonDecode(settingsJson) as Map<String, dynamic>;
+      final settings = AppSettings.fromJson(settingsMap);
+      
+      // Calculate day 8 date (7 days from now)
+      final now = DateTime.now();
+      final day8Date = DateTime(now.year, now.month, now.day).add(const Duration(days: 7));
+      
+      // Check if day 8 is active (not in skipDates and weekday is in activeDaysOfWeek)
+      if (settings.isActiveOnDate(day8Date)) {
+        print('🗓️  Extending 7-day window: Scheduling day 8 (${AlarmService._formatDate(day8Date)})...');
+        
+        // Calculate alarm times for day 8
+        final day8WakeUp = DateTime(
+          day8Date.year,
+          day8Date.month,
+          day8Date.day,
+          settings.wakeUpTime.hour,
+          settings.wakeUpTime.minute,
+        );
+        
+        final day8Leave = DateTime(
+          day8Date.year,
+          day8Date.month,
+          day8Date.day,
+          settings.leaveHomeTime.hour,
+          settings.leaveHomeTime.minute,
+        );
+        
+        final day8Arrival = DateTime(
+          day8Date.year,
+          day8Date.month,
+          day8Date.day,
+          settings.arrivalDeadline.hour,
+          settings.arrivalDeadline.minute,
+        );
+        
+        // Schedule all alarms for day 8 with dayOffset = 7
+        final scheduledCount = await AlarmService._scheduleAllAlarmsForDate(
+          dayOffset: 7,
+          wakeUpTime: day8WakeUp,
+          leaveHomeTime: day8Leave,
+          arrivalDeadline: day8Arrival,
+          minutesBeforeLeaving1: settings.minutesBeforeLeaving1,
+          minutesBeforeLeaving2: settings.minutesBeforeLeaving2,
+          minutesBeforeArrival: settings.minutesBeforeArrival,
+        );
+        
+        print('✅ Day 8 scheduled: $scheduledCount alarms added to rolling window');
+      } else {
+        print('⏭️  Day 8 (${AlarmService._formatDate(day8Date)}): SKIPPED (inactive day)');
+      }
+    } else {
+      print('⚠️  No settings found - cannot extend 7-day window');
+    }
+  } catch (e) {
+    print('❌ Error extending 7-day window: $e');
+  }
 }
 
 // Helper function to schedule checkpoint alarms from wake-up callback
@@ -149,12 +193,16 @@ void checkInAlarmCallback() async {
   int minutesLeft = 0;
   if (settingsJson != null) {
     try {
-      final settings = Map<String, dynamic>.from(json.decode(settingsJson));
-      final leaveTimeData = settings['leaveHomeTime'] as Map<String, dynamic>;
-      final leaveHour = leaveTimeData['hour'] as int;
-      final leaveMinute = leaveTimeData['minute'] as int;
+      final settingsMap = jsonDecode(settingsJson) as Map<String, dynamic>;
+      final settings = AppSettings.fromJson(settingsMap);
       
-      final leaveTime = DateTime(now.year, now.month, now.day, leaveHour, leaveMinute);
+      final leaveTime = DateTime(
+        now.year, 
+        now.month, 
+        now.day, 
+        settings.leaveHomeTime.hour, 
+        settings.leaveHomeTime.minute
+      );
       minutesLeft = leaveTime.difference(now).inMinutes;
       
       // If already past leave time, don't play
@@ -163,11 +211,11 @@ void checkInAlarmCallback() async {
         return;
       }
     } catch (e) {
-      print('Could not parse leave time from settings: $e');
+      print('❌ Could not parse leave time from settings: $e');
       return;
     }
   } else {
-    print('No settings found, skipping checkpoint');
+    print('❌ No settings found, skipping checkpoint');
     return;
   }
   
@@ -731,32 +779,229 @@ class AlarmService {
     
     print('✅ Arrival alarm (ID: 6) scheduled - will fire if arrival not confirmed');
   }
-  
-  static Future<void> cancelAll() async {
-    // Cancel wake-up alarm
-    await AndroidAlarmManager.cancel(1);
-    
-    // Cancel all check-in alarms (IDs 100-119)
-    for (int id = 100; id < 120; id++) {
-      await AndroidAlarmManager.cancel(id);
+
+  /// Schedules all alarms for the next 7 days using the 7-day rolling window strategy.
+  /// Only schedules alarms for days that match the activeDaysOfWeek pattern and are not in skipDates.
+  /// Uses the alarm ID scheme: (dayOffset * 1000) + baseAlarmId
+  static Future<void> scheduleAlarmsFor7Days(AppSettings settings) async {
+    print('🗓️ ===== SCHEDULING 7-DAY ROLLING WINDOW =====');
+    final now = DateTime.now();
+    int totalScheduled = 0;
+
+    for (int dayOffset = 0; dayOffset <= 6; dayOffset++) {
+      // Calculate target date for this day
+      final targetDate = DateTime(now.year, now.month, now.day).add(Duration(days: dayOffset));
+      
+      // Check if this date is active (not in skipDates and weekday is in activeDaysOfWeek)
+      if (!settings.isActiveOnDate(targetDate)) {
+        print('⏭️  Day $dayOffset (${_formatDate(targetDate)}): SKIPPED (inactive day)');
+        continue;
+      }
+
+      print('📅 Day $dayOffset (${_formatDate(targetDate)}): Scheduling alarms...');
+      
+      // Calculate alarm times for this specific date
+      final wakeUpTime = DateTime(
+        targetDate.year,
+        targetDate.month,
+        targetDate.day,
+        settings.wakeUpTime.hour,
+        settings.wakeUpTime.minute,
+      );
+      
+      final leaveHomeTime = DateTime(
+        targetDate.year,
+        targetDate.month,
+        targetDate.day,
+        settings.leaveHomeTime.hour,
+        settings.leaveHomeTime.minute,
+      );
+      
+      final arrivalDeadline = DateTime(
+        targetDate.year,
+        targetDate.month,
+        targetDate.day,
+        settings.arrivalDeadline.hour,
+        settings.arrivalDeadline.minute,
+      );
+      
+      // Schedule all alarms for this day
+      int dayScheduled = await _scheduleAllAlarmsForDate(
+        dayOffset: dayOffset,
+        wakeUpTime: wakeUpTime,
+        leaveHomeTime: leaveHomeTime,
+        arrivalDeadline: arrivalDeadline,
+        minutesBeforeLeaving1: settings.minutesBeforeLeaving1,
+        minutesBeforeLeaving2: settings.minutesBeforeLeaving2,
+        minutesBeforeArrival: settings.minutesBeforeArrival,
+      );
+      
+      totalScheduled += dayScheduled;
+      print('   ✅ Day $dayOffset: Scheduled $dayScheduled alarms');
     }
+
+    print('🎉 ===== 7-DAY WINDOW COMPLETE: $totalScheduled total alarms scheduled =====');
+  }
+
+  /// Helper function to schedule all alarms for a specific date with the given day offset
+  static Future<int> _scheduleAllAlarmsForDate({
+    required int dayOffset,
+    required DateTime wakeUpTime,
+    required DateTime leaveHomeTime,
+    required DateTime arrivalDeadline,
+    required int minutesBeforeLeaving1,
+    required int minutesBeforeLeaving2,
+    required int minutesBeforeArrival,
+  }) async {
+    final now = DateTime.now();
+    int scheduledCount = 0;
+
+    // 1. Schedule Wake-Up Alarm (base ID: 1)
+    final wakeUpId = (dayOffset * 1000) + 1;
+    if (wakeUpTime.isAfter(now.add(const Duration(minutes: 2)))) {
+      await AndroidAlarmManager.oneShotAt(
+        wakeUpTime,
+        wakeUpId,
+        alarmCallback,
+        exact: true,
+        wakeup: true,
+        rescheduleOnReboot: true,
+      );
+      scheduledCount++;
+      print('   ⏰ Wake-up (ID $wakeUpId): ${_formatTime(wakeUpTime)}');
+    }
+
+    // 2. Schedule Checkpoint Alarms (base IDs: 100-119)
+    final cutoffTime = leaveHomeTime.subtract(const Duration(minutes: 5));
+    DateTime nextCheckIn = wakeUpTime.add(const Duration(minutes: 10));
+    int checkpointIndex = 0;
+
+    while (nextCheckIn.isBefore(cutoffTime) && checkpointIndex < 20) {
+      final checkpointId = (dayOffset * 1000) + 100 + checkpointIndex;
+      
+      if (nextCheckIn.isAfter(now.add(const Duration(minutes: 2)))) {
+        await AndroidAlarmManager.oneShotAt(
+          nextCheckIn,
+          checkpointId,
+          checkInAlarmCallback,
+          exact: true,
+          wakeup: true,
+          rescheduleOnReboot: true,
+        );
+        scheduledCount++;
+        print('   ⏰ Checkpoint #${checkpointIndex + 1} (ID $checkpointId): ${_formatTime(nextCheckIn)}');
+      }
+      
+      nextCheckIn = nextCheckIn.add(const Duration(minutes: 10));
+      checkpointIndex++;
+    }
+
+    // 3. Schedule Leave-Home-Soon Alarm (base ID: 3)
+    final leaveHomeSoonTime = leaveHomeTime.subtract(Duration(minutes: minutesBeforeLeaving1));
+    final leaveHomeSoonId = (dayOffset * 1000) + 3;
+    if (leaveHomeSoonTime.isAfter(now.add(const Duration(minutes: 2)))) {
+      await AndroidAlarmManager.oneShotAt(
+        leaveHomeSoonTime,
+        leaveHomeSoonId,
+        leaveHomeSoonCallback,
+        exact: true,
+        wakeup: true,
+        rescheduleOnReboot: true,
+      );
+      scheduledCount++;
+      print('   ⏰ Leave-soon (ID $leaveHomeSoonId): ${_formatTime(leaveHomeSoonTime)}');
+    }
+
+    // 4. Schedule Leave-Home Alarm (base ID: 4)
+    final leaveHomeId = (dayOffset * 1000) + 4;
+    if (leaveHomeTime.isAfter(now)) {
+      await AndroidAlarmManager.oneShotAt(
+        leaveHomeTime,
+        leaveHomeId,
+        leaveHomeCallback,
+        exact: true,
+        wakeup: true,
+        rescheduleOnReboot: true,
+      );
+      scheduledCount++;
+      print('   ⏰ Leave-home (ID $leaveHomeId): ${_formatTime(leaveHomeTime)}');
+    }
+
+    // 5. Schedule Arrival-Check Alarm (base ID: 5)
+    final arrivalCheckTime = arrivalDeadline.subtract(Duration(minutes: minutesBeforeArrival));
+    final arrivalCheckId = (dayOffset * 1000) + 5;
+    if (arrivalCheckTime.isAfter(now.add(const Duration(seconds: 30)))) {
+      await AndroidAlarmManager.oneShotAt(
+        arrivalCheckTime,
+        arrivalCheckId,
+        arrivalCheckCallback,
+        exact: true,
+        wakeup: true,
+        rescheduleOnReboot: true,
+      );
+      scheduledCount++;
+      print('   ⏰ Arrival-check (ID $arrivalCheckId): ${_formatTime(arrivalCheckTime)}');
+    }
+
+    // 6. Schedule Arrival Alarm (base ID: 6)
+    final arrivalId = (dayOffset * 1000) + 6;
+    if (arrivalDeadline.isAfter(now.add(const Duration(minutes: 1)))) {
+      await AndroidAlarmManager.oneShotAt(
+        arrivalDeadline,
+        arrivalId,
+        arrivalAlarmCallback,
+        exact: true,
+        wakeup: true,
+        rescheduleOnReboot: true,
+      );
+      scheduledCount++;
+      print('   ⏰ Arrival (ID $arrivalId): ${_formatTime(arrivalDeadline)}');
+    }
+
+    return scheduledCount;
+  }
+
+  /// Format date for logging
+  static String _formatDate(DateTime date) {
+    final weekdays = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return '${weekdays[date.weekday]} ${date.month}/${date.day}';
+  }
+
+  /// Format time for logging
+  static String _formatTime(DateTime time) {
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  }
+
+  static Future<void> cancelAll() async {
+    print('🗑️  Cancelling all alarms (7-day window)...');
     
-    // Cancel leave-home-soon alarm
-    await AndroidAlarmManager.cancel(3);
-    
-    // Cancel leave-home alarm
-    await AndroidAlarmManager.cancel(4);
-    
-    // Cancel arrival-check alarm
-    await AndroidAlarmManager.cancel(5);
-    
-    // Cancel arrival alarm
-    await AndroidAlarmManager.cancel(6);
+    // Cancel alarms for all 7 days (day offset 0-6)
+    for (int dayOffset = 0; dayOffset <= 6; dayOffset++) {
+      // Cancel wake-up alarm (ID: dayOffset * 1000 + 1)
+      await AndroidAlarmManager.cancel((dayOffset * 1000) + 1);
+      
+      // Cancel all check-in alarms (IDs: dayOffset * 1000 + 100-119)
+      for (int checkpointId = 100; checkpointId < 120; checkpointId++) {
+        await AndroidAlarmManager.cancel((dayOffset * 1000) + checkpointId);
+      }
+      
+      // Cancel leave-home-soon alarm (ID: dayOffset * 1000 + 3)
+      await AndroidAlarmManager.cancel((dayOffset * 1000) + 3);
+      
+      // Cancel leave-home alarm (ID: dayOffset * 1000 + 4)
+      await AndroidAlarmManager.cancel((dayOffset * 1000) + 4);
+      
+      // Cancel arrival-check alarm (ID: dayOffset * 1000 + 5)
+      await AndroidAlarmManager.cancel((dayOffset * 1000) + 5);
+      
+      // Cancel arrival alarm (ID: dayOffset * 1000 + 6)
+      await AndroidAlarmManager.cancel((dayOffset * 1000) + 6);
+    }
     
     // Cancel test alarm
     await AndroidAlarmManager.cancel(999);
     
-    print('✅ All alarms cancelled');
+    print('✅ All alarms cancelled (7-day window cleared)');
   }
   
   static Future<void> cancelArrivalAlarm() async {

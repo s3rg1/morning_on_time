@@ -13,6 +13,7 @@ import '../models/check_in_status.dart';
 import '../services/alarm_service.dart';
 import '../widgets/countdown_timer.dart';
 import '../widgets/reward_card.dart';
+import 'scheduled_alarms_screen.dart';
 import 'monthly_view_screen.dart';
 import 'setup_screen.dart';
 
@@ -197,23 +198,26 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('🧪 Test Countdown Journey'),
+        title: const Text('🧪 Test All Alarms (20-Minute Journey)'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'This will simulate a real morning:',
+              'This will test ALL alarm types in ~20 minutes:',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             const Text(
-              '1. Clears today\'s result\n'
-              '2. Wake-up: 15 min ago\n'
-              '3. Leave time: in ~90 sec\n'
-              '4. Arrival time: in 4 min\n'
-              '5. All alarms scheduled (standard flow)\n'
-              '6. Tap "Arrived" to succeed before time runs out',
+              '✅ Wake-up alarm (T+10 sec)\n'
+              '✅ Checkpoint alarm #1 (T+10 min)\n'
+              '✅ Leave Home Soon (T+11 min)\n'
+              '✅ Leave Home → countdown starts (T+16 min)\n'
+              '✅ Pre-Arrival Check (T+18 min)\n'
+              '✅ Arrival deadline (T+20 min)\n\n'
+              'Tap "Arrived" before deadline to test success path.\n'
+              'Let timer expire to test failure path.\n\n'
+              '⚠️ Cannot run between 11:40 PM - midnight.',
               style: TextStyle(fontSize: 13),
             ),
           ],
@@ -240,59 +244,91 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _startBackgroundTest(BuildContext context, AppState appState) async {
-    print('🧪 Starting test - setting up test environment...');
+    print('🧪 Starting comprehensive test - all alarm types will fire...');
     
     try {
       final now = DateTime.now();
       
-      // 1. Clear today's result if any
-      final today = DateTime(now.year, now.month, now.day);
-      // Note: We'll let the test overwrite any existing result naturally
-      // when arrival confirmation happens
-      print('🧪 Test will overwrite any existing result for today');
+      // Check if we're too close to midnight (test crosses midnight boundary)
+      final midnight = DateTime(now.year, now.month, now.day + 1);
+      final minutesUntilMidnight = midnight.difference(now).inMinutes;
       
-      // 2. Reset arrival confirmation flag for testing
+      if (minutesUntilMidnight < 20) {
+        print('❌ Test cannot run - too close to midnight ($minutesUntilMidnight min until midnight)');
+        print('💡 Test requires 20 minutes but only $minutesUntilMidnight minutes until midnight');
+        print('💡 Please run test earlier in the day (before 11:40 PM)');
+        
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '❌ Test cannot run - too close to midnight!\n'
+                'Only $minutesUntilMidnight minutes until midnight.\n'
+                'Test needs 20 minutes. Please try earlier in the day.',
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        }
+        return;
+      }
+      
+      // 1. Clear today's result and reset arrival confirmation
       await appState.resetArrivalConfirmation();
       print('🧪 Reset arrival_confirmed flag for testing');
       
-      // 3. Create test settings with times relative to now
-      // Note: TimeOfDay only stores hour:minute, so we need enough buffer
-      // to ensure times don't become "in the past" after conversion
-      final wakeUpTime = now.subtract(const Duration(minutes: 15));
-      final leaveTime = now.add(const Duration(seconds: 90)); // 1.5 min to survive TimeOfDay conversion
-      final arrivalTime = now.add(const Duration(minutes: 4));
+      // 2. Create compressed timeline that triggers ALL alarms
+      // Wake-up: NOW + 10 seconds (allows processing time)
+      // Leave: NOW + 15 min 40 sec (minimum gap for 1 checkpoint)
+      // Arrival: NOW + 19 min 40 sec (4-minute journey)
+      
+      final wakeUpTime = now.add(const Duration(seconds: 10));
+      final leaveTime = now.add(const Duration(minutes: 15, seconds: 40));
+      final arrivalTime = now.add(const Duration(minutes: 19, seconds: 40));
       
       // Set test deadline BEFORE saving settings
       appState.setTestDeadline(arrivalTime);
-      print('🧪 Test deadline set BEFORE saving settings: $arrivalTime');
+      print('🧪 Test deadline set: $arrivalTime');
       
       final testSettings = AppSettings(
         wakeUpTime: TimeOfDay(hour: wakeUpTime.hour, minute: wakeUpTime.minute),
         leaveHomeTime: TimeOfDay(hour: leaveTime.hour, minute: leaveTime.minute),
         arrivalDeadline: TimeOfDay(hour: arrivalTime.hour, minute: arrivalTime.minute),
+        activeDaysOfWeek: {1, 2, 3, 4, 5, 6, 7}, // Test works on ANY day (overrides user settings)
       );
       
-      print('🧪 Test times:');
-      print('  Wake-up: $wakeUpTime (15 min ago)');
-      print('  Leave: $leaveTime (5 sec from now)');
-      print('  Arrival: $arrivalTime (3 min from now)');
+      print('🧪 Compressed test timeline:');
+      print('  Wake-up:  $wakeUpTime (T+10 sec)');
+      print('  Leave:    $leaveTime (T+15:40)');
+      print('  Arrival:  $arrivalTime (T+19:40)');
+      print('🧪 Test overrides: activeDaysOfWeek = ALL DAYS (works on any day including weekends)');
+      print('🧪 Expected alarms:');
+      print('  T+00:10 - Wake-up alarm');
+      print('  T+10:10 - Checkpoint #1');
+      print('  T+10:40 - Leave Home Soon');
+      print('  T+15:40 - Leave Home (countdown starts)');
+      print('  T+17:40 - Pre-Arrival Check');
+      print('  T+19:40 - Arrival deadline');
       
-      // 4. Save settings - this will trigger standard alarm scheduling
+      // 3. Save settings - triggers standard alarm scheduling
       await appState.saveSettings(testSettings);
-      print('🧪 Test settings saved and all alarms scheduled');
+      print('🧪 Test settings saved - all alarms scheduled via standard flow');
       
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              '🧪 Test Started!\n'
-              '• Leave Home alarm fires in ~90 seconds\n'
-              '• Pre-Arrival Check in ~2 minutes\n'
-              '• Arrival deadline in 4 minutes\n'
-              '• Tap "Arrived at School" to succeed',
+              '🧪 Test Started! (20-minute journey)\n'
+              '• Wake-up: in 10 seconds\n'
+              '• Checkpoint #1: in 10 minutes\n'
+              '• Leave Home: in 16 minutes → countdown starts\n'
+              '• Pre-Arrival Check: in 18 minutes\n'
+              '• Arrival deadline: in 20 minutes\n'
+              '• Stay on screen to observe alarms firing',
             ),
             backgroundColor: Colors.orange,
-            duration: Duration(seconds: 5),
+            duration: Duration(seconds: 7),
           ),
         );
       }
@@ -325,6 +361,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             onPressed: () {
               final appState = Provider.of<AppState>(context, listen: false);
               _showTestMenu(context, appState);
+            },
+          ),
+          // View scheduled alarms button
+          IconButton(
+            icon: const Icon(Icons.calendar_today, color: Colors.blue),
+            tooltip: 'View Scheduled Alarms',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ScheduledAlarmsScreen()),
+              );
             },
           ),
           IconButton(
