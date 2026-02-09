@@ -14,9 +14,9 @@ class AppSettings {
     required this.wakeUpTime,
     required this.leaveHomeTime,
     required this.arrivalDeadline,
-    this.minutesBeforeLeaving1 = 10,
-    this.minutesBeforeLeaving2 = 5,
-    this.minutesBeforeArrival = 5,
+    this.minutesBeforeLeaving1 = 5, // PRD: Leave Home Soon fires 5 min before leave time
+    this.minutesBeforeLeaving2 = 5, // Reserved for future use
+    this.minutesBeforeArrival = 2, // PRD: Pre-Arrival Check fires 2 min before arrival
     Set<int>? activeDaysOfWeek,
     Set<DateTime>? skipDates,
   })  : activeDaysOfWeek = activeDaysOfWeek ?? {1, 2, 3, 4, 5}, // Default: Weekdays

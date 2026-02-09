@@ -198,26 +198,26 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('🧪 Test All Alarms (20-Minute Journey)'),
+        title: const Text('🧪 Test All Alarms (22-Minute Journey)'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'This will test ALL alarm types in ~20 minutes:',
+              'This will test ALL alarm types in ~22 minutes:',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             const Text(
-              '✅ Wake-up alarm (T+10 sec)\n'
-              '✅ Checkpoint alarm #1 (T+10 min)\n'
-              '✅ Leave Home Soon (T+11 min)\n'
-              '✅ Leave Home → countdown starts (T+16 min)\n'
-              '✅ Pre-Arrival Check (T+18 min)\n'
-              '✅ Arrival deadline (T+20 min)\n\n'
+              '✅ Wake-up alarm (T+2 min)\n'
+              '✅ Checkpoint alarm #1 (T+12 min)\n'
+              '✅ Leave Home Soon (T+13 min)\n'
+              '✅ Leave Home → countdown starts (T+18 min)\n'
+              '✅ Pre-Arrival Check (T+20 min)\n'
+              '✅ Arrival deadline (T+22 min)\n\n'
               'Tap "Arrived" before deadline to test success path.\n'
               'Let timer expire to test failure path.\n\n'
-              '⚠️ Cannot run between 11:40 PM - midnight.',
+              '⚠️ Cannot run between 11:38 PM - midnight.',
               style: TextStyle(fontSize: 13),
             ),
           ],
@@ -253,10 +253,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       final midnight = DateTime(now.year, now.month, now.day + 1);
       final minutesUntilMidnight = midnight.difference(now).inMinutes;
       
-      if (minutesUntilMidnight < 20) {
+      if (minutesUntilMidnight < 22) {
         print('❌ Test cannot run - too close to midnight ($minutesUntilMidnight min until midnight)');
-        print('💡 Test requires 20 minutes but only $minutesUntilMidnight minutes until midnight');
-        print('💡 Please run test earlier in the day (before 11:40 PM)');
+        print('💡 Test requires 22 minutes but only $minutesUntilMidnight minutes until midnight');
+        print('💡 Please run test earlier in the day (before 11:38 PM)');
         
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -264,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               content: Text(
                 '❌ Test cannot run - too close to midnight!\n'
                 'Only $minutesUntilMidnight minutes until midnight.\n'
-                'Test needs 20 minutes. Please try earlier in the day.',
+                'Test needs 22 minutes. Please try earlier in the day.',
               ),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 5),
@@ -279,37 +279,47 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       print('🧪 Reset arrival_confirmed flag for testing');
       
       // 2. Create compressed timeline that triggers ALL alarms
-      // Wake-up: NOW + 10 seconds (allows processing time)
-      // Leave: NOW + 15 min 40 sec (minimum gap for 1 checkpoint)
-      // Arrival: NOW + 19 min 40 sec (4-minute journey)
+      // Important: TimeOfDay loses seconds precision, so we must round to next minute
+      // to ensure alarm times are always in the future
       
-      final wakeUpTime = now.add(const Duration(seconds: 10));
-      final leaveTime = now.add(const Duration(minutes: 15, seconds: 40));
-      final arrivalTime = now.add(const Duration(minutes: 19, seconds: 40));
+      // Calculate base time - round to +2 minutes to account for async scheduling delay
+      // (1 minute buffer was too tight - scheduling code runs DateTime.now() again)
+      final baseTime = DateTime(now.year, now.month, now.day, now.hour, now.minute).add(const Duration(minutes: 2));
+      
+      // Wake-up: +2 minutes (ensures safe buffer for async scheduling)
+      // Leave: wake + 16 min (ensures checkpoint schedules: cutoff = wake + 11 min > wake + 10 min)
+      // Arrival: wake + 20 min (4-minute journey)
+      // Note: Use full minutes only - TimeOfDay strips seconds!
+      
+      final wakeUpTime = baseTime;
+      final leaveTime = baseTime.add(const Duration(minutes: 16));
+      final arrivalTime = baseTime.add(const Duration(minutes: 20));
       
       // Set test deadline BEFORE saving settings
       appState.setTestDeadline(arrivalTime);
       print('🧪 Test deadline set: $arrivalTime');
       
+      // Use standard saveSettings() with test times - no special logic needed!
+      // minutesBeforeLeaving1 and minutesBeforeArrival use PRD-compliant defaults (5 and 2)
       final testSettings = AppSettings(
         wakeUpTime: TimeOfDay(hour: wakeUpTime.hour, minute: wakeUpTime.minute),
         leaveHomeTime: TimeOfDay(hour: leaveTime.hour, minute: leaveTime.minute),
         arrivalDeadline: TimeOfDay(hour: arrivalTime.hour, minute: arrivalTime.minute),
-        activeDaysOfWeek: {1, 2, 3, 4, 5, 6, 7}, // Test works on ANY day (overrides user settings)
+        activeDaysOfWeek: {1, 2, 3, 4, 5, 6, 7}, // Test works on ANY day
       );
       
       print('🧪 Compressed test timeline:');
-      print('  Wake-up:  $wakeUpTime (T+10 sec)');
-      print('  Leave:    $leaveTime (T+15:40)');
-      print('  Arrival:  $arrivalTime (T+19:40)');
+      print('  Wake-up:  $wakeUpTime (T+2 min)');
+      print('  Leave:    $leaveTime (T+18 min)');
+      print('  Arrival:  $arrivalTime (T+22 min)');
       print('🧪 Test overrides: activeDaysOfWeek = ALL DAYS (works on any day including weekends)');
       print('🧪 Expected alarms:');
-      print('  T+00:10 - Wake-up alarm');
-      print('  T+10:10 - Checkpoint #1');
-      print('  T+10:40 - Leave Home Soon');
-      print('  T+15:40 - Leave Home (countdown starts)');
-      print('  T+17:40 - Pre-Arrival Check');
-      print('  T+19:40 - Arrival deadline');
+      print('  T+02:00 - Wake-up alarm');
+      print('  T+12:00 - Checkpoint #1');
+      print('  T+13:00 - Leave Home Soon');
+      print('  T+18:00 - Leave Home (countdown starts)');
+      print('  T+20:00 - Pre-Arrival Check');
+      print('  T+22:00 - Arrival deadline');
       
       // 3. Save settings - triggers standard alarm scheduling
       await appState.saveSettings(testSettings);
@@ -319,12 +329,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              '🧪 Test Started! (20-minute journey)\n'
-              '• Wake-up: in 10 seconds\n'
-              '• Checkpoint #1: in 10 minutes\n'
-              '• Leave Home: in 16 minutes → countdown starts\n'
-              '• Pre-Arrival Check: in 18 minutes\n'
-              '• Arrival deadline: in 20 minutes\n'
+              '🧪 Test Started! (22-minute journey)\n'
+              '• Wake-up: in 2 minutes\n'
+              '• Checkpoint #1: in 12 minutes (NEW!)\n'
+              '• Leave Home Soon: in 13 minutes\n'
+              '• Leave Home: in 18 minutes → countdown starts\n'
+              '• Pre-Arrival Check: in 20 minutes\n'
+              '• Arrival deadline: in 22 minutes\n'
               '• Stay on screen to observe alarms firing',
             ),
             backgroundColor: Colors.orange,

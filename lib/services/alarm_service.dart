@@ -858,7 +858,7 @@ class AlarmService {
 
     // 1. Schedule Wake-Up Alarm (base ID: 1)
     final wakeUpId = (dayOffset * 1000) + 1;
-    if (wakeUpTime.isAfter(now.add(const Duration(minutes: 2)))) {
+    if (wakeUpTime.isAfter(now.add(const Duration(seconds: 5)))) {
       await AndroidAlarmManager.oneShotAt(
         wakeUpTime,
         wakeUpId,
@@ -879,7 +879,7 @@ class AlarmService {
     while (nextCheckIn.isBefore(cutoffTime) && checkpointIndex < 20) {
       final checkpointId = (dayOffset * 1000) + 100 + checkpointIndex;
       
-      if (nextCheckIn.isAfter(now.add(const Duration(minutes: 2)))) {
+      if (nextCheckIn.isAfter(now.add(const Duration(seconds: 5)))) {
         await AndroidAlarmManager.oneShotAt(
           nextCheckIn,
           checkpointId,
@@ -899,7 +899,7 @@ class AlarmService {
     // 3. Schedule Leave-Home-Soon Alarm (base ID: 3)
     final leaveHomeSoonTime = leaveHomeTime.subtract(Duration(minutes: minutesBeforeLeaving1));
     final leaveHomeSoonId = (dayOffset * 1000) + 3;
-    if (leaveHomeSoonTime.isAfter(now.add(const Duration(minutes: 2)))) {
+    if (leaveHomeSoonTime.isAfter(now.add(const Duration(seconds: 5)))) {
       await AndroidAlarmManager.oneShotAt(
         leaveHomeSoonTime,
         leaveHomeSoonId,

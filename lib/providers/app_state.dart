@@ -52,8 +52,8 @@ class AppState extends ChangeNotifier {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     
-    // Get leave and arrival times for today
-    final leaveTime = DateTime(
+    // Get leave time for today
+    var leaveTime = DateTime(
       today.year,
       today.month,
       today.day,
@@ -61,17 +61,59 @@ class AppState extends ChangeNotifier {
       _settings!.leaveHomeTime.minute,
     );
     
-    final arrivalTime = _testArrivalDeadline ?? DateTime(
-      today.year,
-      today.month,
-      today.day,
-      _settings!.arrivalDeadline.hour,
-      _settings!.arrivalDeadline.minute,
-    );
+    // Get arrival time - use test deadline if set, otherwise calculate from settings
+    var arrivalTime = _testArrivalDeadline;
+    if (arrivalTime == null) {
+      arrivalTime = DateTime(
+        today.year,
+        today.month,
+        today.day,
+        _settings!.arrivalDeadline.hour,
+        _settings!.arrivalDeadline.minute,
+      );
+      
+      // If arrival hour is less than leave hour, journey crosses midnight (arrival is tomorrow)
+      if (_settings!.arrivalDeadline.hour < _settings!.leaveHomeTime.hour ||
+          (_settings!.arrivalDeadline.hour == _settings!.leaveHomeTime.hour &&
+           _settings!.arrivalDeadline.minute < _settings!.leaveHomeTime.minute)) {
+        arrivalTime = arrivalTime.add(const Duration(days: 1));
+      }
+    }
     
-    // Journey is active ONLY between leave time and arrival time - at arrival time, time is up!
-    // Use >= for leave time so journey starts exactly at leave time (not just after)
-    return (now.isAfter(leaveTime) || now.isAtSameMomentAs(leaveTime)) && now.isBefore(arrivalTime);
+    // Check if we're in an active journey
+    final inJourney = (now.isAfter(leaveTime) || now.isAtSameMomentAs(leaveTime)) && now.isBefore(arrivalTime);
+    
+    // If not in journey with today's times, check if we're in yesterday's journey
+    // (handles case where we're past midnight but journey started yesterday)
+    if (!inJourney && now.hour < 6) { // Only check yesterday if we're in early morning hours
+      final yesterday = today.subtract(const Duration(days: 1));
+      var yesterdayLeave = DateTime(
+        yesterday.year,
+        yesterday.month,
+        yesterday.day,
+        _settings!.leaveHomeTime.hour,
+        _settings!.leaveHomeTime.minute,
+      );
+      
+      var yesterdayArrival = DateTime(
+        yesterday.year,
+        yesterday.month,
+        yesterday.day,
+        _settings!.arrivalDeadline.hour,
+        _settings!.arrivalDeadline.minute,
+      );
+      
+      // If arrival hour is less than leave hour, arrival is next day
+      if (_settings!.arrivalDeadline.hour < _settings!.leaveHomeTime.hour ||
+          (_settings!.arrivalDeadline.hour == _settings!.leaveHomeTime.hour &&
+           _settings!.arrivalDeadline.minute < _settings!.leaveHomeTime.minute)) {
+        yesterdayArrival = yesterdayArrival.add(const Duration(days: 1));
+      }
+      
+      return (now.isAfter(yesterdayLeave) || now.isAtSameMomentAs(yesterdayLeave)) && now.isBefore(yesterdayArrival);
+    }
+    
+    return inJourney;
   }
   NotificationService get notificationService => _notifications;
   
@@ -83,13 +125,50 @@ class AppState extends ChangeNotifier {
     
     if (_settings == null) return null;
     final now = DateTime.now();
-    return DateTime(
-      now.year,
-      now.month,
-      now.day,
+    final today = DateTime(now.year, now.month, now.day);
+    
+    var deadline = DateTime(
+      today.year,
+      today.month,
+      today.day,
       _settings!.arrivalDeadline.hour,
       _settings!.arrivalDeadline.minute,
     );
+    
+    // If arrival hour is less than leave hour, journey crosses midnight (arrival is tomorrow)
+    if (_settings!.arrivalDeadline.hour < _settings!.leaveHomeTime.hour ||
+        (_settings!.arrivalDeadline.hour == _settings!.leaveHomeTime.hour &&
+         _settings!.arrivalDeadline.minute < _settings!.leaveHomeTime.minute)) {
+      deadline = deadline.add(const Duration(days: 1));
+    }
+    
+    // If we're in early morning and the calculated deadline is in the future,
+    // check if we should use yesterday's deadline (for journeys that started yesterday)
+    if (now.hour < 6 && deadline.isAfter(now.add(const Duration(hours: 18)))) {
+      // Deadline is more than 18 hours in the future, likely should be yesterday's
+      final yesterday = today.subtract(const Duration(days: 1));
+      var yesterdayDeadline = DateTime(
+        yesterday.year,
+        yesterday.month,
+        yesterday.day,
+        _settings!.arrivalDeadline.hour,
+        _settings!.arrivalDeadline.minute,
+      );
+      
+      // If arrival hour is less than leave hour, add a day
+      if (_settings!.arrivalDeadline.hour < _settings!.leaveHomeTime.hour ||
+          (_settings!.arrivalDeadline.hour == _settings!.leaveHomeTime.hour &&
+           _settings!.arrivalDeadline.minute < _settings!.leaveHomeTime.minute)) {
+        yesterdayDeadline = yesterdayDeadline.add(const Duration(days: 1));
+      }
+      
+      // Use yesterday's deadline if it's in the future
+      if (yesterdayDeadline.isAfter(now)) {
+        return yesterdayDeadline;
+      }
+    }
+    
+    return deadline;
   }
   
   void setTestDeadline(DateTime deadline) {
