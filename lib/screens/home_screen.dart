@@ -357,17 +357,408 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+  /// Find the next active day with scheduled alarms
+  DateTime? _findNextActiveDay(AppSettings settings) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    // Check today first - if we haven't passed arrival deadline and it's active
+    if (settings.isActiveOnDate(today)) {
+      final arrivalTime = DateTime(
+        today.year,
+        today.month,
+        today.day,
+        settings.arrivalDeadline.hour,
+        settings.arrivalDeadline.minute,
+      );
+      
+      if (now.isBefore(arrivalTime)) {
+        return today;
+      }
+    }
+    
+    // Check next 7 days
+    for (int i = 1; i <= 7; i++) {
+      final checkDate = today.add(Duration(days: i));
+      if (settings.isActiveOnDate(checkDate)) {
+        return checkDate;
+      }
+    }
+    
+    return null; // No active days in next 7 days
+  }
+
+  /// Get pending alarms for a specific date (only wake/leave/arrival that haven't passed)
+  List<Map<String, dynamic>> _getPendingAlarms(DateTime date, AppSettings settings) {
+    final now = DateTime.now();
+    final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
+    
+    final alarms = <Map<String, dynamic>>[];
+    
+    // Wake-up
+    final wakeUpTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      settings.wakeUpTime.hour,
+      settings.wakeUpTime.minute,
+    );
+    
+    if (!isToday || now.isBefore(wakeUpTime)) {
+      alarms.add({
+        'icon': Icons.wb_sunny,
+        'label': 'Wake up at:',
+        'time': wakeUpTime,
+      });
+    }
+    
+    // Leave home
+    final leaveTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      settings.leaveHomeTime.hour,
+      settings.leaveHomeTime.minute,
+    );
+    
+    if (!isToday || now.isBefore(leaveTime)) {
+      alarms.add({
+        'icon': Icons.logout,
+        'label': 'Leave at:',
+        'time': leaveTime,
+      });
+    }
+    
+    // Arrival
+    final arrivalTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      settings.arrivalDeadline.hour,
+      settings.arrivalDeadline.minute,
+    );
+    
+    if (!isToday || now.isBefore(arrivalTime)) {
+      alarms.add({
+        'icon': Icons.school,
+        'label': 'Arrive by:',
+        'time': arrivalTime,
+      });
+    }
+    
+    return alarms;
+  }
+
+  /// Get mission header based on date
+  String _getMissionHeader(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+    
+    if (date.year == today.year && date.month == today.month && date.day == today.day) {
+      return "Today's Mission: Arrive on time!";
+    } else if (date.year == tomorrow.year && date.month == tomorrow.month && date.day == tomorrow.day) {
+      return "Tomorrow's Mission: Arrive on time!";
+    } else {
+      final weekday = DateFormat('EEEE').format(date); // Full weekday name
+      final monthDay = DateFormat('MMM d').format(date); // Abbreviated month + day
+      return "$weekday, $monthDay Mission: Arrive on time!";
+    }
+  }
+
+  /// Build the mission frame widget with Timeline Journey design
+  Widget _buildMissionFrame(AppSettings settings) {
+    final nextDay = _findNextActiveDay(settings);
+    
+    if (nextDay == null) {
+      // No active days in next 7 days
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              const Icon(Icons.event_busy, size: 56, color: Colors.grey),
+              const SizedBox(height: 16),
+              const Text(
+                'No upcoming journeys',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Check your settings to enable active days',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    final pendingAlarms = _getPendingAlarms(nextDay, settings);
+    final header = _getMissionHeader(nextDay);
+    
+    if (pendingAlarms.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    
+    // Duolingo-inspired Timeline Journey design
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFFFF9600), // Bright orange
+            Color(0xFFFFC837), // Bright yellow
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.orange.withOpacity(0.3),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Mission header with emoji
+            Row(
+              children: [
+                const Text(
+                  '🎯',
+                  style: TextStyle(fontSize: 28),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    header,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            
+            // Timeline visualization
+            _buildTimeline(pendingAlarms),
+            
+            const SizedBox(height: 24),
+            
+            // Alarm details
+            ...pendingAlarms.map((alarm) => _buildAlarmRow(alarm)),
+            
+            const SizedBox(height: 16),
+            
+            // Motivational message
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.25),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    '💪',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _getMotivationalMessage(),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  /// Build visual timeline
+  Widget _buildTimeline(List<Map<String, dynamic>> alarms) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (int i = 0; i < alarms.length; i++) ...[
+          // Timeline dot
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(
+                color: Colors.white,
+                width: 3,
+              ),
+            ),
+          ),
+          // Connector line (except after last item)
+          if (i < alarms.length - 1)
+            Container(
+              width: 40,
+              height: 3,
+              color: Colors.white.withOpacity(0.5),
+            ),
+        ],
+      ],
+    );
+  }
+  
+  /// Build individual alarm row
+  Widget _buildAlarmRow(Map<String, dynamic> alarm) {
+    final IconData icon = alarm['icon'] as IconData;
+    final String label = (alarm['label'] as String).replaceAll(' at:', '').replaceAll(' by:', '');
+    final DateTime time = alarm['time'] as DateTime;
+    
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        children: [
+          // Icon with white background circle
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              size: 28,
+              color: const Color(0xFFFF9600),
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Label
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          // Time - LARGE and BOLD
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Text(
+              DateFormat.jm().format(time),
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFFF9600),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  /// Get random motivational message
+  String _getMotivationalMessage() {
+    final messages = [
+      "You've got this!",
+      "Let's do this!",
+      "Ready to succeed!",
+      "Time to shine!",
+      "You can do it!",
+    ];
+    return messages[DateTime.now().second % messages.length];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         Scaffold(
           appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.appTitle),
+        title: Text(
+          AppLocalizations.of(context)!.appTitle,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         actions: [
           // Test button (remove in production)
           IconButton(
-            icon: const Icon(Icons.science, color: Colors.orange),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.orange.shade100,
+              ),
+              child: const Icon(Icons.science, color: Color(0xFFFF9600), size: 20),
+            ),
             tooltip: 'Test Countdown',
             onPressed: () {
               final appState = Provider.of<AppState>(context, listen: false);
@@ -376,7 +767,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ),
           // View scheduled alarms button
           IconButton(
-            icon: const Icon(Icons.calendar_today, color: Colors.blue),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.blue.shade100,
+              ),
+              child: const Icon(Icons.calendar_today, color: Color(0xFF1CB0F6), size: 20),
+            ),
             tooltip: 'View Scheduled Alarms',
             onPressed: () {
               Navigator.of(context).push(
@@ -385,13 +783,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.grey.shade200,
+              ),
+              child: Icon(Icons.settings, color: Colors.grey.shade700, size: 20),
+            ),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const SetupScreen()),
               );
             },
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: Consumer<AppState>(
@@ -413,22 +819,50 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   future: _checkExactAlarmPermission(),
                   builder: (context, snapshot) {
                     if (snapshot.hasData && !snapshot.data!) {
-                      return Card(
-                        color: Colors.orange.shade50,
+                      return Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Colors.orange.shade100,
+                              Colors.orange.shade200,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.orange.withOpacity(0.2),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
                         child: Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(20),
                           child: Column(
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.warning_amber_rounded, 
-                                    color: Colors.orange.shade700, size: 28),
-                                  const SizedBox(width: 12),
+                                  Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.white,
+                                    ),
+                                    child: Icon(
+                                      Icons.warning_amber_rounded,
+                                      color: Colors.orange.shade700,
+                                      size: 28,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
                                   Expanded(
                                     child: Text(
                                       'Alarm Permission Required',
                                       style: TextStyle(
-                                        fontSize: 16,
+                                        fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.orange.shade900,
                                       ),
@@ -436,20 +870,43 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 8),
-                              const Text(
+                              const SizedBox(height: 12),
+                              Text(
                                 'Morning notifications won\'t work without this permission. '
                                 'Tap below to enable it in your device settings.',
-                                style: TextStyle(fontSize: 14),
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.orange.shade900,
+                                ),
                               ),
-                              const SizedBox(height: 12),
-                              ElevatedButton.icon(
+                              const SizedBox(height: 16),
+                              ElevatedButton(
                                 onPressed: _openExactAlarmSettings,
-                                icon: const Icon(Icons.settings),
-                                label: const Text('Enable Alarm Permission'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.orange,
+                                  backgroundColor: Colors.orange.shade700,
                                   foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 14,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  elevation: 2,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Icon(Icons.settings, size: 20),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Enable Alarm Permission',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -462,12 +919,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
                 const SizedBox(height: 16),
                 
-                // Streak Card with Level-Up Character
-                Card(
-                  elevation: 4,
-                  color: Colors.blue.shade50,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                // Streak Card with Level-Up Character (Duolingo style)
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.blue.shade50,
+                        Colors.blue.shade100,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(24),
@@ -632,18 +1102,46 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 // Journey Status - Show countdown if journey is active
                 if (appState.isJourneyActive && appState.arrivalDeadline != null) ...[
                   const SizedBox(height: 16),
-                  Card(
-                    elevation: 4,
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFF58CC02), // Bright green
+                          Color(0xFF46A302), // Darker green
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.green.withOpacity(0.3),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(24),
                       child: Column(
                         children: [
-                          Text(
-                            AppLocalizations.of(context)!.journeyInProgress,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                '🏃',
+                                style: TextStyle(fontSize: 32),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                AppLocalizations.of(context)!.journeyInProgress,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 16),
                           CountdownTimer(
@@ -658,20 +1156,36 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          ElevatedButton.icon(
+                          const SizedBox(height: 20),
+                          ElevatedButton(
                             onPressed: () {
                               _showArrivalDialog(context, appState);
                             },
-                            icon: const Icon(Icons.school),
-                            label: Text(AppLocalizations.of(context)!.arrivedAtSchool),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
+                              backgroundColor: Colors.white,
+                              foregroundColor: const Color(0xFF58CC02),
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 12,
+                                horizontal: 32,
+                                vertical: 16,
                               ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: 4,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.school, size: 28),
+                                const SizedBox(width: 12),
+                                Text(
+                                  AppLocalizations.of(context)!.arrivedAtSchool,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -684,29 +1198,71 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 // Today's Result - Show completion status if available
                 if (todayRecord != null && !appState.isJourneyActive) ...[
                   const SizedBox(height: 16),
-                  Card(
-                    color: todayRecord.wasOnTime
-                        ? Colors.green.shade50
-                        : Colors.red.shade50,
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: todayRecord.wasOnTime
+                            ? [
+                                const Color(0xFF58CC02),
+                                const Color(0xFF46A302),
+                              ]
+                            : [
+                                const Color(0xFFFF4B4B),
+                                const Color(0xFFE03E3E),
+                              ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: (todayRecord.wasOnTime ? Colors.green : Colors.red).withOpacity(0.3),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(24),
                       child: Row(
                         children: [
-                          Icon(
-                            todayRecord.wasOnTime ? Icons.check_circle : Icons.cancel,
-                            size: 40,
-                            color: todayRecord.wasOnTime ? Colors.green : Colors.red,
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                            ),
+                            child: Icon(
+                              todayRecord.wasOnTime ? Icons.check_circle : Icons.cancel,
+                              size: 40,
+                              color: todayRecord.wasOnTime ? const Color(0xFF58CC02) : const Color(0xFFFF4B4B),
+                            ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 20),
                           Expanded(
-                            child: Text(
-                              todayRecord.wasOnTime
-                                  ? AppLocalizations.of(context)!.greatJob
-                                  : AppLocalizations.of(context)!.didntMakeIt,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  todayRecord.wasOnTime
+                                      ? AppLocalizations.of(context)!.greatJob
+                                      : AppLocalizations.of(context)!.didntMakeIt,
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  todayRecord.wasOnTime ? '✨ Keep up the great work!' : '💪 Try again tomorrow!',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white.withOpacity(0.9),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -715,51 +1271,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
                 ],
 
-                // Mission Card - Show only when journey is NOT active
-                if (!appState.isJourneyActive) ...[
+                // Mission Frame - Dynamic display showing next active day's pending alarms
+                if (!appState.isJourneyActive && settings != null) ...[
                   const SizedBox(height: 16),
-                  Card(
-                    color: Colors.amber.shade50,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        children: [
-                          const Icon(Icons.wb_sunny, size: 40, color: Colors.orange),
-                          const SizedBox(height: 12),
-                          Text(
-                            AppLocalizations.of(context)!.todaysMission,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            AppLocalizations.of(context)!.arriveOnTime,
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                          if (settings != null) ...[
-                            const SizedBox(height: 20),
-                            _ScheduleItem(
-                              icon: Icons.alarm,
-                              label: AppLocalizations.of(context)!.wakeUp,
-                              time: settings.wakeUpTime.format(context),
-                            ),
-                            _ScheduleItem(
-                              icon: Icons.directions_run,
-                              label: AppLocalizations.of(context)!.leaveHome,
-                              time: settings.leaveHomeTime.format(context),
-                            ),
-                            _ScheduleItem(
-                              icon: Icons.school,
-                              label: AppLocalizations.of(context)!.arriveBy,
-                              time: settings.arrivalDeadline.format(context),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
+                  _buildMissionFrame(settings),
                   const SizedBox(height: 24),
                 ],
 
@@ -887,66 +1402,63 @@ class _QuickActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white,
+              Colors.grey.shade50,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.grey.shade300,
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 40, color: Colors.blue),
-              const SizedBox(height: 8),
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF1CB0F6).withOpacity(0.15),
+                ),
+                child: Icon(
+                  icon,
+                  size: 32,
+                  color: const Color(0xFF1CB0F6),
+                ),
+              ),
+              const SizedBox(height: 12),
               Text(
                 label,
                 style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
                 textAlign: TextAlign.center,
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ScheduleItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String time;
-
-  const _ScheduleItem({
-    required this.icon,
-    required this.label,
-    required this.time,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.blue),
-          const SizedBox(width: 12),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 16),
-          ),
-          const Spacer(),
-          Text(
-            time,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue,
-            ),
-          ),
-        ],
       ),
     );
   }

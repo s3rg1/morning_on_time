@@ -224,10 +224,20 @@ class _SetupScreenState extends State<SetupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
         elevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.grey.shade200,
+            ),
+            child: Icon(Icons.close, color: Colors.grey.shade700, size: 20),
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -238,27 +248,51 @@ class _SetupScreenState extends State<SetupScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 40),
-                const Icon(
-                  Icons.wb_sunny,
-                  size: 80,
-                  color: Colors.orange,
+                const SizedBox(height: 20),
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFFFF9600),
+                        Color(0xFFFFC837),
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.orange.withOpacity(0.3),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.wb_sunny,
+                    size: 56,
+                    color: Colors.white,
+                  ),
                 ),
                 const SizedBox(height: 24),
               Text(
                 AppLocalizations.of(context)!.appTitle,
                 style: const TextStyle(
-                  fontSize: 32,
+                  fontSize: 36,
                   fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
                 AppLocalizations.of(context)!.setupDescription,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -285,12 +319,26 @@ class _SetupScreenState extends State<SetupScreen> {
               ),
               const SizedBox(height: 32),
               // Active Days Section
-              Text(
-                'Active Days',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[800],
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.blue.shade50,
+                      Colors.blue.shade100,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Text(
+                  '📅 Active Days',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -404,71 +452,168 @@ class _SetupScreenState extends State<SetupScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: ElevatedButton(
                       onPressed: () {
                         setState(() {
                           _activeDaysOfWeek = {1, 2, 3, 4, 5}; // Weekdays
                         });
                       },
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.blue),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF1CB0F6),
+                        elevation: 2,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(
+                            color: const Color(0xFF1CB0F6),
+                            width: 2,
+                          ),
+                        ),
                       ),
-                      child: const Text('Weekdays Only'),
+                      child: const Text(
+                        'Weekdays Only',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: OutlinedButton(
+                    child: ElevatedButton(
                       onPressed: () {
                         setState(() {
                           _activeDaysOfWeek = {1, 2, 3, 4, 5, 6, 7}; // Every day
                         });
                       },
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.blue),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF1CB0F6),
+                        elevation: 2,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(
+                            color: const Color(0xFF1CB0F6),
+                            width: 2,
+                          ),
+                        ),
                       ),
-                      child: const Text('Every Day'),
+                      child: const Text(
+                        'Every Day',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
               // Skip Tomorrow toggle
-              SwitchListTile(
-                title: const Text('Skip Tomorrow'),
-                subtitle: _isSkippingTomorrow()
-                    ? Text(
-                        'Alarms disabled for ${_getTomorrowDateString()}',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      )
-                    : const Text('Enable to skip alarms tomorrow'),
-                value: _isSkippingTomorrow(),
-                onChanged: (bool value) {
-                  setState(() {
-                    final tomorrow = _getTomorrowDate();
-                    if (value) {
-                      _skipDates.add(tomorrow);
-                    } else {
-                      _skipDates.remove(tomorrow);
-                    }
-                  });
-                },
-                activeColor: Colors.orange,
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _saveSettings,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: _isSkippingTomorrow()
+                        ? [
+                            const Color(0xFFFF9600).withOpacity(0.2),
+                            const Color(0xFFFFC837).withOpacity(0.2),
+                          ]
+                        : [
+                            Colors.grey.shade50,
+                            Colors.grey.shade100,
+                          ],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: _isSkippingTomorrow()
+                        ? const Color(0xFFFF9600)
+                        : Colors.grey.shade300,
+                    width: 2,
                   ),
                 ),
-                child: Text(
-                  AppLocalizations.of(context)!.startTheJourney,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                child: SwitchListTile(
+                  title: Text(
+                    'Skip Tomorrow',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  subtitle: _isSkippingTomorrow()
+                      ? Text(
+                          'Alarms disabled for ${_getTomorrowDateString()}',
+                          style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                        )
+                      : Text(
+                          'Enable to skip alarms tomorrow',
+                          style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                        ),
+                  value: _isSkippingTomorrow(),
+                  onChanged: (bool value) {
+                    setState(() {
+                      final tomorrow = _getTomorrowDate();
+                      if (value) {
+                        _skipDates.add(tomorrow);
+                      } else {
+                        _skipDates.remove(tomorrow);
+                      }
+                    });
+                  },
+                  activeColor: const Color(0xFFFF9600),
+                ),
+              ),
+              const SizedBox(height: 40),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF58CC02),
+                      Color(0xFF46A302),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.green.withOpacity(0.4),
+                      blurRadius: 16,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton(
+                  onPressed: _saveSettings,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    shadowColor: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.rocket_launch, size: 28),
+                      const SizedBox(width: 12),
+                      Text(
+                        AppLocalizations.of(context)!.startTheJourney,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -496,37 +641,80 @@ class _TimeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white,
+              Colors.grey.shade50,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.grey.shade300,
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Row(
             children: [
-              Icon(icon, size: 32, color: Colors.blue),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF1CB0F6).withOpacity(0.15),
+                ),
+                child: Icon(
+                  icon,
+                  size: 28,
+                  color: const Color(0xFF1CB0F6),
+                ),
+              ),
               const SizedBox(width: 16),
               Expanded(
                 child: Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
                   ),
                 ),
               ),
-              Text(
-                time.format(context),
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1CB0F6),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  time.format(context),
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(Icons.chevron_right, color: Colors.grey),
+              Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 28),
             ],
           ),
         ),
@@ -552,23 +740,42 @@ class _DayToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () => onToggle(!isActive),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(50),
       child: Container(
-        width: 45,
-        height: 45,
+        width: 48,
+        height: 48,
         decoration: BoxDecoration(
-          color: isActive ? Colors.blue : Colors.grey[200],
-          borderRadius: BorderRadius.circular(8),
+          gradient: isActive
+              ? const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF58CC02),
+                    Color(0xFF46A302),
+                  ],
+                )
+              : null,
+          color: isActive ? null : Colors.grey[200],
+          shape: BoxShape.circle,
           border: Border.all(
-            color: isActive ? Colors.blue : Colors.grey[400]!,
+            color: isActive ? Colors.green : Colors.grey[400]!,
             width: 2,
           ),
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: Colors.green.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : null,
         ),
         child: Center(
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: FontWeight.bold,
               color: isActive ? Colors.white : Colors.grey[600],
             ),

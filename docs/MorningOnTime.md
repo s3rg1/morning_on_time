@@ -163,93 +163,189 @@ Settings are accessible from the home screen at any time and include:
 
 ---
 
-### **2\. Today's Mission**
+### **2\. Today's Mission Frame**
 
-The Today's Mission frame is a persistent information card displayed on the home screen that shows the user's daily schedule and current status.
+The Mission frame is a dynamic information card on the home screen that shows upcoming alarms and reinforces the daily goal of arriving on time.
 
 #### **Purpose**
 
-* Provides at-a-glance view of the day's time targets
-* Keeps the daily goal ("Arrive on time!") visible and front-of-mind
-* Shows current journey phase (before/during/after trip)
-* Serves as the central reference point for the morning routine
+* Shows only relevant, upcoming alarms (filters out past times)
+* Automatically displays the next active day's schedule
+* Provides clear mission statement with contextual date
+* Keeps focus on what's coming next, not what's already passed
+
+#### **Dynamic Header Logic**
+
+The frame header changes based on which day has the next scheduled alarm:
+
+1. **"Today's Mission: Arrive on time!"**
+   * Shown when today is an active day and current time is before arrival deadline
+   * Example: Monday morning before 8:00 AM arrival time
+
+2. **"Tomorrow's Mission: Arrive on time!"**
+   * Shown when today's journey is complete (after arrival deadline) and tomorrow is active
+   * Example: Monday evening after 8:00 AM, showing Tuesday's schedule
+
+3. **"[Weekday, Month Day] Mission: Arrive on time!"**
+   * Shown when next active day is 2+ days away
+   * Example: Friday evening showing "Monday, Feb 9 Mission" (skipping weekend)
+   * Date format: Full weekday name, abbreviated month, day number
 
 #### **Information Displayed**
 
-The frame shows three key times with corresponding status:
+The frame shows only **pending alarms** (alarms that haven't fired yet):
 
-1. **Wake-up Time**
-   * Label: "🌅 Wake up at:"
-   * Time: User's configured wake-up time
-   * Status indicator: Shows if this milestone has passed
+**Always Shown (if pending):**
+1. **🌅 Wake up at:** User's configured wake-up time
+2. **🚪 Leave at:** User's configured leave home time  
+3. **🎯 Arrive by:** User's configured arrival deadline
 
-2. **Leave Home Time**
-   * Label: "🚪 Leave at:"
-   * Time: User's configured departure time
-   * Status indicator: Shows if departure time has passed
+**Filtering Rules:**
+* If current time has passed wake-up → Don't show wake-up time
+* If current time has passed leave time → Don't show leave time
+* If current time has passed arrival → Switch to next day's mission
+* Always show at least the times that haven't occurred yet
 
-3. **Arrival Deadline**
-   * Label: "🎯 Arrive by:"
-   * Time: User's configured arrival time (latest acceptable arrival)
-   * Status indicator: Shows if arrival time has passed
+**Not Shown:**
+* Checkpoint alarms (implementation detail)
+* Leave Home Soon alarm (implementation detail)
+* Pre-Arrival Check alarm (implementation detail)
 
-4. **Mission Statement**
-   * Text: "Today's Mission: Arrive on time!"
-   * Purpose: Reinforces the single daily objective
+**Example Scenarios:**
 
-#### **When It Appears**
+| Current Time | What's Shown |
+|--------------|-------------|
+| 6:00 AM (before everything) | Wake: 6:30 AM, Leave: 7:45 AM, Arrive: 8:00 AM |
+| 6:45 AM (after wake-up) | Leave: 7:45 AM, Arrive: 8:00 AM |
+| 7:50 AM (after leave) | Arrive: 8:00 AM |
+| 8:10 AM (after arrival) | Tomorrow's mission (all 3 times) |
 
-* **First Display:** Appears immediately after initial setup when times are saved
-* **Daily Display:** Visible from wake-up time until leave home time
-* **Persistence:** Survives app restarts during its display period
+#### **Next Active Day Detection**
 
-#### **When It's Replaced by Countdown Timer**
+The frame intelligently finds the next day with scheduled alarms:
 
-* **Trigger:** Exactly at leave home time (when Leave Home Alarm fires)
-* **Action:** Today's Mission frame disappears and countdown timer takes its place
-* **Reason:** During the trip to school, real-time countdown is more useful than scheduled times
-* **Mutually Exclusive:** Only one is shown at a time - either Today's Mission OR countdown timer
+1. **Check if today is active:**
+   * Is today's weekday in `activeDaysOfWeek`?
+   * Is today's date NOT in `skipDates`?
+   * Has today's arrival deadline not passed?
+   * If YES → Show today's mission
 
-#### **When It's Restored**
+2. **If today is done or skipped, find next active day:**
+   * Start checking tomorrow, then day after, etc.
+   * Find first date where:
+     - Weekday is in `activeDaysOfWeek`
+     - Date is NOT in `skipDates`
+   * Show that date's mission
 
-The Today's Mission frame reappears in two scenarios:
+3. **Edge case - No active days in next 7 days:**
+   * Show message: "No upcoming journeys scheduled"
+   * Prompt user to check settings
 
-1. **After Success:**
-   * User confirms arrival on time (before deadline)
-   * Countdown timer stops and disappears
-   * Today's Mission frame returns to display
-   * Remains visible for rest of day alongside Today's Result (success message)
+#### **Interaction with Countdown Timer**
 
-2. **After Failure:**
-   * Arrival deadline passes without confirmation
-   * Countdown timer stops and disappears
-   * Today's Mission frame returns to display
-   * Remains visible for rest of day alongside Today's Result (failure message)
+The Mission frame and countdown timer are **mutually exclusive**:
 
-3. **Next Day Reset:**
-   * At next wake-up time, the cycle repeats
-   * Today's Mission frame shows updated schedule for new day
+**When Countdown Appears:**
+* Trigger: Leave Home alarm fires (at configured leave time)
+* Action: Mission frame **hides completely**
+* Reason: Countdown provides real-time urgency; static mission times are less relevant
 
+**When Countdown Disappears:**
+* Trigger: User confirms arrival OR arrival deadline passes
+* Action: Mission frame **reappears showing next day's schedule**
+* Reason: Today's journey is complete; prepare for tomorrow
 
-#### **Dynamic Behavior**
+**Example Flow:**
+```
+6:00 AM → Mission frame shows TODAY (wake/leave/arrive)
+7:45 AM → Leave alarm fires → Mission frame HIDES, countdown APPEARS
+8:00 AM → User confirms arrival → Countdown HIDES, Mission frame SHOWS TOMORROW
+```
 
-* **Time Updates:** If user modifies settings, the displayed times update immediately
-* **Status Indicators:** May show checkmarks or highlights as milestones pass (wake-up, departure)
-* **Coexistence:** Can appear alongside Today's Result and streak card, but never with countdown timer
+#### **Visibility Rules**
+
+**Frame is VISIBLE when:**
+* No countdown timer is active
+* User has configured times (initial setup complete)
+* There's at least one upcoming alarm to show
+
+**Frame is HIDDEN when:**
+* Countdown timer is active (between leave time and journey completion)
+* User hasn't completed initial setup
+* No active days exist in next 7 days
+
+**Frame UPDATES when:**
+* Any alarm fires (automatically filters out that time)
+* Arrival deadline passes (switches to next day)
+* User changes settings (new times reflected immediately)
+* App reopens after being in background
+
+#### **Skip Days & Weekend Handling**
+
+**Natural Skip Behavior:**
+* If tomorrow is a skip day (in `skipDates`), frame automatically shows next active day
+* If weekends are disabled, Friday evening shows "Monday's Mission"
+* No special "skip day" message needed - just show what's next
+
+**Example:**
+* User skips Wednesday for doctor appointment
+* Tuesday evening after arrival → Frame shows "Thursday, Feb 12 Mission"
+* No indication that Wednesday is skipped; it's simply not shown
 
 #### **Visual Design**
 
-* Card-style frame with light background
-* Clear typography for easy readability
-* Icons for each time milestone (sunrise, door, target)
-* Maintains visibility without dominating the screen
+* **Card Style:** Light background, rounded corners, subtle shadow
+* **Header:** Bold mission statement with date context
+* **Time List:** Vertical list with emoji icons and clear labels
+* **Typography:** Large, readable times (user's 12h/24h format)
+* **Spacing:** Comfortable padding between times
+* **Animations:** Smooth fade when showing/hiding, slide when updating times
 
-#### **Technical Notes**
+#### **Technical Implementation**
 
-* Times displayed in user's local format (12h/24h based on device settings)
-* Frame refreshes when returning to home screen
-* No interaction required - information-only display
-* Syncs with saved time settings in SharedPreferences
+**Data Source:**
+* Reads times from `AppSettings` (SharedPreferences)
+* Checks `activeDaysOfWeek` set to determine valid days
+* Checks `skipDates` set to filter excluded dates
+* Compares current DateTime to alarm times for filtering
+
+**No Alarm Queries Needed:**
+* Does NOT query AlarmManager for scheduled alarms
+* Uses settings as source of truth (simpler, faster)
+* Assumption: Settings and scheduled alarms are always in sync
+
+**State Management:**
+* Provider-based reactivity (updates UI automatically)
+* Rebuilds when settings change
+* Rebuilds when time passes (periodic checks or alarm callbacks)
+
+**Performance:**
+* Lightweight calculation (date math only)
+* No network calls
+* Minimal battery impact (no background polling)
+
+#### **Edge Cases Handled**
+
+1. **Midnight Boundary:**
+   * If arrival time < leave time (crosses midnight), handle date arithmetic correctly
+   * Example: Leave at 11:50 PM, arrive at 12:10 AM (next day)
+
+2. **No Active Days:**
+   * All 7 weekdays disabled: Show "No journeys scheduled" message
+   * Prompt user to enable at least one day
+
+3. **Settings Changed Mid-Journey:**
+   * If user changes times while countdown is active, countdown uses old times
+   * Mission frame (when it reappears) will show new times
+
+4. **App Restart:**
+   * Frame state persists across app restarts
+   * Recalculates next day and pending times on launch
+
+5. **Test Mode:**
+   * Test button creates temporary settings
+   * Mission frame shows test times
+   * After test completes, reverts to real settings
 
 ---
 

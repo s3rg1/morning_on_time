@@ -20,15 +20,33 @@ class RewardCard extends StatelessWidget {
     final progressPercent = reward.progressPercentage(currentStreak);
     final isAchieved = reward.isAchieved(currentStreak);
 
-    return Card(
-      elevation: 3,
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isAchieved
+              ? [
+                  const Color(0xFFFFC837),
+                  const Color(0xFFFFB300),
+                ]
+              : [
+                  Colors.blue.shade50,
+                  Colors.blue.shade100,
+                ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: (isAchieved ? Colors.amber : Colors.blue).withOpacity(0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      color: isAchieved ? Colors.amber.shade50 : Colors.blue.shade50,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children:  [
@@ -39,7 +57,7 @@ class RewardCard extends StatelessWidget {
                 const Text(
                   '🎁 Reward Goal',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
@@ -58,14 +76,21 @@ class RewardCard extends StatelessWidget {
             const SizedBox(height: 12),
 
             // Progress bar
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: progressPercent / 100,
-                minHeight: 12,
-                backgroundColor: Colors.grey.shade300,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  _getProgressColor(progressPercent, isAchieved),
+            Container(
+              height: 14,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Colors.white.withOpacity(0.3),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: LinearProgressIndicator(
+                  value: progressPercent / 100,
+                  minHeight: 14,
+                  backgroundColor: Colors.transparent,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    _getProgressColor(progressPercent, isAchieved),
+                  ),
                 ),
               ),
             ),
@@ -76,10 +101,10 @@ class RewardCard extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: Text(
                 '${progressPercent.toStringAsFixed(0)}%',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w600,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
@@ -89,25 +114,40 @@ class RewardCard extends StatelessWidget {
             Text(
               _getProgressMessage(reward, currentStreak),
               style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: isAchieved ? Colors.amber.shade900 : Colors.black87,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: isAchieved ? Colors.white : Colors.black87,
               ),
-              textAlign: TextAlign.center,
             ),
 
             // Action buttons when achieved
             if (isAchieved) ...[
               const SizedBox(height: 12),
               Center(
-                child: ElevatedButton.icon(
+                child: ElevatedButton(
                   onPressed: () => _setNextReward(context),
-                  icon: const Icon(Icons.add_circle_outline),
-                  label: const Text('Set Next Reward'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber.shade700,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFFFFB300),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 2,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.add_circle_outline, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Set Next Reward',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -167,11 +207,11 @@ class RewardCard extends StatelessWidget {
   }
 
   Color _getProgressColor(double percent, bool isAchieved) {
-    if (isAchieved) return Colors.amber.shade700;
-    if (percent >= 75) return Colors.green;
-    if (percent >= 50) return Colors.blue;
-    if (percent >= 25) return Colors.orange;
-    return Colors.grey.shade400;
+    if (isAchieved) return Colors.white;
+    if (percent >= 75) return const Color(0xFF58CC02); // Duolingo green
+    if (percent >= 50) return const Color(0xFF1CB0F6); // Duolingo blue
+    if (percent >= 25) return const Color(0xFFFF9600); // Duolingo orange
+    return Colors.orange.shade300;
   }
 
   void _showRewardDialog(BuildContext context) {
