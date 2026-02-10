@@ -79,7 +79,7 @@ void alarmCallback() async {
       final now = DateTime.now();
       final day8Date = DateTime(now.year, now.month, now.day).add(const Duration(days: 7));
       
-      // Check if day 8 is active (not in skipDates and weekday is in activeDaysOfWeek)
+      // Check if day 8 is active (weekday is in activeDaysOfWeek)
       if (settings.isActiveOnDate(day8Date)) {
         print('🗓️  Extending 7-day window: Scheduling day 8 (${AlarmService._formatDate(day8Date)})...');
         
@@ -176,15 +176,7 @@ void testAlarmCallback() async {
 void checkInAlarmCallback() async {
   print('⏰ CHECKPOINT ALARM FIRED!');
   
-  // Safety check: Don't play if it's outside reasonable hours
   final now = DateTime.now();
-  final hour = now.hour;
-  
-  // Only play between 5 AM and 3 PM
-  if (hour < 5 || hour >= 15) {
-    print('⚠️ Skipping checkpoint - outside reasonable hours (current hour: $hour)');
-    return;
-  }
   
   // Get leave home time from settings to calculate minutes remaining
   final prefs = await SharedPreferences.getInstance();
@@ -781,7 +773,7 @@ class AlarmService {
   }
 
   /// Schedules all alarms for the next 7 days using the 7-day rolling window strategy.
-  /// Only schedules alarms for days that match the activeDaysOfWeek pattern and are not in skipDates.
+  /// Only schedules alarms for days that match the activeDaysOfWeek pattern.
   /// Uses the alarm ID scheme: (dayOffset * 1000) + baseAlarmId
   static Future<void> scheduleAlarmsFor7Days(AppSettings settings) async {
     print('🗓️ ===== SCHEDULING 7-DAY ROLLING WINDOW =====');
@@ -792,7 +784,7 @@ class AlarmService {
       // Calculate target date for this day
       final targetDate = DateTime(now.year, now.month, now.day).add(Duration(days: dayOffset));
       
-      // Check if this date is active (not in skipDates and weekday is in activeDaysOfWeek)
+      // Check if this date is active (weekday is in activeDaysOfWeek)
       if (!settings.isActiveOnDate(targetDate)) {
         print('⏭️  Day $dayOffset (${_formatDate(targetDate)}): SKIPPED (inactive day)');
         continue;

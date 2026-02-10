@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// The application title
   ///
   /// In en, this message translates to:
-  /// **'Morning On Time'**
+  /// **'Morning Mission'**
   String get appTitle;
 
   /// Title for today's mission section

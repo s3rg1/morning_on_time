@@ -32,7 +32,7 @@ flutter run --release
 
 ### Step 3: Configure the App
 
-1. Open **Morning On Time** on your phone
+1. Open **Morning Mission** on your phone
 2. Grant **notification permissions** when prompted
 3. Set your schedule:
    - **Wake-up time**: When your morning starts (e.g., 6:30 AM)
@@ -42,7 +42,7 @@ flutter run --release
 ### Step 4: Optimize Battery Settings
 
 To ensure notifications work reliably:
-1. Go to **Settings** > **Apps** > **Morning On Time**
+1. Go to **Settings** > **Apps** > **Morning Mission**
 2. Tap **Battery**
 3. Select **Unrestricted** (or **Don't optimize**)
 

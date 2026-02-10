@@ -1,6 +1,6 @@
 {
   "@@locale": "es",
-  "appTitle": "A Tiempo por la Mañana",
+  "appTitle": "Morning Mission",
   "todaysMission": "Misión de Hoy",
   "arriveOnTime": "¡Llegar a la escuela a tiempo!",
   "daysStreak": "{count, plural, =1{Día de Racha} other{Días de Racha}}",

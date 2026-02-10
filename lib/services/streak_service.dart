@@ -4,31 +4,19 @@ class StreakService {
   int calculateCurrentStreak(List<DayRecord> records) {
     if (records.isEmpty) return 0;
 
-    // Sort records by date descending
+    // Sort records by date descending (newest first)
     final sortedRecords = List<DayRecord>.from(records)
       ..sort((a, b) => b.date.compareTo(a.date));
 
     int streak = 0;
-    final today = DateTime.now();
     
-    // Remove time component for date comparison
-    final todayDate = DateTime(today.year, today.month, today.day);
-    
+    // Count consecutive days with wasOnTime == true
+    // Gaps in records are ignored; only break when encountering wasOnTime == false
     for (final record in sortedRecords) {
-      final recordDate = DateTime(record.date.year, record.date.month, record.date.day);
-      final expectedDate = todayDate.subtract(Duration(days: streak));
-      
-      // If the record date matches the expected date
-      if (recordDate.year == expectedDate.year &&
-          recordDate.month == expectedDate.month &&
-          recordDate.day == expectedDate.day) {
-        if (record.wasOnTime) {
-          streak++;
-        } else {
-          break;
-        }
-      } else if (recordDate.isBefore(expectedDate)) {
-        // Gap in records, streak is broken
+      if (record.wasOnTime) {
+        streak++;
+      } else {
+        // Found a day where wasOnTime is false, streak ends
         break;
       }
     }

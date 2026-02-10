@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => AppState()..initialize(),
       child: MaterialApp(
-        title: 'Morning On Time',
+        title: 'Morning Mission',
         debugShowCheckedModeBanner: false,
         localizationsDelegates: const [
           AppLocalizations.delegate,
@@ -40,7 +40,6 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
           useMaterial3: true,
           appBarTheme: const AppBarTheme(
-            centerTitle: true,
             elevation: 2,
           ),
         ),
@@ -107,7 +106,7 @@ class _SplashScreenState extends State<SplashScreen> {
               Icon(Icons.wb_sunny, size: 100, color: Colors.white),
               SizedBox(height: 24),
               Text(
-                'Morning On Time',
+                'Morning Mission',
                 style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
               ),
               SizedBox(height: 8),

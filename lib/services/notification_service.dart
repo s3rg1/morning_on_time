@@ -19,7 +19,7 @@ class NotificationService {
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
     'morning_on_time_channel',
     'Morning Notifications',
-    description: 'Notifications for Morning On Time app',
+    description: 'Notifications for Morning Mission app',
     importance: Importance.high,
     playSound: true,
     enableVibration: true,
@@ -377,7 +377,7 @@ class NotificationService {
       print('   1. Battery optimization blocking the app');
       print('   2. Android Doze mode preventing wake-ups');
       print('   3. App standby buckets restricting background work');
-      print('💡 Try: Settings > Apps > Morning On Time > Battery > Unrestricted');
+      print('💡 Try: Settings > Apps > Morning Mission > Battery > Unrestricted');
       
       // Check what's pending
       await getPendingNotifications();

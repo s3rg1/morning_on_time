@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/app_state.dart';
 import '../models/app_settings.dart';
+import 'scheduled_alarms_screen.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -16,7 +17,6 @@ class _SetupScreenState extends State<SetupScreen> {
   TimeOfDay _leaveHomeTime = const TimeOfDay(hour: 7, minute: 45);
   TimeOfDay _arrivalDeadline = const TimeOfDay(hour: 8, minute: 0);
   Set<int> _activeDaysOfWeek = {1, 2, 3, 4, 5}; // Default: Weekdays (Mon-Fri)
-  Set<DateTime> _skipDates = {};
 
   @override
   void initState() {
@@ -30,7 +30,6 @@ class _SetupScreenState extends State<SetupScreen> {
           _leaveHomeTime = appState.settings!.leaveHomeTime;
           _arrivalDeadline = appState.settings!.arrivalDeadline;
           _activeDaysOfWeek = Set<int>.from(appState.settings!.activeDaysOfWeek);
-          _skipDates = Set<DateTime>.from(appState.settings!.skipDates);
         });
       }
     });
@@ -149,26 +148,6 @@ class _SetupScreenState extends State<SetupScreen> {
     }
   }
 
-  DateTime _getTomorrowDate() {
-    final now = DateTime.now();
-    final tomorrow = now.add(const Duration(days: 1));
-    return DateTime(tomorrow.year, tomorrow.month, tomorrow.day);
-  }
-
-  String _getTomorrowDateString() {
-    final tomorrow = _getTomorrowDate();
-    final weekdays = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return '${weekdays[tomorrow.weekday]} ${tomorrow.month}/${tomorrow.day}';
-  }
-
-  bool _isSkippingTomorrow() {
-    final tomorrow = _getTomorrowDate();
-    return _skipDates.any((skipDate) {
-      final normalizedSkipDate = DateTime(skipDate.year, skipDate.month, skipDate.day);
-      return normalizedSkipDate == tomorrow;
-    });
-  }
-
   void _saveSettings() async {
     try {
       final appState = Provider.of<AppState>(context, listen: false);
@@ -177,7 +156,6 @@ class _SetupScreenState extends State<SetupScreen> {
         leaveHomeTime: _leaveHomeTime,
         arrivalDeadline: _arrivalDeadline,
         activeDaysOfWeek: _activeDaysOfWeek,
-        skipDates: _skipDates,
       );
       
       // Show loading indicator
@@ -344,7 +322,7 @@ class _SetupScreenState extends State<SetupScreen> {
               const SizedBox(height: 12),
               // Day toggles
               Wrap(
-                spacing: 8,
+                spacing: 6,
                 runSpacing: 8,
                 children: [
                   _DayToggle(
@@ -512,63 +490,6 @@ class _SetupScreenState extends State<SetupScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              // Skip Tomorrow toggle
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: _isSkippingTomorrow()
-                        ? [
-                            const Color(0xFFFF9600).withOpacity(0.2),
-                            const Color(0xFFFFC837).withOpacity(0.2),
-                          ]
-                        : [
-                            Colors.grey.shade50,
-                            Colors.grey.shade100,
-                          ],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: _isSkippingTomorrow()
-                        ? const Color(0xFFFF9600)
-                        : Colors.grey.shade300,
-                    width: 2,
-                  ),
-                ),
-                child: SwitchListTile(
-                  title: Text(
-                    'Skip Tomorrow',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  subtitle: _isSkippingTomorrow()
-                      ? Text(
-                          'Alarms disabled for ${_getTomorrowDateString()}',
-                          style: TextStyle(fontSize: 13, color: Colors.grey[700]),
-                        )
-                      : Text(
-                          'Enable to skip alarms tomorrow',
-                          style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                        ),
-                  value: _isSkippingTomorrow(),
-                  onChanged: (bool value) {
-                    setState(() {
-                      final tomorrow = _getTomorrowDate();
-                      if (value) {
-                        _skipDates.add(tomorrow);
-                      } else {
-                        _skipDates.remove(tomorrow);
-                      }
-                    });
-                  },
-                  activeColor: const Color(0xFFFF9600),
-                ),
-              ),
               const SizedBox(height: 40),
               Container(
                 decoration: BoxDecoration(
@@ -614,6 +535,25 @@ class _SetupScreenState extends State<SetupScreen> {
                       ),
                     ],
                   ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Testing link (remove before production)
+              TextButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const ScheduledAlarmsScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.alarm, size: 18),
+                label: const Text(
+                  'View Scheduled Alarms (Testing)',
+                  style: TextStyle(fontSize: 14),
+                ),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.grey.shade600,
                 ),
               ),
               const SizedBox(height: 24),
@@ -742,8 +682,8 @@ class _DayToggle extends StatelessWidget {
       onTap: () => onToggle(!isActive),
       borderRadius: BorderRadius.circular(50),
       child: Container(
-        width: 48,
-        height: 48,
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
           gradient: isActive
               ? const LinearGradient(

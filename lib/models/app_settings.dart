@@ -8,7 +8,6 @@ class AppSettings {
   final int minutesBeforeLeaving2;
   final int minutesBeforeArrival;
   final Set<int> activeDaysOfWeek; // 1=Mon, 2=Tue, ..., 7=Sun
-  final Set<DateTime> skipDates; // Specific dates to skip alarms
 
   AppSettings({
     required this.wakeUpTime,
@@ -18,9 +17,7 @@ class AppSettings {
     this.minutesBeforeLeaving2 = 5, // Reserved for future use
     this.minutesBeforeArrival = 2, // PRD: Pre-Arrival Check fires 2 min before arrival
     Set<int>? activeDaysOfWeek,
-    Set<DateTime>? skipDates,
-  })  : activeDaysOfWeek = activeDaysOfWeek ?? {1, 2, 3, 4, 5}, // Default: Weekdays
-        skipDates = skipDates ?? {};
+  })  : activeDaysOfWeek = activeDaysOfWeek ?? {1, 2, 3, 4, 5}; // Default: Weekdays
 
   Map<String, dynamic> toJson() {
     return {
@@ -34,7 +31,6 @@ class AppSettings {
       'minutesBeforeLeaving2': minutesBeforeLeaving2,
       'minutesBeforeArrival': minutesBeforeArrival,
       'activeDaysOfWeek': activeDaysOfWeek.toList(),
-      'skipDates': skipDates.map((d) => d.toIso8601String()).toList(),
     };
   }
 
@@ -45,18 +41,6 @@ class AppSettings {
       parsedActiveDays = (json['activeDaysOfWeek'] as List<dynamic>)
           .map((e) => e as int)
           .toSet();
-    }
-
-    // Parse skipDates with backward compatibility
-    Set<DateTime> parsedSkipDates = {};
-    if (json['skipDates'] != null) {
-      parsedSkipDates = (json['skipDates'] as List<dynamic>)
-          .map((e) => DateTime.parse(e as String))
-          .toSet();
-      // Auto-cleanup: Remove past skip dates
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      parsedSkipDates.removeWhere((date) => date.isBefore(today));
     }
 
     return AppSettings(
@@ -76,7 +60,7 @@ class AppSettings {
       minutesBeforeLeaving2: json['minutesBeforeLeaving2'] as int? ?? 5,
       minutesBeforeArrival: json['minutesBeforeArrival'] as int? ?? 5,
       activeDaysOfWeek: parsedActiveDays,
-      skipDates: parsedSkipDates,
+
     );
   }
 
@@ -88,7 +72,6 @@ class AppSettings {
     int? minutesBeforeLeaving2,
     int? minutesBeforeArrival,
     Set<int>? activeDaysOfWeek,
-    Set<DateTime>? skipDates,
   }) {
     return AppSettings(
       wakeUpTime: wakeUpTime ?? this.wakeUpTime,
@@ -98,24 +81,12 @@ class AppSettings {
       minutesBeforeLeaving2: minutesBeforeLeaving2 ?? this.minutesBeforeLeaving2,
       minutesBeforeArrival: minutesBeforeArrival ?? this.minutesBeforeArrival,
       activeDaysOfWeek: activeDaysOfWeek ?? this.activeDaysOfWeek,
-      skipDates: skipDates ?? this.skipDates,
     );
   }
 
   /// Checks if alarms should be scheduled for the given date.
-  /// Returns false if the date is in skipDates or if the weekday is not in activeDaysOfWeek.
+  /// Returns true if the weekday is in activeDaysOfWeek.
   bool isActiveOnDate(DateTime date) {
-    // Normalize date to midnight for comparison (ignore time component)
-    final normalizedDate = DateTime(date.year, date.month, date.day);
-    
-    // Check if this specific date should be skipped
-    if (skipDates.any((skipDate) {
-      final normalizedSkipDate = DateTime(skipDate.year, skipDate.month, skipDate.day);
-      return normalizedSkipDate == normalizedDate;
-    })) {
-      return false;
-    }
-    
     // Check if this day of the week is active (1=Mon, 2=Tue, ..., 7=Sun)
     return activeDaysOfWeek.contains(date.weekday);
   }

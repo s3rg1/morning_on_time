@@ -13,7 +13,6 @@ import '../models/check_in_status.dart';
 import '../services/alarm_service.dart';
 import '../widgets/countdown_timer.dart';
 import '../widgets/reward_card.dart';
-import 'scheduled_alarms_screen.dart';
 import 'monthly_view_screen.dart';
 import 'setup_screen.dart';
 
@@ -765,7 +764,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               _showTestMenu(context, appState);
             },
           ),
-          // View scheduled alarms button
+          // Monthly history view button
           IconButton(
             icon: Container(
               padding: const EdgeInsets.all(8),
@@ -773,12 +772,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 shape: BoxShape.circle,
                 color: Colors.blue.shade100,
               ),
-              child: const Icon(Icons.calendar_today, color: Color(0xFF1CB0F6), size: 20),
+              child: const Icon(Icons.calendar_month, color: Color(0xFF1CB0F6), size: 20),
             ),
-            tooltip: 'View Scheduled Alarms',
+            tooltip: 'Monthly History',
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ScheduledAlarmsScreen()),
+                MaterialPageRoute(builder: (_) => const MonthlyViewScreen()),
               );
             },
           ),
@@ -1278,19 +1277,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   const SizedBox(height: 24),
                 ],
 
-                // Quick Actions
-                _QuickActionButton(
-                  icon: Icons.calendar_month,
-                  label: AppLocalizations.of(context)!.monthlyView,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const MonthlyViewScreen(),
-                      ),
-                    );
-                  },
-                ),
-
               ],
             ),
           );
@@ -1389,77 +1375,4 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 }
 
-class _QuickActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
 
-  const _QuickActionButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white,
-              Colors.grey.shade50,
-            ],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: Colors.grey.shade300,
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFF1CB0F6).withOpacity(0.15),
-                ),
-                child: Icon(
-                  icon,
-                  size: 32,
-                  color: const Color(0xFF1CB0F6),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
