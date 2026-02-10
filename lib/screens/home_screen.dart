@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:confetti/confetti.dart';
+import 'package:volume_controller/volume_controller.dart';
 import 'dart:async';
 import 'dart:math';
 import '../l10n/app_localizations.dart';
@@ -42,6 +43,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       print('🏠 HomeScreen loaded - checking journey state...');
       _checkJourneyState();
+      // Check volume if user has completed setup
+      _checkVolumeIfSetupComplete();
     });
   }
 
@@ -65,6 +68,49 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _checkJourneyState() async {
     final appState = Provider.of<AppState>(context, listen: false);
     await appState.checkAndRestoreJourneyState();
+  }
+
+  Future<void> _checkVolumeIfSetupComplete() async {
+    try {
+      final appState = Provider.of<AppState>(context, listen: false);
+      
+      // Only check volume if user has completed setup (has scheduled notifications)
+      if (!appState.isSetupComplete) {
+        return;
+      }
+      
+      final volume = await VolumeController().getVolume();
+      
+      // Warn if volume is below 30%
+      if (volume < 0.3 && mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.volume_down, color: Colors.orange, size: 28),
+                SizedBox(width: 8),
+                Text('Low Volume'),
+              ],
+            ),
+            content: Text(
+              'Your media volume is at ${(volume * 100).round()}%.\n\n'
+              'Consider increasing it to hear morning voice messages.',
+              style: const TextStyle(fontSize: 16),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("OK, I'll adjust it"),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      // Silently fail if volume check is not available
+      print('Volume check failed: $e');
+    }
   }
 
   Map<String, dynamic> _getStreakLevelInfo(int streak) {

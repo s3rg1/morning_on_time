@@ -1338,6 +1338,7 @@ February 2026 Summary:
 | Users forget to confirm arrival | Clear arrival notification \+ grace period |
 | Too many notifications | Strict limit to key moments only |
 | Children ignore voice | Customizable voice tone and energy |
+| Device volume too low to hear TTS | Volume check at app launch (if setup complete) and during setup saves, warns if < 30%, allowing user to adjust |
 
 ---
 

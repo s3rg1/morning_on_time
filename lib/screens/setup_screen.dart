@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:volume_controller/volume_controller.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/app_state.dart';
 import '../models/app_settings.dart';
@@ -179,6 +180,9 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
         );
         
+        // Check volume and warn if too low
+        await _checkVolumeAndWarn();
+        
         // Navigate back to home after a short delay
         await Future.delayed(const Duration(milliseconds: 500));
         if (mounted) {
@@ -195,6 +199,42 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
         );
       }
+    }
+  }
+
+  Future<void> _checkVolumeAndWarn() async {
+    try {
+      final volume = await VolumeController().getVolume();
+      
+      // Warn if volume is below 30%
+      if (volume < 0.3 && mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.volume_down, color: Colors.orange, size: 28),
+                SizedBox(width: 8),
+                Text('Low Volume'),
+              ],
+            ),
+            content: Text(
+              'Your media volume is at ${(volume * 100).round()}%.\n\n'
+              'Consider increasing it to hear morning voice messages.',
+              style: const TextStyle(fontSize: 16),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK, I\'ll adjust it'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      // Silently fail if volume check is not available
+      print('Volume check failed: $e');
     }
   }
 
