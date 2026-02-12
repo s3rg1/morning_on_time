@@ -168,4 +168,308 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get journeyInProgress => 'Viaje en Progreso';
+
+  @override
+  String get onboardingProblemHeadline => '¿Las mañanas son una lucha diaria?';
+
+  @override
+  String get onboardingProblemPoint1 =>
+      '¿Llegar tarde a la escuela a pesar de tus mejores esfuerzos?';
+
+  @override
+  String get onboardingProblemPoint2 =>
+      '¿Mañanas llenas de caos, recordatorios constantes y estrés?';
+
+  @override
+  String get onboardingProblemPoint3 =>
+      '¿Niños sin sentido de urgencia mientras tú vas atrasado?';
+
+  @override
+  String get onboardingSolutionHeadline =>
+      'Convierte las mañanas en una misión';
+
+  @override
+  String get onboardingSolutionPoint1 =>
+      'Morning Mission ayuda a tu familia a llegar a tiempo consistentemente';
+
+  @override
+  String get onboardingSolutionPoint2 =>
+      'Recordatorios por voz en momentos clave—sin pantallas, sin listas de tareas';
+
+  @override
+  String get onboardingSolutionPoint3 =>
+      'Motiva con rachas y recompensas, no con culpa o presión';
+
+  @override
+  String get onboardingSolutionPoint4 =>
+      'La aplicación se activa sola. Tú solo vive tu mañana.';
+
+  @override
+  String get onboardingHowItWorksHeadline =>
+      'Apoyo automático durante toda la mañana';
+
+  @override
+  String get onboardingHowItWorksPoint1 =>
+      'Mensaje de bienvenida establece la misión del día';
+
+  @override
+  String get onboardingHowItWorksPoint2 =>
+      'Registros de voz cada 10 minutos para mantenerte en camino';
+
+  @override
+  String get onboardingHowItWorksPoint3 =>
+      'Cuenta regresiva cuando es hora de salir';
+
+  @override
+  String get onboardingHowItWorksPoint4 =>
+      '¡Confirma tu llegada para celebrar el éxito y construir tu racha!';
+
+  @override
+  String get onboardingPermissionsHeadline =>
+      'Dos permisos rápidos para empezar';
+
+  @override
+  String get onboardingPermissionsIntro =>
+      'Para que la aplicación funcione correctamente, necesitamos:';
+
+  @override
+  String get onboardingPermissionNotifications => '📬 Notificaciones';
+
+  @override
+  String get onboardingPermissionNotificationsDesc =>
+      'Para enviar recordatorios por voz y alertas de tiempo durante tu mañana';
+
+  @override
+  String get onboardingPermissionBattery => '🔋 Batería Sin Restricciones';
+
+  @override
+  String get onboardingPermissionBatteryDesc =>
+      'Para asegurar que las alarmas suenen a tiempo incluso cuando tu teléfono esté bloqueado o en modo de suspensión';
+
+  @override
+  String get onboardingPermissionExplanation =>
+      'Por qué importa el permiso de batería: Android pone las aplicaciones a dormir para ahorrar energía. Sin este permiso, las alarmas matutinas podrían no despertarse a tiempo cuando más las necesitas.';
+
+  @override
+  String get onboardingGrantPermissions => 'Otorgar Permisos y Continuar';
+
+  @override
+  String get onboardingPermissionsRequired => 'Permisos Requeridos';
+
+  @override
+  String get onboardingPermissionsRequiredMessage =>
+      'Morning Mission necesita ambos permisos para funcionar correctamente. Sin ellos, las alarmas podrían no sonar cuando tu familia más las necesita.\n\nPor favor otorga ambos permisos de Notificaciones y Batería Sin Restricciones para continuar.';
+
+  @override
+  String get onboardingExitApp => 'Salir de la App';
+
+  @override
+  String get onboardingTryAgain => 'Intentar de Nuevo';
+
+  @override
+  String get onboardingError => 'Error';
+
+  @override
+  String onboardingErrorMessage(String error) {
+    return 'Ocurrió un error al solicitar permisos:\n\n$error';
+  }
+
+  @override
+  String get onboardingNext => 'Siguiente';
+
+  @override
+  String get onboardingBack => 'Atrás';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get cancel => 'Cancelar';
+
+  @override
+  String get save => 'Guardar';
+
+  @override
+  String get lowVolume => 'Volumen Bajo';
+
+  @override
+  String lowVolumeMessage(int volume) {
+    return 'Tu volumen multimedia está al $volume%.\n\nConsidera aumentarlo para escuchar los mensajes de voz matutinos.';
+  }
+
+  @override
+  String get okIllAdjustIt => 'OK, lo ajustaré';
+
+  @override
+  String get streakLevelBeginner => 'Corredor Principiante';
+
+  @override
+  String get streakLevelOccasional => 'Corredor Ocasional';
+
+  @override
+  String get streakLevelPro => 'Corredor Pro';
+
+  @override
+  String get streakLevelChampion => 'Corredor Campeón';
+
+  @override
+  String get streakLevelUltimate => 'Jaguar Definitivo';
+
+  @override
+  String get testAllAlarms =>
+      '🧪 Probar Todas las Alarmas (Recorrido de 22 Minutos)';
+
+  @override
+  String get testAllAlarmsDescription =>
+      'Esto probará TODOS los tipos de alarma en ~22 minutos:';
+
+  @override
+  String get testAllAlarmsDetails =>
+      '✅ Alarma de despertar (T+2 min)\n✅ Alarma de control #1 (T+12 min)\n✅ Sal Pronto de Casa (T+13 min)\n✅ Salir de Casa → comienza cuenta regresiva (T+18 min)\n✅ Control Pre-Llegada (T+20 min)\n✅ Fecha límite de llegada (T+22 min)\n\nToca \"Llegué\" antes de la fecha límite para probar éxito.\nDeja que el temporizador expire para probar fallo.\n\n⚠️ No se puede ejecutar entre 11:38 PM - medianoche.';
+
+  @override
+  String get startTest => '🚀 Iniciar Prueba';
+
+  @override
+  String get cannotScheduleNotifications =>
+      '❌ No se pueden programar notificaciones - ¡permiso no otorgado!';
+
+  @override
+  String get testNotificationSuccess =>
+      '✅ ¡Mostrando prueba AHORA! Prueba programada en 30s. ¡MANTÉN LA APP ABIERTA y espérala!';
+
+  @override
+  String errorWithDetails(String error) {
+    return '❌ Error: $error';
+  }
+
+  @override
+  String testCannotRunMidnight(int minutes) {
+    return '❌ ¡La prueba no puede ejecutarse - muy cerca de medianoche!\nSolo $minutes minutos hasta medianoche.\nLa prueba necesita 22 minutos. Por favor intenta más temprano.';
+  }
+
+  @override
+  String get testStarted =>
+      '🧪 ¡Prueba Iniciada! (recorrido de 22 minutos)\n• Despertar: en 2 minutos\n• Control #1: en 12 minutos (¡NUEVO!)\n• Sal Pronto de Casa: en 13 minutos\n• Salir de Casa: en 18 minutos → comienza cuenta regresiva\n• Control Pre-Llegada: en 20 minutos\n• Fecha límite de llegada: en 22 minutos\n• Permanece en pantalla para observar las alarmas';
+
+  @override
+  String get monday => 'Lun';
+
+  @override
+  String get tuesday => 'Mar';
+
+  @override
+  String get wednesday => 'Mié';
+
+  @override
+  String get thursday => 'Jue';
+
+  @override
+  String get friday => 'Vie';
+
+  @override
+  String get saturday => 'Sáb';
+
+  @override
+  String get sunday => 'Dom';
+
+  @override
+  String get activeDays => '📅 Días Activos';
+
+  @override
+  String get weekdaysOnly => 'Solo Días Laborales';
+
+  @override
+  String get everyDay => 'Todos los Días';
+
+  @override
+  String get viewScheduledAlarms => 'Ver Alarmas Programadas (Pruebas)';
+
+  @override
+  String get totalDays => 'Días Totales';
+
+  @override
+  String get noDataForMonth => 'Sin datos para este mes';
+
+  @override
+  String get legend => 'Leyenda:';
+
+  @override
+  String get onTimeArrival => 'Llegada a tiempo';
+
+  @override
+  String get lateArrival => 'Llegada tarde';
+
+  @override
+  String get noRecord => 'Sin registro';
+
+  @override
+  String get manageReward => 'Gestionar Recompensa';
+
+  @override
+  String get rewardName => 'Nombre de la Recompensa';
+
+  @override
+  String get rewardNameHint => 'ej., Noche de pizza 🍕';
+
+  @override
+  String get quickSuggestions => 'Sugerencias Rápidas';
+
+  @override
+  String get streakGoal => 'Meta de Racha';
+
+  @override
+  String get days => 'días';
+
+  @override
+  String get active => 'Activa';
+
+  @override
+  String get inactive => 'Inactiva';
+
+  @override
+  String get currentProgress => 'Progreso Actual:';
+
+  @override
+  String daysProgress(int current, int total) {
+    return '$current de $total días';
+  }
+
+  @override
+  String get keepItUp => '¡Sigue así!';
+
+  @override
+  String get notStartedYet => 'Aún no iniciada';
+
+  @override
+  String get pleaseEnterRewardName =>
+      'Por favor ingresa un nombre para la recompensa';
+
+  @override
+  String rewardUpdated(String name) {
+    return 'Recompensa actualizada: $name';
+  }
+
+  @override
+  String errorSavingReward(String error) {
+    return 'Error al guardar recompensa: $error';
+  }
+
+  @override
+  String get rewardMovieNight => 'Noche de película';
+
+  @override
+  String get rewardPizzaDinner => 'Cena de pizza';
+
+  @override
+  String get rewardExtraGameTime => 'Tiempo extra de juego';
+
+  @override
+  String get rewardParkVisit => 'Visita al parque';
+
+  @override
+  String get rewardArtProject => 'Proyecto de arte';
+
+  @override
+  String get rewardIceCreamOuting => 'Salida a heladería';
 }

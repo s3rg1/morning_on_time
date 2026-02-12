@@ -10,6 +10,7 @@ class StorageService {
   static const String _rewardsKey = 'rewards';
   static const String _currentStreakKey = 'current_streak';
   static const String _isSetupCompleteKey = 'is_setup_complete';
+  static const String _isOnboardingCompleteKey = 'is_onboarding_complete';
   static const String _journeyActiveKey = 'journey_active';
   static const String _journeyStartTimeKey = 'journey_start_time';
   static const String _testArrivalDeadlineKey = 'test_arrival_deadline';
@@ -96,6 +97,16 @@ class StorageService {
   Future<void> setSetupComplete(bool complete) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_isSetupCompleteKey, complete);
+  }
+
+  Future<bool> isOnboardingComplete() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_isOnboardingCompleteKey) ?? false;
+  }
+
+  Future<void> setOnboardingComplete(bool complete) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_isOnboardingCompleteKey, complete);
   }
 
   Future<bool> isJourneyActive() async {

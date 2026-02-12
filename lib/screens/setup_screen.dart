@@ -350,9 +350,9 @@ class _SetupScreenState extends State<SetupScreen> {
                   ),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Text(
-                  '📅 Active Days',
-                  style: TextStyle(
+                child: Text(
+                  AppLocalizations.of(context)!.activeDays,
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
@@ -366,7 +366,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 runSpacing: 8,
                 children: [
                   _DayToggle(
-                    label: 'Mon',
+                    label: AppLocalizations.of(context)!.monday,
                     day: 1,
                     isActive: _activeDaysOfWeek.contains(1),
                     onToggle: (active) {
@@ -380,7 +380,7 @@ class _SetupScreenState extends State<SetupScreen> {
                     },
                   ),
                   _DayToggle(
-                    label: 'Tue',
+                    label: AppLocalizations.of(context)!.tuesday,
                     day: 2,
                     isActive: _activeDaysOfWeek.contains(2),
                     onToggle: (active) {
@@ -394,7 +394,7 @@ class _SetupScreenState extends State<SetupScreen> {
                     },
                   ),
                   _DayToggle(
-                    label: 'Wed',
+                    label: AppLocalizations.of(context)!.wednesday,
                     day: 3,
                     isActive: _activeDaysOfWeek.contains(3),
                     onToggle: (active) {
@@ -408,7 +408,7 @@ class _SetupScreenState extends State<SetupScreen> {
                     },
                   ),
                   _DayToggle(
-                    label: 'Thu',
+                    label: AppLocalizations.of(context)!.thursday,
                     day: 4,
                     isActive: _activeDaysOfWeek.contains(4),
                     onToggle: (active) {
@@ -422,7 +422,7 @@ class _SetupScreenState extends State<SetupScreen> {
                     },
                   ),
                   _DayToggle(
-                    label: 'Fri',
+                    label: AppLocalizations.of(context)!.friday,
                     day: 5,
                     isActive: _activeDaysOfWeek.contains(5),
                     onToggle: (active) {
@@ -436,7 +436,7 @@ class _SetupScreenState extends State<SetupScreen> {
                     },
                   ),
                   _DayToggle(
-                    label: 'Sat',
+                    label: AppLocalizations.of(context)!.saturday,
                     day: 6,
                     isActive: _activeDaysOfWeek.contains(6),
                     onToggle: (active) {
@@ -450,7 +450,7 @@ class _SetupScreenState extends State<SetupScreen> {
                     },
                   ),
                   _DayToggle(
-                    label: 'Sun',
+                    label: AppLocalizations.of(context)!.sunday,
                     day: 7,
                     isActive: _activeDaysOfWeek.contains(7),
                     onToggle: (active) {
@@ -489,9 +489,9 @@ class _SetupScreenState extends State<SetupScreen> {
                           ),
                         ),
                       ),
-                      child: const Text(
-                        'Weekdays Only',
-                        style: TextStyle(
+                      child: Text(
+                        AppLocalizations.of(context)!.weekdaysOnly,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
@@ -519,9 +519,9 @@ class _SetupScreenState extends State<SetupScreen> {
                           ),
                         ),
                       ),
-                      child: const Text(
-                        'Every Day',
-                        style: TextStyle(
+                      child: Text(
+                        AppLocalizations.of(context)!.everyDay,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
@@ -588,9 +588,9 @@ class _SetupScreenState extends State<SetupScreen> {
                   );
                 },
                 icon: const Icon(Icons.alarm, size: 18),
-                label: const Text(
-                  'View Scheduled Alarms (Testing)',
-                  style: TextStyle(fontSize: 14),
+                label: Text(
+                  AppLocalizations.of(context)!.viewScheduledAlarms,
+                  style: const TextStyle(fontSize: 14),
                 ),
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.grey.shade600,

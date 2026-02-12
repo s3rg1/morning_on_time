@@ -168,4 +168,304 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get journeyInProgress => 'Journey in Progress';
+
+  @override
+  String get onboardingProblemHeadline => 'Are mornings a daily struggle?';
+
+  @override
+  String get onboardingProblemPoint1 =>
+      'Arriving late to school despite your best efforts?';
+
+  @override
+  String get onboardingProblemPoint2 =>
+      'Mornings filled with chaos, constant reminders, and stress?';
+
+  @override
+  String get onboardingProblemPoint3 =>
+      'Children lacking a sense of urgency while you\'re running behind?';
+
+  @override
+  String get onboardingSolutionHeadline => 'Turn mornings into a mission';
+
+  @override
+  String get onboardingSolutionPoint1 =>
+      'Morning Mission helps your family arrive on time consistently';
+
+  @override
+  String get onboardingSolutionPoint2 =>
+      'Voice-driven reminders at key moments—no screens, no checklists';
+
+  @override
+  String get onboardingSolutionPoint3 =>
+      'Motivates with streaks and rewards, not guilt or pressure';
+
+  @override
+  String get onboardingSolutionPoint4 =>
+      'The app activates itself. You just live your morning.';
+
+  @override
+  String get onboardingHowItWorksHeadline =>
+      'Automatic support throughout the morning';
+
+  @override
+  String get onboardingHowItWorksPoint1 =>
+      'Wake-up message sets today\'s mission';
+
+  @override
+  String get onboardingHowItWorksPoint2 =>
+      'Voice check-ins every 10 minutes to stay on track';
+
+  @override
+  String get onboardingHowItWorksPoint3 => 'Countdown when it\'s time to leave';
+
+  @override
+  String get onboardingHowItWorksPoint4 =>
+      'Confirm arrival to celebrate success and build your streak!';
+
+  @override
+  String get onboardingPermissionsHeadline =>
+      'Two quick permissions to get started';
+
+  @override
+  String get onboardingPermissionsIntro =>
+      'For the app to work reliably, we need:';
+
+  @override
+  String get onboardingPermissionNotifications => '📬 Notifications';
+
+  @override
+  String get onboardingPermissionNotificationsDesc =>
+      'To send voice reminders and time alerts throughout your morning';
+
+  @override
+  String get onboardingPermissionBattery => '🔋 Battery Unrestricted';
+
+  @override
+  String get onboardingPermissionBatteryDesc =>
+      'To ensure alarms fire on time even when your phone is locked or sleeping';
+
+  @override
+  String get onboardingPermissionExplanation =>
+      'Why battery permission matters: Android puts apps to sleep to save power. Without this permission, morning alarms might not wake up on time when you need them most.';
+
+  @override
+  String get onboardingGrantPermissions => 'Grant Permissions & Continue';
+
+  @override
+  String get onboardingPermissionsRequired => 'Permissions Required';
+
+  @override
+  String get onboardingPermissionsRequiredMessage =>
+      'Morning Mission needs both permissions to work reliably. Without them, alarms may not fire when your family needs them most.\n\nPlease grant both Notifications and Battery Unrestricted permissions to continue.';
+
+  @override
+  String get onboardingExitApp => 'Exit App';
+
+  @override
+  String get onboardingTryAgain => 'Try Again';
+
+  @override
+  String get onboardingError => 'Error';
+
+  @override
+  String onboardingErrorMessage(String error) {
+    return 'An error occurred while requesting permissions:\n\n$error';
+  }
+
+  @override
+  String get onboardingNext => 'Next';
+
+  @override
+  String get onboardingBack => 'Back';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get lowVolume => 'Low Volume';
+
+  @override
+  String lowVolumeMessage(int volume) {
+    return 'Your media volume is at $volume%.\n\nConsider increasing it to hear morning voice messages.';
+  }
+
+  @override
+  String get okIllAdjustIt => 'OK, I\'ll adjust it';
+
+  @override
+  String get streakLevelBeginner => 'Beginner Runner';
+
+  @override
+  String get streakLevelOccasional => 'Occasional Runner';
+
+  @override
+  String get streakLevelPro => 'Pro Runner';
+
+  @override
+  String get streakLevelChampion => 'Champion Runner';
+
+  @override
+  String get streakLevelUltimate => 'Ultimate Jaguar';
+
+  @override
+  String get testAllAlarms => '🧪 Test All Alarms (22-Minute Journey)';
+
+  @override
+  String get testAllAlarmsDescription =>
+      'This will test ALL alarm types in ~22 minutes:';
+
+  @override
+  String get testAllAlarmsDetails =>
+      '✅ Wake-up alarm (T+2 min)\n✅ Checkpoint alarm #1 (T+12 min)\n✅ Leave Home Soon (T+13 min)\n✅ Leave Home → countdown starts (T+18 min)\n✅ Pre-Arrival Check (T+20 min)\n✅ Arrival deadline (T+22 min)\n\nTap \"Arrived\" before deadline to test success path.\nLet timer expire to test failure path.\n\n⚠️ Cannot run between 11:38 PM - midnight.';
+
+  @override
+  String get startTest => '🚀 Start Test';
+
+  @override
+  String get cannotScheduleNotifications =>
+      '❌ Cannot schedule notifications - permission not granted!';
+
+  @override
+  String get testNotificationSuccess =>
+      '✅ Showing test NOW! Scheduled test in 30s. KEEP APP OPEN and watch for it!';
+
+  @override
+  String errorWithDetails(String error) {
+    return '❌ Error: $error';
+  }
+
+  @override
+  String testCannotRunMidnight(int minutes) {
+    return '❌ Test cannot run - too close to midnight!\nOnly $minutes minutes until midnight.\nTest needs 22 minutes. Please try earlier in the day.';
+  }
+
+  @override
+  String get testStarted =>
+      '🧪 Test Started! (22-minute journey)\n• Wake-up: in 2 minutes\n• Checkpoint #1: in 12 minutes (NEW!)\n• Leave Home Soon: in 13 minutes\n• Leave Home: in 18 minutes → countdown starts\n• Pre-Arrival Check: in 20 minutes\n• Arrival deadline: in 22 minutes\n• Stay on screen to observe alarms firing';
+
+  @override
+  String get monday => 'Mon';
+
+  @override
+  String get tuesday => 'Tue';
+
+  @override
+  String get wednesday => 'Wed';
+
+  @override
+  String get thursday => 'Thu';
+
+  @override
+  String get friday => 'Fri';
+
+  @override
+  String get saturday => 'Sat';
+
+  @override
+  String get sunday => 'Sun';
+
+  @override
+  String get activeDays => '📅 Active Days';
+
+  @override
+  String get weekdaysOnly => 'Weekdays Only';
+
+  @override
+  String get everyDay => 'Every Day';
+
+  @override
+  String get viewScheduledAlarms => 'View Scheduled Alarms (Testing)';
+
+  @override
+  String get totalDays => 'Total Days';
+
+  @override
+  String get noDataForMonth => 'No data for this month';
+
+  @override
+  String get legend => 'Legend:';
+
+  @override
+  String get onTimeArrival => 'On time arrival';
+
+  @override
+  String get lateArrival => 'Late arrival';
+
+  @override
+  String get noRecord => 'No record';
+
+  @override
+  String get manageReward => 'Manage Reward';
+
+  @override
+  String get rewardName => 'Reward Name';
+
+  @override
+  String get rewardNameHint => 'e.g., Pizza night 🍕';
+
+  @override
+  String get quickSuggestions => 'Quick Suggestions';
+
+  @override
+  String get streakGoal => 'Streak Goal';
+
+  @override
+  String get days => 'days';
+
+  @override
+  String get active => 'Active';
+
+  @override
+  String get inactive => 'Inactive';
+
+  @override
+  String get currentProgress => 'Current Progress:';
+
+  @override
+  String daysProgress(int current, int total) {
+    return '$current out of $total days';
+  }
+
+  @override
+  String get keepItUp => 'Keep it up!';
+
+  @override
+  String get notStartedYet => 'Not started yet';
+
+  @override
+  String get pleaseEnterRewardName => 'Please enter a reward name';
+
+  @override
+  String rewardUpdated(String name) {
+    return 'Reward updated: $name';
+  }
+
+  @override
+  String errorSavingReward(String error) {
+    return 'Error saving reward: $error';
+  }
+
+  @override
+  String get rewardMovieNight => 'Movie night';
+
+  @override
+  String get rewardPizzaDinner => 'Pizza dinner';
+
+  @override
+  String get rewardExtraGameTime => 'Extra game time';
+
+  @override
+  String get rewardParkVisit => 'Park visit';
+
+  @override
+  String get rewardArtProject => 'Art project';
+
+  @override
+  String get rewardIceCreamOuting => 'Ice cream outing';
 }

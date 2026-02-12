@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/app_state.dart';
 
 class RewardManagementDialog extends StatefulWidget {
@@ -14,14 +15,17 @@ class _RewardManagementDialogState extends State<RewardManagementDialog> {
   late int _selectedDays;
 
   // Quick reward templates
-  final List<Map<String, dynamic>> _templates = [
-    {'emoji': '🍿', 'name': 'Movie night'},
-    {'emoji': '🍕', 'name': 'Pizza dinner'},
-    {'emoji': '🎮', 'name': 'Extra game time'},
-    {'emoji': '🏞️', 'name': 'Park visit'},
-    {'emoji': '🎨', 'name': 'Art project'},
-    {'emoji': '🍦', 'name': 'Ice cream outing'},
-  ];
+  List<Map<String, dynamic>> _getTemplates(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    return [
+      {'emoji': '🍿', 'name': loc.rewardMovieNight},
+      {'emoji': '🍕', 'name': loc.rewardPizzaDinner},
+      {'emoji': '🎮', 'name': loc.rewardExtraGameTime},
+      {'emoji': '🏞️', 'name': loc.rewardParkVisit},
+      {'emoji': '🎨', 'name': loc.rewardArtProject},
+      {'emoji': '🍦', 'name': loc.rewardIceCreamOuting},
+    ];
+  }
 
   @override
   void initState() {
@@ -45,17 +49,19 @@ class _RewardManagementDialogState extends State<RewardManagementDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    final templates = _getTemplates(context);
     return AlertDialog(
-      title: const Text('Manage Reward'),
+      title: Text(loc.manageReward),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Reward name input
-            const Text(
-              'Reward Name',
-              style: TextStyle(
+            Text(
+              loc.rewardName,
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
@@ -65,7 +71,7 @@ class _RewardManagementDialogState extends State<RewardManagementDialog> {
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
-                hintText: 'e.g., Pizza night 🍕',
+                hintText: loc.rewardNameHint,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -79,9 +85,9 @@ class _RewardManagementDialogState extends State<RewardManagementDialog> {
             const SizedBox(height: 16),
 
             // Quick templates
-            const Text(
-              'Quick Suggestions',
-              style: TextStyle(
+            Text(
+              loc.quickSuggestions,
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
@@ -91,7 +97,7 @@ class _RewardManagementDialogState extends State<RewardManagementDialog> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _templates.map((template) {
+              children: templates.map((template) {
                 return InkWell(
                   onTap: () {
                     setState(() {
@@ -217,7 +223,7 @@ class _RewardManagementDialogState extends State<RewardManagementDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(loc.cancel),
         ),
         ElevatedButton(
           onPressed: _saveReward,
@@ -225,19 +231,20 @@ class _RewardManagementDialogState extends State<RewardManagementDialog> {
             backgroundColor: Colors.blue.shade700,
             foregroundColor: Colors.white,
           ),
-          child: const Text('Save'),
+          child: Text(loc.save),
         ),
       ],
     );
   }
 
   void _saveReward() async {
+    final loc = AppLocalizations.of(context)!;
     final name = _nameController.text.trim();
     
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a reward name'),
+        SnackBar(
+          content: Text(loc.pleaseEnterRewardName),
           backgroundColor: Colors.red,
         ),
       );
@@ -253,19 +260,21 @@ class _RewardManagementDialogState extends State<RewardManagementDialog> {
       );
 
       if (mounted) {
+        final loc = AppLocalizations.of(context)!;
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Reward updated: $name'),
+            content: Text(loc.rewardUpdated(name)),
             backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
+        final loc = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving reward: $e'),
+            content: Text(loc.errorSavingReward(e.toString())),
             backgroundColor: Colors.red,
           ),
         );

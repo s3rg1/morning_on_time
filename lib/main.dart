@@ -5,6 +5,7 @@ import 'l10n/app_localizations.dart';
 import 'providers/app_state.dart';
 import 'screens/home_screen.dart';
 import 'screens/setup_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'services/alarm_service.dart';
 
 void main() async {
@@ -45,8 +46,9 @@ class MyApp extends StatelessWidget {
         ),
         home: const SplashScreen(),
         routes: {
-          '/home': (context) => const HomeScreen(),
+          '/onboarding': (context) => const OnboardingScreen(),
           '/setup': (context) => const SetupScreen(),
+          '/home': (context) => const HomeScreen(),
         },
       ),
     );
@@ -81,10 +83,17 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
-    if (appState.isSetupComplete) {
-      Navigator.of(context).pushReplacementNamed('/home');
-    } else {
+    // Navigation flow:
+    // 1. First launch (no onboarding) -> Onboarding screen
+    // 2. After onboarding (no setup) -> Setup screen
+    // 3. After setup -> Home screen
+    
+    if (!appState.isOnboardingComplete) {
+      Navigator.of(context).pushReplacementNamed('/onboarding');
+    } else if (!appState.isSetupComplete) {
       Navigator.of(context).pushReplacementNamed('/setup');
+    } else {
+      Navigator.of(context).pushReplacementNamed('/home');
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/app_state.dart';
 
 class MonthlyViewScreen extends StatefulWidget {
@@ -83,19 +84,19 @@ class _MonthlyViewScreenState extends State<MonthlyViewScreen> {
                     _SummaryItem(
                       icon: Icons.check_circle,
                       count: onTimeCount,
-                      label: 'On Time',
+                      label: AppLocalizations.of(context)!.onTimeArrival,
                       color: Colors.green,
                     ),
                     _SummaryItem(
                       icon: Icons.cancel,
                       count: lateCount,
-                      label: 'Late',
+                      label: AppLocalizations.of(context)!.lateArrival,
                       color: Colors.red,
                     ),
                     _SummaryItem(
                       icon: Icons.calendar_today,
                       count: daysInMonth,
-                      label: 'Total Days',
+                      label: AppLocalizations.of(context)!.totalDays,
                       color: Colors.blue,
                     ),
                   ],
@@ -138,11 +139,11 @@ class _MonthlyViewScreenState extends State<MonthlyViewScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _LegendItem(color: Colors.green.shade100, label: 'On Time'),
+                    _LegendItem(color: Colors.green.shade100, label: AppLocalizations.of(context)!.onTimeArrival),
                     const SizedBox(width: 16),
-                    _LegendItem(color: Colors.red.shade100, label: 'Late'),
+                    _LegendItem(color: Colors.red.shade100, label: AppLocalizations.of(context)!.lateArrival),
                     const SizedBox(width: 16),
-                    _LegendItem(color: Colors.grey.shade200, label: 'No Data'),
+                    _LegendItem(color: Colors.grey.shade200, label: AppLocalizations.of(context)!.noRecord),
                   ],
                 ),
               ),

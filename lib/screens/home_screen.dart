@@ -83,25 +83,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       
       // Warn if volume is below 30%
       if (volume < 0.3 && mounted) {
+        final loc = AppLocalizations.of(context)!;
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Row(
+            title: Row(
               children: [
-                Icon(Icons.volume_down, color: Colors.orange, size: 28),
-                SizedBox(width: 8),
-                Text('Low Volume'),
+                const Icon(Icons.volume_down, color: Colors.orange, size: 28),
+                const SizedBox(width: 8),
+                Text(loc.lowVolume),
               ],
             ),
             content: Text(
-              'Your media volume is at ${(volume * 100).round()}%.\n\n'
-              'Consider increasing it to hear morning voice messages.',
+              loc.lowVolumeMessage((volume * 100).round()),
               style: const TextStyle(fontSize: 16),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text("OK, I'll adjust it"),
+                child: Text(loc.okIllAdjustIt),
               ),
             ],
           ),
@@ -114,39 +114,40 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Map<String, dynamic> _getStreakLevelInfo(int streak) {
+    final loc = AppLocalizations.of(context)!;
     if (streak < 10) {
       return {
         'image': 'assets/images/streak/level_0.png',
         'color': Colors.orange,
-        'level': 'Beginner Runner',
+        'level': loc.streakLevelBeginner,
         'next': 10,
       };
     } else if (streak < 20) {
       return {
         'image': 'assets/images/streak/level_1.png',
         'color': Colors.green,
-        'level': 'Occasional Runner',
+        'level': loc.streakLevelOccasional,
         'next': 20,
       };
     } else if (streak < 30) {
       return {
         'image': 'assets/images/streak/level_2.png',
         'color': Colors.purple,
-        'level': 'Pro Runner',
+        'level': loc.streakLevelPro,
         'next': 30,
       };
     } else if (streak < 40) {
       return {
         'image': 'assets/images/streak/level_3.png',
         'color': Colors.red,
-        'level': 'Champion Runner',
+        'level': loc.streakLevelChampion,
         'next': 40,
       };
     } else {
       return {
         'image': 'assets/images/streak/level_4.png',
         'color': Colors.amber.shade700,
-        'level': 'Ultimate Jaguar',
+        'level': loc.streakLevelUltimate,
         'next': null,
       };
     }
@@ -199,11 +200,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     
     if (!canSchedule) {
       if (context.mounted) {
+        final loc = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('❌ Cannot schedule notifications - permission not granted!'),
+          SnackBar(
+            content: Text(loc.cannotScheduleNotifications),
             backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -216,20 +218,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         await appState.notificationService.scheduleTestNotification();
         
         if (context.mounted) {
+          final loc = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('✅ Showing test NOW! Scheduled test in 30s. KEEP APP OPEN and watch for it!'),
+            SnackBar(
+              content: Text(loc.testNotificationSuccess),
               backgroundColor: Colors.green,
-              duration: Duration(seconds: 4),
+              duration: const Duration(seconds: 4),
             ),
           );
         }
       } catch (e) {
         print('❌ Error scheduling test: $e');
         if (context.mounted) {
+          final loc = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('❌ Error: $e'),
+              content: Text(loc.errorWithDetails(e.toString())),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 3),
             ),
@@ -240,37 +244,30 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _showTestMenu(BuildContext context, AppState appState) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('🧪 Test All Alarms (22-Minute Journey)'),
+        title: Text(loc.testAllAlarms),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'This will test ALL alarm types in ~22 minutes:',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Text(
+              loc.testAllAlarmsDescription,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            const Text(
-              '✅ Wake-up alarm (T+2 min)\n'
-              '✅ Checkpoint alarm #1 (T+12 min)\n'
-              '✅ Leave Home Soon (T+13 min)\n'
-              '✅ Leave Home → countdown starts (T+18 min)\n'
-              '✅ Pre-Arrival Check (T+20 min)\n'
-              '✅ Arrival deadline (T+22 min)\n\n'
-              'Tap "Arrived" before deadline to test success path.\n'
-              'Let timer expire to test failure path.\n\n'
-              '⚠️ Cannot run between 11:38 PM - midnight.',
-              style: TextStyle(fontSize: 13),
+            Text(
+              loc.testAllAlarmsDetails,
+              style: const TextStyle(fontSize: 13),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(loc.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -281,7 +278,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               backgroundColor: Colors.orange,
               foregroundColor: Colors.white,
             ),
-            child: const Text('🚀 Start Test'),
+            child: Text(loc.startTest),
           ),
         ],
       ),
@@ -304,12 +301,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         print('💡 Please run test earlier in the day (before 11:38 PM)');
         
         if (context.mounted) {
+          final loc = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                '❌ Test cannot run - too close to midnight!\n'
-                'Only $minutesUntilMidnight minutes until midnight.\n'
-                'Test needs 22 minutes. Please try earlier in the day.',
+                loc.testCannotRunMidnight(minutesUntilMidnight),
               ),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 5),
@@ -371,20 +367,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       print('🧪 Test settings saved - all alarms scheduled via standard flow');
       
       if (context.mounted) {
+        final loc = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              '🧪 Test Started! (22-minute journey)\n'
-              '• Wake-up: in 2 minutes\n'
-              '• Checkpoint #1: in 12 minutes (NEW!)\n'
-              '• Leave Home Soon: in 13 minutes\n'
-              '• Leave Home: in 18 minutes → countdown starts\n'
-              '• Pre-Arrival Check: in 20 minutes\n'
-              '• Arrival deadline: in 22 minutes\n'
-              '• Stay on screen to observe alarms firing',
+              loc.testStarted,
             ),
             backgroundColor: Colors.orange,
-            duration: Duration(seconds: 7),
+            duration: const Duration(seconds: 7),
           ),
         );
       }

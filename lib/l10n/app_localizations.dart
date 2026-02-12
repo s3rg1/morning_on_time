@@ -391,6 +391,534 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Journey in Progress'**
   String get journeyInProgress;
+
+  /// Onboarding screen 1 headline
+  ///
+  /// In en, this message translates to:
+  /// **'Are mornings a daily struggle?'**
+  String get onboardingProblemHeadline;
+
+  /// Onboarding screen 1 problem point 1
+  ///
+  /// In en, this message translates to:
+  /// **'Arriving late to school despite your best efforts?'**
+  String get onboardingProblemPoint1;
+
+  /// Onboarding screen 1 problem point 2
+  ///
+  /// In en, this message translates to:
+  /// **'Mornings filled with chaos, constant reminders, and stress?'**
+  String get onboardingProblemPoint2;
+
+  /// Onboarding screen 1 problem point 3
+  ///
+  /// In en, this message translates to:
+  /// **'Children lacking a sense of urgency while you\'re running behind?'**
+  String get onboardingProblemPoint3;
+
+  /// Onboarding screen 2 headline
+  ///
+  /// In en, this message translates to:
+  /// **'Turn mornings into a mission'**
+  String get onboardingSolutionHeadline;
+
+  /// Onboarding screen 2 solution point 1
+  ///
+  /// In en, this message translates to:
+  /// **'Morning Mission helps your family arrive on time consistently'**
+  String get onboardingSolutionPoint1;
+
+  /// Onboarding screen 2 solution point 2
+  ///
+  /// In en, this message translates to:
+  /// **'Voice-driven reminders at key moments—no screens, no checklists'**
+  String get onboardingSolutionPoint2;
+
+  /// Onboarding screen 2 solution point 3
+  ///
+  /// In en, this message translates to:
+  /// **'Motivates with streaks and rewards, not guilt or pressure'**
+  String get onboardingSolutionPoint3;
+
+  /// Onboarding screen 2 solution point 4
+  ///
+  /// In en, this message translates to:
+  /// **'The app activates itself. You just live your morning.'**
+  String get onboardingSolutionPoint4;
+
+  /// Onboarding screen 3 headline
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic support throughout the morning'**
+  String get onboardingHowItWorksHeadline;
+
+  /// Onboarding screen 3 step 1
+  ///
+  /// In en, this message translates to:
+  /// **'Wake-up message sets today\'s mission'**
+  String get onboardingHowItWorksPoint1;
+
+  /// Onboarding screen 3 step 2
+  ///
+  /// In en, this message translates to:
+  /// **'Voice check-ins every 10 minutes to stay on track'**
+  String get onboardingHowItWorksPoint2;
+
+  /// Onboarding screen 3 step 3
+  ///
+  /// In en, this message translates to:
+  /// **'Countdown when it\'s time to leave'**
+  String get onboardingHowItWorksPoint3;
+
+  /// Onboarding screen 3 step 4
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm arrival to celebrate success and build your streak!'**
+  String get onboardingHowItWorksPoint4;
+
+  /// Onboarding screen 4 headline
+  ///
+  /// In en, this message translates to:
+  /// **'Two quick permissions to get started'**
+  String get onboardingPermissionsHeadline;
+
+  /// Onboarding screen 4 intro text
+  ///
+  /// In en, this message translates to:
+  /// **'For the app to work reliably, we need:'**
+  String get onboardingPermissionsIntro;
+
+  /// Notifications permission title
+  ///
+  /// In en, this message translates to:
+  /// **'📬 Notifications'**
+  String get onboardingPermissionNotifications;
+
+  /// Notifications permission description
+  ///
+  /// In en, this message translates to:
+  /// **'To send voice reminders and time alerts throughout your morning'**
+  String get onboardingPermissionNotificationsDesc;
+
+  /// Battery permission title
+  ///
+  /// In en, this message translates to:
+  /// **'🔋 Battery Unrestricted'**
+  String get onboardingPermissionBattery;
+
+  /// Battery permission description
+  ///
+  /// In en, this message translates to:
+  /// **'To ensure alarms fire on time even when your phone is locked or sleeping'**
+  String get onboardingPermissionBatteryDesc;
+
+  /// Battery permission explanation box
+  ///
+  /// In en, this message translates to:
+  /// **'Why battery permission matters: Android puts apps to sleep to save power. Without this permission, morning alarms might not wake up on time when you need them most.'**
+  String get onboardingPermissionExplanation;
+
+  /// Button to grant permissions
+  ///
+  /// In en, this message translates to:
+  /// **'Grant Permissions & Continue'**
+  String get onboardingGrantPermissions;
+
+  /// Permissions denied dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Permissions Required'**
+  String get onboardingPermissionsRequired;
+
+  /// Permissions denied dialog message
+  ///
+  /// In en, this message translates to:
+  /// **'Morning Mission needs both permissions to work reliably. Without them, alarms may not fire when your family needs them most.\n\nPlease grant both Notifications and Battery Unrestricted permissions to continue.'**
+  String get onboardingPermissionsRequiredMessage;
+
+  /// Exit app button
+  ///
+  /// In en, this message translates to:
+  /// **'Exit App'**
+  String get onboardingExitApp;
+
+  /// Try again button
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get onboardingTryAgain;
+
+  /// Error dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get onboardingError;
+
+  /// Error dialog message
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred while requesting permissions:\n\n{error}'**
+  String onboardingErrorMessage(String error);
+
+  /// Next button
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get onboardingNext;
+
+  /// Back button
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get onboardingBack;
+
+  /// OK button
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// Cancel button
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// Save button
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// Low volume warning dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Low Volume'**
+  String get lowVolume;
+
+  /// Low volume warning message
+  ///
+  /// In en, this message translates to:
+  /// **'Your media volume is at {volume}%.\n\nConsider increasing it to hear morning voice messages.'**
+  String lowVolumeMessage(int volume);
+
+  /// Volume adjustment acknowledgment button
+  ///
+  /// In en, this message translates to:
+  /// **'OK, I\'ll adjust it'**
+  String get okIllAdjustIt;
+
+  /// Streak level 0-9 days
+  ///
+  /// In en, this message translates to:
+  /// **'Beginner Runner'**
+  String get streakLevelBeginner;
+
+  /// Streak level 10-19 days
+  ///
+  /// In en, this message translates to:
+  /// **'Occasional Runner'**
+  String get streakLevelOccasional;
+
+  /// Streak level 20-29 days
+  ///
+  /// In en, this message translates to:
+  /// **'Pro Runner'**
+  String get streakLevelPro;
+
+  /// Streak level 30-39 days
+  ///
+  /// In en, this message translates to:
+  /// **'Champion Runner'**
+  String get streakLevelChampion;
+
+  /// Streak level 40+ days
+  ///
+  /// In en, this message translates to:
+  /// **'Ultimate Jaguar'**
+  String get streakLevelUltimate;
+
+  /// Test menu dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'🧪 Test All Alarms (22-Minute Journey)'**
+  String get testAllAlarms;
+
+  /// Test menu description header
+  ///
+  /// In en, this message translates to:
+  /// **'This will test ALL alarm types in ~22 minutes:'**
+  String get testAllAlarmsDescription;
+
+  /// Test menu detailed timeline
+  ///
+  /// In en, this message translates to:
+  /// **'✅ Wake-up alarm (T+2 min)\n✅ Checkpoint alarm #1 (T+12 min)\n✅ Leave Home Soon (T+13 min)\n✅ Leave Home → countdown starts (T+18 min)\n✅ Pre-Arrival Check (T+20 min)\n✅ Arrival deadline (T+22 min)\n\nTap \"Arrived\" before deadline to test success path.\nLet timer expire to test failure path.\n\n⚠️ Cannot run between 11:38 PM - midnight.'**
+  String get testAllAlarmsDetails;
+
+  /// Start test button
+  ///
+  /// In en, this message translates to:
+  /// **'🚀 Start Test'**
+  String get startTest;
+
+  /// Error message when notification permission missing
+  ///
+  /// In en, this message translates to:
+  /// **'❌ Cannot schedule notifications - permission not granted!'**
+  String get cannotScheduleNotifications;
+
+  /// Test notification scheduled successfully
+  ///
+  /// In en, this message translates to:
+  /// **'✅ Showing test NOW! Scheduled test in 30s. KEEP APP OPEN and watch for it!'**
+  String get testNotificationSuccess;
+
+  /// Generic error message with details
+  ///
+  /// In en, this message translates to:
+  /// **'❌ Error: {error}'**
+  String errorWithDetails(String error);
+
+  /// Error when test crosses midnight
+  ///
+  /// In en, this message translates to:
+  /// **'❌ Test cannot run - too close to midnight!\nOnly {minutes} minutes until midnight.\nTest needs 22 minutes. Please try earlier in the day.'**
+  String testCannotRunMidnight(int minutes);
+
+  /// Test started success message with timeline
+  ///
+  /// In en, this message translates to:
+  /// **'🧪 Test Started! (22-minute journey)\n• Wake-up: in 2 minutes\n• Checkpoint #1: in 12 minutes (NEW!)\n• Leave Home Soon: in 13 minutes\n• Leave Home: in 18 minutes → countdown starts\n• Pre-Arrival Check: in 20 minutes\n• Arrival deadline: in 22 minutes\n• Stay on screen to observe alarms firing'**
+  String get testStarted;
+
+  /// Monday abbreviation
+  ///
+  /// In en, this message translates to:
+  /// **'Mon'**
+  String get monday;
+
+  /// Tuesday abbreviation
+  ///
+  /// In en, this message translates to:
+  /// **'Tue'**
+  String get tuesday;
+
+  /// Wednesday abbreviation
+  ///
+  /// In en, this message translates to:
+  /// **'Wed'**
+  String get wednesday;
+
+  /// Thursday abbreviation
+  ///
+  /// In en, this message translates to:
+  /// **'Thu'**
+  String get thursday;
+
+  /// Friday abbreviation
+  ///
+  /// In en, this message translates to:
+  /// **'Fri'**
+  String get friday;
+
+  /// Saturday abbreviation
+  ///
+  /// In en, this message translates to:
+  /// **'Sat'**
+  String get saturday;
+
+  /// Sunday abbreviation
+  ///
+  /// In en, this message translates to:
+  /// **'Sun'**
+  String get sunday;
+
+  /// Active days section header
+  ///
+  /// In en, this message translates to:
+  /// **'📅 Active Days'**
+  String get activeDays;
+
+  /// Weekdays preset button
+  ///
+  /// In en, this message translates to:
+  /// **'Weekdays Only'**
+  String get weekdaysOnly;
+
+  /// Every day preset button
+  ///
+  /// In en, this message translates to:
+  /// **'Every Day'**
+  String get everyDay;
+
+  /// Debug button to view alarms
+  ///
+  /// In en, this message translates to:
+  /// **'View Scheduled Alarms (Testing)'**
+  String get viewScheduledAlarms;
+
+  /// Total days in month label
+  ///
+  /// In en, this message translates to:
+  /// **'Total Days'**
+  String get totalDays;
+
+  /// Empty state message for monthly view
+  ///
+  /// In en, this message translates to:
+  /// **'No data for this month'**
+  String get noDataForMonth;
+
+  /// Calendar legend header
+  ///
+  /// In en, this message translates to:
+  /// **'Legend:'**
+  String get legend;
+
+  /// Legend item for on-time days
+  ///
+  /// In en, this message translates to:
+  /// **'On time arrival'**
+  String get onTimeArrival;
+
+  /// Legend item for late days
+  ///
+  /// In en, this message translates to:
+  /// **'Late arrival'**
+  String get lateArrival;
+
+  /// Legend item for days without data
+  ///
+  /// In en, this message translates to:
+  /// **'No record'**
+  String get noRecord;
+
+  /// Reward dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Reward'**
+  String get manageReward;
+
+  /// Reward name input label
+  ///
+  /// In en, this message translates to:
+  /// **'Reward Name'**
+  String get rewardName;
+
+  /// Reward name hint text
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Pizza night 🍕'**
+  String get rewardNameHint;
+
+  /// Reward templates section header
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Suggestions'**
+  String get quickSuggestions;
+
+  /// Streak goal input label
+  ///
+  /// In en, this message translates to:
+  /// **'Streak Goal'**
+  String get streakGoal;
+
+  /// Days unit label
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get days;
+
+  /// Active status label
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get active;
+
+  /// Inactive status label
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get inactive;
+
+  /// Progress section header
+  ///
+  /// In en, this message translates to:
+  /// **'Current Progress:'**
+  String get currentProgress;
+
+  /// Progress counter
+  ///
+  /// In en, this message translates to:
+  /// **'{current} out of {total} days'**
+  String daysProgress(int current, int total);
+
+  /// Encouragement message
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it up!'**
+  String get keepItUp;
+
+  /// Reward not started message
+  ///
+  /// In en, this message translates to:
+  /// **'Not started yet'**
+  String get notStartedYet;
+
+  /// Validation error for empty reward name
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a reward name'**
+  String get pleaseEnterRewardName;
+
+  /// Reward saved success message
+  ///
+  /// In en, this message translates to:
+  /// **'Reward updated: {name}'**
+  String rewardUpdated(String name);
+
+  /// Reward save error message
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving reward: {error}'**
+  String errorSavingReward(String error);
+
+  /// Reward template
+  ///
+  /// In en, this message translates to:
+  /// **'Movie night'**
+  String get rewardMovieNight;
+
+  /// Reward template
+  ///
+  /// In en, this message translates to:
+  /// **'Pizza dinner'**
+  String get rewardPizzaDinner;
+
+  /// Reward template
+  ///
+  /// In en, this message translates to:
+  /// **'Extra game time'**
+  String get rewardExtraGameTime;
+
+  /// Reward template
+  ///
+  /// In en, this message translates to:
+  /// **'Park visit'**
+  String get rewardParkVisit;
+
+  /// Reward template
+  ///
+  /// In en, this message translates to:
+  /// **'Art project'**
+  String get rewardArtProject;
+
+  /// Reward template
+  ///
+  /// In en, this message translates to:
+  /// **'Ice cream outing'**
+  String get rewardIceCreamOuting;
 }
 
 class _AppLocalizationsDelegate

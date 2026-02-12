@@ -23,6 +23,7 @@ class AppState extends ChangeNotifier {
   CheckInStatus _todayCheckIn = CheckInStatus.notStarted;
   bool _isLoading = true;
   bool _isSetupComplete = false;
+  bool _isOnboardingComplete = false;
   bool _arrivalConfirmedToday = false;
 
   AppSettings? get settings => _settings;
@@ -32,6 +33,7 @@ class AppState extends ChangeNotifier {
   CheckInStatus get todayCheckIn => _todayCheckIn;
   bool get isLoading => _isLoading;
   bool get isSetupComplete => _isSetupComplete;
+  bool get isOnboardingComplete => _isOnboardingComplete;
   
   // Get the current active reward (single reward system)
   Reward? get currentReward {
@@ -203,7 +205,15 @@ class AppState extends ChangeNotifier {
     await _saveDeviceLocale();
 
     await _notifications.initialize();
-    await _notifications.requestPermissions();
+    
+    // Load onboarding status first
+    _isOnboardingComplete = await _storage.isOnboardingComplete();
+    
+    // Only request permissions if onboarding is complete
+    // (Onboarding screen handles permission requests for first-time users)
+    if (_isOnboardingComplete) {
+      await _notifications.requestPermissions();
+    }
     
     // Cancel all previous alarms/notifications to prevent stale alarms from firing
     await AlarmService.cancelAll();
@@ -224,6 +234,7 @@ class AppState extends ChangeNotifier {
     _rewards = await _storage.loadRewards();
     _currentStreak = _streakService.calculateCurrentStreak(_records);
     _isSetupComplete = await _storage.isSetupComplete();
+    // _isOnboardingComplete already loaded above before permission request
     
     // Initialize default reward if no rewards exist
     if (_rewards.isEmpty) {
@@ -403,6 +414,12 @@ class AppState extends ChangeNotifier {
     await AlarmService.scheduleAlarmsFor7Days(settings);
     print('✅ 7-day rolling window scheduled');
     
+    notifyListeners();
+  }
+
+  Future<void> completeOnboarding() async {
+    _isOnboardingComplete = true;
+    await _storage.setOnboardingComplete(true);
     notifyListeners();
   }
 

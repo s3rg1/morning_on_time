@@ -205,5 +205,395 @@
   "journeyInProgress": "Journey in Progress",
   "@journeyInProgress": {
     "description": "Journey active title"
+  },
+  "onboardingProblemHeadline": "Are mornings a daily struggle?",
+  "@onboardingProblemHeadline": {
+    "description": "Onboarding screen 1 headline"
+  },
+  "onboardingProblemPoint1": "Arriving late to school despite your best efforts?",
+  "@onboardingProblemPoint1": {
+    "description": "Onboarding screen 1 problem point 1"
+  },
+  "onboardingProblemPoint2": "Mornings filled with chaos, constant reminders, and stress?",
+  "@onboardingProblemPoint2": {
+    "description": "Onboarding screen 1 problem point 2"
+  },
+  "onboardingProblemPoint3": "Children lacking a sense of urgency while you're running behind?",
+  "@onboardingProblemPoint3": {
+    "description": "Onboarding screen 1 problem point 3"
+  },
+  "onboardingSolutionHeadline": "Turn mornings into a mission",
+  "@onboardingSolutionHeadline": {
+    "description": "Onboarding screen 2 headline"
+  },
+  "onboardingSolutionPoint1": "Morning Mission helps your family arrive on time consistently",
+  "@onboardingSolutionPoint1": {
+    "description": "Onboarding screen 2 solution point 1"
+  },
+  "onboardingSolutionPoint2": "Voice-driven reminders at key moments—no screens, no checklists",
+  "@onboardingSolutionPoint2": {
+    "description": "Onboarding screen 2 solution point 2"
+  },
+  "onboardingSolutionPoint3": "Motivates with streaks and rewards, not guilt or pressure",
+  "@onboardingSolutionPoint3": {
+    "description": "Onboarding screen 2 solution point 3"
+  },
+  "onboardingSolutionPoint4": "The app activates itself. You just live your morning.",
+  "@onboardingSolutionPoint4": {
+    "description": "Onboarding screen 2 solution point 4"
+  },
+  "onboardingHowItWorksHeadline": "Automatic support throughout the morning",
+  "@onboardingHowItWorksHeadline": {
+    "description": "Onboarding screen 3 headline"
+  },
+  "onboardingHowItWorksPoint1": "Wake-up message sets today's mission",
+  "@onboardingHowItWorksPoint1": {
+    "description": "Onboarding screen 3 step 1"
+  },
+  "onboardingHowItWorksPoint2": "Voice check-ins every 10 minutes to stay on track",
+  "@onboardingHowItWorksPoint2": {
+    "description": "Onboarding screen 3 step 2"
+  },
+  "onboardingHowItWorksPoint3": "Countdown when it's time to leave",
+  "@onboardingHowItWorksPoint3": {
+    "description": "Onboarding screen 3 step 3"
+  },
+  "onboardingHowItWorksPoint4": "Confirm arrival to celebrate success and build your streak!",
+  "@onboardingHowItWorksPoint4": {
+    "description": "Onboarding screen 3 step 4"
+  },
+  "onboardingPermissionsHeadline": "Two quick permissions to get started",
+  "@onboardingPermissionsHeadline": {
+    "description": "Onboarding screen 4 headline"
+  },
+  "onboardingPermissionsIntro": "For the app to work reliably, we need:",
+  "@onboardingPermissionsIntro": {
+    "description": "Onboarding screen 4 intro text"
+  },
+  "onboardingPermissionNotifications": "📬 Notifications",
+  "@onboardingPermissionNotifications": {
+    "description": "Notifications permission title"
+  },
+  "onboardingPermissionNotificationsDesc": "To send voice reminders and time alerts throughout your morning",
+  "@onboardingPermissionNotificationsDesc": {
+    "description": "Notifications permission description"
+  },
+  "onboardingPermissionBattery": "🔋 Battery Unrestricted",
+  "@onboardingPermissionBattery": {
+    "description": "Battery permission title"
+  },
+  "onboardingPermissionBatteryDesc": "To ensure alarms fire on time even when your phone is locked or sleeping",
+  "@onboardingPermissionBatteryDesc": {
+    "description": "Battery permission description"
+  },
+  "onboardingPermissionExplanation": "Why battery permission matters: Android puts apps to sleep to save power. Without this permission, morning alarms might not wake up on time when you need them most.",
+  "@onboardingPermissionExplanation": {
+    "description": "Battery permission explanation box"
+  },
+  "onboardingGrantPermissions": "Grant Permissions & Continue",
+  "@onboardingGrantPermissions": {
+    "description": "Button to grant permissions"
+  },
+  "onboardingPermissionsRequired": "Permissions Required",
+  "@onboardingPermissionsRequired": {
+    "description": "Permissions denied dialog title"
+  },
+  "onboardingPermissionsRequiredMessage": "Morning Mission needs both permissions to work reliably. Without them, alarms may not fire when your family needs them most.\n\nPlease grant both Notifications and Battery Unrestricted permissions to continue.",
+  "@onboardingPermissionsRequiredMessage": {
+    "description": "Permissions denied dialog message"
+  },
+  "onboardingExitApp": "Exit App",
+  "@onboardingExitApp": {
+    "description": "Exit app button"
+  },
+  "onboardingTryAgain": "Try Again",
+  "@onboardingTryAgain": {
+    "description": "Try again button"
+  },
+  "onboardingError": "Error",
+  "@onboardingError": {
+    "description": "Error dialog title"
+  },
+  "onboardingErrorMessage": "An error occurred while requesting permissions:\n\n{error}",
+  "@onboardingErrorMessage": {
+    "description": "Error dialog message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingNext": "Next",
+  "@onboardingNext": {
+    "description": "Next button"
+  },
+  "onboardingBack": "Back",
+  "@onboardingBack": {
+    "description": "Back button"
+  },
+  "ok": "OK",
+  "@ok": {
+    "description": "OK button"
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel button"
+  },
+  "save": "Save",
+  "@save": {
+    "description": "Save button"
+  },
+  "lowVolume": "Low Volume",
+  "@lowVolume": {
+    "description": "Low volume warning dialog title"
+  },
+  "lowVolumeMessage": "Your media volume is at {volume}%.\n\nConsider increasing it to hear morning voice messages.",
+  "@lowVolumeMessage": {
+    "description": "Low volume warning message",
+    "placeholders": {
+      "volume": {
+        "type": "int"
+      }
+    }
+  },
+  "okIllAdjustIt": "OK, I'll adjust it",
+  "@okIllAdjustIt": {
+    "description": "Volume adjustment acknowledgment button"
+  },
+  "streakLevelBeginner": "Beginner Runner",
+  "@streakLevelBeginner": {
+    "description": "Streak level 0-9 days"
+  },
+  "streakLevelOccasional": "Occasional Runner",
+  "@streakLevelOccasional": {
+    "description": "Streak level 10-19 days"
+  },
+  "streakLevelPro": "Pro Runner",
+  "@streakLevelPro": {
+    "description": "Streak level 20-29 days"
+  },
+  "streakLevelChampion": "Champion Runner",
+  "@streakLevelChampion": {
+    "description": "Streak level 30-39 days"
+  },
+  "streakLevelUltimate": "Ultimate Jaguar",
+  "@streakLevelUltimate": {
+    "description": "Streak level 40+ days"
+  },
+  "testAllAlarms": "🧪 Test All Alarms (22-Minute Journey)",
+  "@testAllAlarms": {
+    "description": "Test menu dialog title"
+  },
+  "testAllAlarmsDescription": "This will test ALL alarm types in ~22 minutes:",
+  "@testAllAlarmsDescription": {
+    "description": "Test menu description header"
+  },
+  "testAllAlarmsDetails": "✅ Wake-up alarm (T+2 min)\n✅ Checkpoint alarm #1 (T+12 min)\n✅ Leave Home Soon (T+13 min)\n✅ Leave Home → countdown starts (T+18 min)\n✅ Pre-Arrival Check (T+20 min)\n✅ Arrival deadline (T+22 min)\n\nTap \"Arrived\" before deadline to test success path.\nLet timer expire to test failure path.\n\n⚠️ Cannot run between 11:38 PM - midnight.",
+  "@testAllAlarmsDetails": {
+    "description": "Test menu detailed timeline"
+  },
+  "startTest": "🚀 Start Test",
+  "@startTest": {
+    "description": "Start test button"
+  },
+  "cannotScheduleNotifications": "❌ Cannot schedule notifications - permission not granted!",
+  "@cannotScheduleNotifications": {
+    "description": "Error message when notification permission missing"
+  },
+  "testNotificationSuccess": "✅ Showing test NOW! Scheduled test in 30s. KEEP APP OPEN and watch for it!",
+  "@testNotificationSuccess": {
+    "description": "Test notification scheduled successfully"
+  },
+  "errorWithDetails": "❌ Error: {error}",
+  "@errorWithDetails": {
+    "description": "Generic error message with details",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "testCannotRunMidnight": "❌ Test cannot run - too close to midnight!\nOnly {minutes} minutes until midnight.\nTest needs 22 minutes. Please try earlier in the day.",
+  "@testCannotRunMidnight": {
+    "description": "Error when test crosses midnight",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "testStarted": "🧪 Test Started! (22-minute journey)\n• Wake-up: in 2 minutes\n• Checkpoint #1: in 12 minutes (NEW!)\n• Leave Home Soon: in 13 minutes\n• Leave Home: in 18 minutes → countdown starts\n• Pre-Arrival Check: in 20 minutes\n• Arrival deadline: in 22 minutes\n• Stay on screen to observe alarms firing",
+  "@testStarted": {
+    "description": "Test started success message with timeline"
+  },
+  "monday": "Mon",
+  "@monday": {
+    "description": "Monday abbreviation"
+  },
+  "tuesday": "Tue",
+  "@tuesday": {
+    "description": "Tuesday abbreviation"
+  },
+  "wednesday": "Wed",
+  "@wednesday": {
+    "description": "Wednesday abbreviation"
+  },
+  "thursday": "Thu",
+  "@thursday": {
+    "description": "Thursday abbreviation"
+  },
+  "friday": "Fri",
+  "@friday": {
+    "description": "Friday abbreviation"
+  },
+  "saturday": "Sat",
+  "@saturday": {
+    "description": "Saturday abbreviation"
+  },
+  "sunday": "Sun",
+  "@sunday": {
+    "description": "Sunday abbreviation"
+  },
+  "activeDays": "📅 Active Days",
+  "@activeDays": {
+    "description": "Active days section header"
+  },
+  "weekdaysOnly": "Weekdays Only",
+  "@weekdaysOnly": {
+    "description": "Weekdays preset button"
+  },
+  "everyDay": "Every Day",
+  "@everyDay": {
+    "description": "Every day preset button"
+  },
+  "viewScheduledAlarms": "View Scheduled Alarms (Testing)",
+  "@viewScheduledAlarms": {
+    "description": "Debug button to view alarms"
+  },
+  "totalDays": "Total Days",
+  "@totalDays": {
+    "description": "Total days in month label"
+  },
+  "noDataForMonth": "No data for this month",
+  "@noDataForMonth": {
+    "description": "Empty state message for monthly view"
+  },
+  "legend": "Legend:",
+  "@legend": {
+    "description": "Calendar legend header"
+  },
+  "onTimeArrival": "On time arrival",
+  "@onTimeArrival": {
+    "description": "Legend item for on-time days"
+  },
+  "lateArrival": "Late arrival",
+  "@lateArrival": {
+    "description": "Legend item for late days"
+  },
+  "noRecord": "No record",
+  "@noRecord": {
+    "description": "Legend item for days without data"
+  },
+  "manageReward": "Manage Reward",
+  "@manageReward": {
+    "description": "Reward dialog title"
+  },
+  "rewardName": "Reward Name",
+  "@rewardName": {
+    "description": "Reward name input label"
+  },
+  "rewardNameHint": "e.g., Pizza night 🍕",
+  "@rewardNameHint": {
+    "description": "Reward name hint text"
+  },
+  "quickSuggestions": "Quick Suggestions",
+  "@quickSuggestions": {
+    "description": "Reward templates section header"
+  },
+  "streakGoal": "Streak Goal",
+  "@streakGoal": {
+    "description": "Streak goal input label"
+  },
+  "days": "days",
+  "@days": {
+    "description": "Days unit label"
+  },
+  "active": "Active",
+  "@active": {
+    "description": "Active status label"
+  },
+  "inactive": "Inactive",
+  "@inactive": {
+    "description": "Inactive status label"
+  },
+  "currentProgress": "Current Progress:",
+  "@currentProgress": {
+    "description": "Progress section header"
+  },
+  "daysProgress": "{current} out of {total} days",
+  "@daysProgress": {
+    "description": "Progress counter",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "keepItUp": "Keep it up!",
+  "@keepItUp": {
+    "description": "Encouragement message"
+  },
+  "notStartedYet": "Not started yet",
+  "@notStartedYet": {
+    "description": "Reward not started message"
+  },
+  "pleaseEnterRewardName": "Please enter a reward name",
+  "@pleaseEnterRewardName": {
+    "description": "Validation error for empty reward name"
+  },
+  "rewardUpdated": "Reward updated: {name}",
+  "@rewardUpdated": {
+    "description": "Reward saved success message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "errorSavingReward": "Error saving reward: {error}",
+  "@errorSavingReward": {
+    "description": "Reward save error message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "rewardMovieNight": "Movie night",
+  "@rewardMovieNight": {
+    "description": "Reward template"
+  },
+  "rewardPizzaDinner": "Pizza dinner",
+  "@rewardPizzaDinner": {
+    "description": "Reward template"
+  },
+  "rewardExtraGameTime": "Extra game time",
+  "@rewardExtraGameTime": {
+    "description": "Reward template"
+  },
+  "rewardParkVisit": "Park visit",
+  "@rewardParkVisit": {
+    "description": "Reward template"
+  },
+  "rewardArtProject": "Art project",
+  "@rewardArtProject": {
+    "description": "Reward template"
+  },
+  "rewardIceCreamOuting": "Ice cream outing",
+  "@rewardIceCreamOuting": {
+    "description": "Reward template"
   }
 }
