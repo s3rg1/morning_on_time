@@ -538,15 +538,52 @@ void arrivalAlarmCallback() async {
     notificationDetails,
   );
   
-  // Mark today as missed
+  // Mark today as missed - create proper DayRecord
   final today = DateTime.now();
-  final dateKey = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-  await prefs.setString('day_$dateKey', 'missed');
+  final todayDate = DateTime(today.year, today.month, today.day);
+  
+  // Load existing records
+  final recordsJson = prefs.getString('day_records');
+  List<dynamic> recordsList = [];
+  if (recordsJson != null) {
+    try {
+      recordsList = json.decode(recordsJson);
+    } catch (e) {
+      print('⚠️ Error loading records: $e');
+    }
+  }
+  
+  // Check if we already have a record for today
+  final existingIndex = recordsList.indexWhere((r) {
+    try {
+      final recordDate = DateTime.parse(r['date']);
+      final rDate = DateTime(recordDate.year, recordDate.month, recordDate.day);
+      return rDate.isAtSameMomentAs(todayDate);
+    } catch (e) {
+      return false;
+    }
+  });
+  
+  // Create new record for failure
+  final newRecord = {
+    'date': todayDate.toIso8601String(),
+    'wasOnTime': false,
+    'arrivalTime': DateTime.now().toIso8601String(),
+  };
+  
+  if (existingIndex >= 0) {
+    recordsList[existingIndex] = newRecord;
+  } else {
+    recordsList.add(newRecord);
+  }
+  
+  // Save records back
+  await prefs.setString('day_records', json.encode(recordsList));
   
   // Reset streak
   await prefs.setInt('current_streak', 0);
   
-  print('✅ Day marked as missed, streak reset');
+  print('✅ Day marked as missed (DayRecord created), streak reset');
   
   // Do NOT reschedule - this alarm is scheduled fresh each day when Pre-Arrival Check fires
 }

@@ -82,7 +82,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get leaveHome => 'Salir de casa';
 
   @override
-  String get arriveBy => 'Llegar antes de';
+  String get arriveBy => 'Llegar antes de:';
 
   @override
   String get todaysSchedule => 'Horario de Hoy';
@@ -108,6 +108,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get arrivedLate =>
       'Llegaste un poco tarde, pero está bien. ¡Mañana es una nueva oportunidad!';
+
+  @override
+  String get arrivalTime => 'Hora de llegada:';
 
   @override
   String get confirm => 'Confirmar';
@@ -472,4 +475,83 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get rewardIceCreamOuting => 'Salida a heladería';
+
+  @override
+  String get splashTitle => 'Morning Mission';
+
+  @override
+  String get splashSubtitle => 'Gana la mañana';
+
+  @override
+  String get rewardGoal => '🎁 Meta de Recompensa';
+
+  @override
+  String get todaysMissionArriveOnTime => 'Misión de Hoy: ¡Llegar a tiempo!';
+
+  @override
+  String get tomorrowsMissionArriveOnTime =>
+      'Misión de Mañana: ¡Llegar a tiempo!';
+
+  @override
+  String missionForDateArriveOnTime(String date) {
+    return 'Misión del $date: ¡Llegar a tiempo!';
+  }
+
+  @override
+  String get manage => 'Gestionar';
+
+  @override
+  String rewardCongratulations(String rewardName) {
+    return '🎉 ¡Felicitaciones! Ganaste $rewardName';
+  }
+
+  @override
+  String rewardAlmostThere(String rewardName) {
+    return '¡Casi llegamos! 🚀 1 día para ganar $rewardName';
+  }
+
+  @override
+  String rewardHalfway(int days, String rewardName) {
+    return '¡A mitad de camino! 🔥 $days días para ganar $rewardName';
+  }
+
+  @override
+  String rewardDaysRemaining(int days, String daysWord, String rewardName) {
+    return 'Solo $days $daysWord para ganar $rewardName';
+  }
+
+  @override
+  String get day => 'día';
+
+  @override
+  String get motivationYouveGotThis => '¡Tú puedes!';
+
+  @override
+  String get motivationLetsDoThis => '¡Hagámoslo!';
+
+  @override
+  String get motivationReadyToSucceed => '¡Listo para triunfar!';
+
+  @override
+  String get motivationTimeToShine => '¡Hora de brillar!';
+
+  @override
+  String get motivationYouCanDoIt => '¡Tú puedes hacerlo!';
+
+  @override
+  String get wakeUpAt => 'Despertar a las:';
+
+  @override
+  String get leaveAt => 'Salir a las:';
+
+  @override
+  String daysUntilNextLevel(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '¡$days días hasta el siguiente nivel! 🚀',
+      one: '¡1 día hasta el siguiente nivel! 🎉',
+    );
+    return '$_temp0';
+  }
 }

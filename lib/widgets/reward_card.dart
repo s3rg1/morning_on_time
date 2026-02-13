@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
 import '../models/reward.dart';
+import '../l10n/app_localizations.dart';
 import 'reward_management_dialog.dart';
 
 class RewardCard extends StatelessWidget {
@@ -54,9 +55,9 @@ class RewardCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  '🎁 Reward Goal',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context)!.rewardGoal,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
@@ -65,7 +66,7 @@ class RewardCard extends StatelessWidget {
                 TextButton.icon(
                   onPressed: () => _showRewardDialog(context),
                   icon: const Icon(Icons.edit, size: 16),
-                  label: const Text('Manage'),
+                  label: Text(AppLocalizations.of(context)!.manage),
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.blue.shade700,
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -112,7 +113,7 @@ class RewardCard extends StatelessWidget {
 
             // Dynamic progress message
             Text(
-              _getProgressMessage(reward, currentStreak),
+              _getProgressMessage(context, reward, currentStreak),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -188,22 +189,25 @@ class RewardCard extends StatelessWidget {
     );
   }
 
-  String _getProgressMessage(Reward reward, int currentStreak) {
+  String _getProgressMessage(BuildContext context, Reward reward, int currentStreak) {
+    final loc = AppLocalizations.of(context)!;
+    
     if (reward.isAchieved(currentStreak)) {
-      return '🎉 Congratulations! You earned ${reward.name}';
+      return loc.rewardCongratulations(reward.name);
     }
 
     final daysRemaining = reward.daysRemaining(currentStreak);
 
     if (reward.isAlmostThere(currentStreak)) {
-      return 'Almost there! 🚀 1 day to earn ${reward.name}';
+      return loc.rewardAlmostThere(reward.name);
     }
 
     if (reward.isHalfway(currentStreak)) {
-      return 'Halfway there! 🔥 $daysRemaining days to earn ${reward.name}';
+      return loc.rewardHalfway(daysRemaining, reward.name);
     }
 
-    return 'Only $daysRemaining day${daysRemaining != 1 ? 's' : ''} to earn ${reward.name}';
+    final daysWord = daysRemaining == 1 ? loc.day : loc.days;
+    return loc.rewardDaysRemaining(daysRemaining, daysWord, reward.name);
   }
 
   Color _getProgressColor(double percent, bool isAchieved) {

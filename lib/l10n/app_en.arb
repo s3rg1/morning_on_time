@@ -125,6 +125,10 @@
   "@arrivedLate": {
     "description": "Late arrival message"
   },
+  "arrivalTime": "Arrival time:",
+  "@arrivalTime": {
+    "description": "Label for arrival time in confirmation dialog"
+  },
   "confirm": "Confirm",
   "@confirm": {
     "description": "Confirm button"
@@ -595,5 +599,128 @@
   "rewardIceCreamOuting": "Ice cream outing",
   "@rewardIceCreamOuting": {
     "description": "Reward template"
+  },
+  "splashTitle": "Morning Mission",
+  "@splashTitle": {
+    "description": "App title on splash screen"
+  },
+  "splashSubtitle": "Win the morning",
+  "@splashSubtitle": {
+    "description": "App subtitle on splash screen"
+  },
+  "rewardGoal": "🎁 Reward Goal",
+  "@rewardGoal": {
+    "description": "Reward goal section header"
+  },
+  "todaysMissionArriveOnTime": "Today's Mission: Arrive on time!",
+  "@todaysMissionArriveOnTime": {
+    "description": "Today's mission header with goal"
+  },
+  "tomorrowsMissionArriveOnTime": "Tomorrow's Mission: Arrive on time!",
+  "@tomorrowsMissionArriveOnTime": {
+    "description": "Tomorrow's mission header with goal"
+  },
+  "missionForDateArriveOnTime": "{date} Mission: Arrive on time!",
+  "@missionForDateArriveOnTime": {
+    "description": "Mission header for specific date with goal",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "manage": "Manage",
+  "@manage": {
+    "description": "Manage button label"
+  },
+  "rewardCongratulations": "🎉 Congratulations! You earned {rewardName}",
+  "@rewardCongratulations": {
+    "description": "Reward achieved message",
+    "placeholders": {
+      "rewardName": {
+        "type": "String"
+      }
+    }
+  },
+  "rewardAlmostThere": "Almost there! 🚀 1 day to earn {rewardName}",
+  "@rewardAlmostThere": {
+    "description": "Reward almost achieved message",
+    "placeholders": {
+      "rewardName": {
+        "type": "String"
+      }
+    }
+  },
+  "rewardHalfway": "Halfway there! 🔥 {days} days to earn {rewardName}",
+  "@rewardHalfway": {
+    "description": "Reward halfway message",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "rewardName": {
+        "type": "String"
+      }
+    }
+  },
+  "rewardDaysRemaining": "Only {days} {daysWord} to earn {rewardName}",
+  "@rewardDaysRemaining": {
+    "description": "Reward days remaining message",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "daysWord": {
+        "type": "String"
+      },
+      "rewardName": {
+        "type": "String"
+      }
+    }
+  },
+  "day": "day",
+  "@day": {
+    "description": "Singular day"
+  },
+  "motivationYouveGotThis": "You've got this!",
+  "@motivationYouveGotThis": {
+    "description": "Motivational message 1"
+  },
+  "motivationLetsDoThis": "Let's do this!",
+  "@motivationLetsDoThis": {
+    "description": "Motivational message 2"
+  },
+  "motivationReadyToSucceed": "Ready to succeed!",
+  "@motivationReadyToSucceed": {
+    "description": "Motivational message 3"
+  },
+  "motivationTimeToShine": "Time to shine!",
+  "@motivationTimeToShine": {
+    "description": "Motivational message 4"
+  },
+  "motivationYouCanDoIt": "You can do it!",
+  "@motivationYouCanDoIt": {
+    "description": "Motivational message 5"
+  },
+  "wakeUpAt": "Wake up at:",
+  "@wakeUpAt": {
+    "description": "Wake up time label in mission frame"
+  },
+  "leaveAt": "Leave at:",
+  "@leaveAt": {
+    "description": "Leave time label in mission frame"
+  },
+  "arriveBy": "Arrive by:",
+  "@arriveBy": {
+    "description": "Arrival time label in mission frame"
+  },
+  "daysUntilNextLevel": "{days, plural, =1{1 day until next level! 🎉} other{{days} days until next level! 🚀}}",
+  "@daysUntilNextLevel": {
+    "description": "Streak level progress message",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
   }
 }

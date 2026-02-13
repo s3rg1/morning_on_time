@@ -7,12 +7,26 @@ import 'screens/home_screen.dart';
 import 'screens/setup_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/alarm_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize AlarmManager for reliable background alarms
+
+  // Initialize AlarmManager FIRST - this is critical for wake-up alarms
   await AlarmService.initialize();
+  
+  // Initialize Firebase for analytics (non-critical, wrapped in try-catch)
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('✅ Firebase initialized successfully');
+  } catch (e) {
+    print('⚠️ Firebase initialization failed (non-critical): $e');
+    // Continue anyway - alarms are more important than analytics
+  }
   
   runApp(const MyApp());
 }
@@ -99,6 +113,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -108,20 +124,23 @@ class _SplashScreenState extends State<SplashScreen> {
             colors: [Colors.blue.shade400, Colors.blue.shade700],
           ),
         ),
-        child: const Center(
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.wb_sunny, size: 100, color: Colors.white),
-              SizedBox(height: 24),
+              const Icon(Icons.wb_sunny, size: 100, color: Colors.white),
+              const SizedBox(height: 24),
               Text(
-                'Morning Mission',
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
+                loc?.splashTitle ?? 'Morning Mission',
+                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
               ),
-              SizedBox(height: 8),
-              Text('Win the morning', style: TextStyle(fontSize: 16, color: Colors.white70)),
-              SizedBox(height: 40),
-              CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
+              const SizedBox(height: 8),
+              Text(
+                loc?.splashSubtitle ?? 'Win the morning',
+                style: const TextStyle(fontSize: 16, color: Colors.white70),
+              ),
+              const SizedBox(height: 40),
+              const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
             ],
           ),
         ),

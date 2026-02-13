@@ -153,6 +153,32 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+  List<Color> _getJourneyGradient(Duration remaining) {
+    final minutes = remaining.inMinutes;
+    if (minutes <= 2) {
+      return const [Color(0xFFFF4B4B), Color(0xFFE03E3E)]; // Red
+    } else if (minutes <= 5) {
+      return const [Color(0xFFFF9600), Color(0xFFFF8000)]; // Orange
+    } else if (minutes <= 10) {
+      return const [Color(0xFFFFC837), Color(0xFFFFB300)]; // Amber
+    } else {
+      return const [Color(0xFF58CC02), Color(0xFF46A302)]; // Green
+    }
+  }
+
+  Color _getJourneyShadowColor(Duration remaining) {
+    final minutes = remaining.inMinutes;
+    if (minutes <= 2) {
+      return Colors.red;
+    } else if (minutes <= 5) {
+      return Colors.orange;
+    } else if (minutes <= 10) {
+      return Colors.amber;
+    } else {
+      return Colors.green;
+    }
+  }
+
   void _startJourneyStateMonitoring() {
     // Check every 5 seconds for journey state changes
     _journeyCheckTimer = Timer.periodic(const Duration(seconds: 5), (_) {
@@ -439,10 +465,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       settings.wakeUpTime.minute,
     );
     
+    final loc = AppLocalizations.of(context)!;
+    
     if (!isToday || now.isBefore(wakeUpTime)) {
       alarms.add({
         'icon': Icons.wb_sunny,
-        'label': 'Wake up at:',
+        'label': loc.wakeUpAt,
         'time': wakeUpTime,
       });
     }
@@ -459,7 +487,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (!isToday || now.isBefore(leaveTime)) {
       alarms.add({
         'icon': Icons.logout,
-        'label': 'Leave at:',
+        'label': loc.leaveAt,
         'time': leaveTime,
       });
     }
@@ -476,7 +504,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (!isToday || now.isBefore(arrivalTime)) {
       alarms.add({
         'icon': Icons.school,
-        'label': 'Arrive by:',
+        'label': loc.arriveBy,
         'time': arrivalTime,
       });
     }
@@ -489,15 +517,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(const Duration(days: 1));
+    final loc = AppLocalizations.of(context)!;
     
     if (date.year == today.year && date.month == today.month && date.day == today.day) {
-      return "Today's Mission: Arrive on time!";
+      return loc.todaysMissionArriveOnTime;
     } else if (date.year == tomorrow.year && date.month == tomorrow.month && date.day == tomorrow.day) {
-      return "Tomorrow's Mission: Arrive on time!";
+      return loc.tomorrowsMissionArriveOnTime;
     } else {
-      final weekday = DateFormat('EEEE').format(date); // Full weekday name
-      final monthDay = DateFormat('MMM d').format(date); // Abbreviated month + day
-      return "$weekday, $monthDay Mission: Arrive on time!";
+      final locale = Localizations.localeOf(context).toString();
+      final weekday = DateFormat.EEEE(locale).format(date); // Full weekday name
+      final monthDay = DateFormat.MMMd(locale).format(date); // Abbreviated month + day
+      return loc.missionForDateArriveOnTime('$weekday, $monthDay');
     }
   }
 
@@ -755,12 +785,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   
   /// Get random motivational message
   String _getMotivationalMessage() {
+    final loc = AppLocalizations.of(context)!;
     final messages = [
-      "You've got this!",
-      "Let's do this!",
-      "Ready to succeed!",
-      "Time to shine!",
-      "You can do it!",
+      loc.motivationYouveGotThis,
+      loc.motivationLetsDoThis,
+      loc.motivationReadyToSucceed,
+      loc.motivationTimeToShine,
+      loc.motivationYouCanDoIt,
     ];
     return messages[DateTime.now().second % messages.length];
   }
@@ -1089,9 +1120,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
-                                  daysToNext == 1
-                                      ? '1 day until next level! 🎉'
-                                      : '$daysToNext days until next level! 🚀',
+                                  AppLocalizations.of(context)!.daysUntilNextLevel(daysToNext),
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
@@ -1137,25 +1166,28 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 // Journey Status - Show countdown if journey is active
                 if (appState.isJourneyActive && appState.arrivalDeadline != null) ...[
                   const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFF58CC02), // Bright green
-                          Color(0xFF46A302), // Darker green
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.green.withOpacity(0.3),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6),
+                  Builder(
+                    builder: (context) {
+                      final remaining = appState.arrivalDeadline!.difference(DateTime.now());
+                      final gradientColors = _getJourneyGradient(remaining);
+                      final shadowColor = _getJourneyShadowColor(remaining);
+                      
+                      return Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: gradientColors,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: shadowColor.withOpacity(0.3),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(24),
                       child: Column(
@@ -1198,7 +1230,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
-                              foregroundColor: const Color(0xFF58CC02),
+                              foregroundColor: gradientColors[0],
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 32,
                                 vertical: 16,
@@ -1226,8 +1258,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ],
                       ),
                     ),
+                  );
+                    },
                   ),
-                  const SizedBox(height: 24),
                 ],
                 
                 // Today's Result - Show completion status if available
@@ -1379,7 +1412,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
             const SizedBox(height: 8),
             Text(
-              'Arrival time: ${DateFormat('HH:mm').format(now)}',
+              '${AppLocalizations.of(context)!.arrivalTime} ${DateFormat('HH:mm').format(now)}',
               style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ],
@@ -1387,7 +1420,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1403,7 +1436,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               backgroundColor: Colors.blue,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Confirm'),
+            child: Text(AppLocalizations.of(context)!.confirm),
           ),
         ],
       ),

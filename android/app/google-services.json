@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "988247841362",
+    "project_id": "morning-mission",
+    "storage_bucket": "morning-mission.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:988247841362:android:0f02f4ed6eefca0e635d8b",
+        "android_client_info": {
+          "package_name": "com.lagunitacrew.morning_on_time"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2OpNmqKaXHePBWFOBE0tq8ee3wvBSkQg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

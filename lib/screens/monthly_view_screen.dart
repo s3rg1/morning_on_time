@@ -30,7 +30,7 @@ class _MonthlyViewScreenState extends State<MonthlyViewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Monthly View'),
+        title: Text(AppLocalizations.of(context)!.monthlyView),
       ),
       body: Consumer<AppState>(
         builder: (context, appState, child) {
@@ -61,7 +61,7 @@ class _MonthlyViewScreenState extends State<MonthlyViewScreen> {
                       onPressed: _previousMonth,
                     ),
                     Text(
-                      DateFormat('MMMM yyyy').format(_selectedMonth),
+                      DateFormat.yMMMM(Localizations.localeOf(context).toString()).format(_selectedMonth),
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,

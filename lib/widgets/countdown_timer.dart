@@ -154,19 +154,26 @@ class _CountdownTimerState extends State<CountdownTimer>
                   children: [
                     Text(
                       _formatTime(),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 48,
                         fontWeight: FontWeight.bold,
-                        color: color,
+                        color: Colors.white,
                         fontFamily: 'monospace',
+                        shadows: [
+                          Shadow(
+                            color: Colors.black26,
+                            offset: Offset(0, 2),
+                            blurRadius: 4,
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       AppLocalizations.of(context)!.timeRemaining,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
-                        color: color.withOpacity(0.8),
+                        color: Colors.white70,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

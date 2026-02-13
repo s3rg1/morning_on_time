@@ -224,10 +224,10 @@ abstract class AppLocalizations {
   /// **'Leave home'**
   String get leaveHome;
 
-  /// Arrival deadline label
+  /// Arrival time label in mission frame
   ///
   /// In en, this message translates to:
-  /// **'Arrive by'**
+  /// **'Arrive by:'**
   String get arriveBy;
 
   /// Schedule section title
@@ -277,6 +277,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You arrived a bit late, but that\'s okay. Tomorrow is a new opportunity!'**
   String get arrivedLate;
+
+  /// Label for arrival time in confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Arrival time:'**
+  String get arrivalTime;
 
   /// Confirm button
   ///
@@ -919,6 +925,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ice cream outing'**
   String get rewardIceCreamOuting;
+
+  /// App title on splash screen
+  ///
+  /// In en, this message translates to:
+  /// **'Morning Mission'**
+  String get splashTitle;
+
+  /// App subtitle on splash screen
+  ///
+  /// In en, this message translates to:
+  /// **'Win the morning'**
+  String get splashSubtitle;
+
+  /// Reward goal section header
+  ///
+  /// In en, this message translates to:
+  /// **'🎁 Reward Goal'**
+  String get rewardGoal;
+
+  /// Today's mission header with goal
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Mission: Arrive on time!'**
+  String get todaysMissionArriveOnTime;
+
+  /// Tomorrow's mission header with goal
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow\'s Mission: Arrive on time!'**
+  String get tomorrowsMissionArriveOnTime;
+
+  /// Mission header for specific date with goal
+  ///
+  /// In en, this message translates to:
+  /// **'{date} Mission: Arrive on time!'**
+  String missionForDateArriveOnTime(String date);
+
+  /// Manage button label
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get manage;
+
+  /// Reward achieved message
+  ///
+  /// In en, this message translates to:
+  /// **'🎉 Congratulations! You earned {rewardName}'**
+  String rewardCongratulations(String rewardName);
+
+  /// Reward almost achieved message
+  ///
+  /// In en, this message translates to:
+  /// **'Almost there! 🚀 1 day to earn {rewardName}'**
+  String rewardAlmostThere(String rewardName);
+
+  /// Reward halfway message
+  ///
+  /// In en, this message translates to:
+  /// **'Halfway there! 🔥 {days} days to earn {rewardName}'**
+  String rewardHalfway(int days, String rewardName);
+
+  /// Reward days remaining message
+  ///
+  /// In en, this message translates to:
+  /// **'Only {days} {daysWord} to earn {rewardName}'**
+  String rewardDaysRemaining(int days, String daysWord, String rewardName);
+
+  /// Singular day
+  ///
+  /// In en, this message translates to:
+  /// **'day'**
+  String get day;
+
+  /// Motivational message 1
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve got this!'**
+  String get motivationYouveGotThis;
+
+  /// Motivational message 2
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s do this!'**
+  String get motivationLetsDoThis;
+
+  /// Motivational message 3
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to succeed!'**
+  String get motivationReadyToSucceed;
+
+  /// Motivational message 4
+  ///
+  /// In en, this message translates to:
+  /// **'Time to shine!'**
+  String get motivationTimeToShine;
+
+  /// Motivational message 5
+  ///
+  /// In en, this message translates to:
+  /// **'You can do it!'**
+  String get motivationYouCanDoIt;
+
+  /// Wake up time label in mission frame
+  ///
+  /// In en, this message translates to:
+  /// **'Wake up at:'**
+  String get wakeUpAt;
+
+  /// Leave time label in mission frame
+  ///
+  /// In en, this message translates to:
+  /// **'Leave at:'**
+  String get leaveAt;
+
+  /// Streak level progress message
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day until next level! 🎉} other{{days} days until next level! 🚀}}'**
+  String daysUntilNextLevel(int days);
 }
 
 class _AppLocalizationsDelegate

@@ -82,7 +82,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaveHome => 'Leave home';
 
   @override
-  String get arriveBy => 'Arrive by';
+  String get arriveBy => 'Arrive by:';
 
   @override
   String get todaysSchedule => 'Today\'s Schedule';
@@ -108,6 +108,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get arrivedLate =>
       'You arrived a bit late, but that\'s okay. Tomorrow is a new opportunity!';
+
+  @override
+  String get arrivalTime => 'Arrival time:';
 
   @override
   String get confirm => 'Confirm';
@@ -468,4 +471,83 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rewardIceCreamOuting => 'Ice cream outing';
+
+  @override
+  String get splashTitle => 'Morning Mission';
+
+  @override
+  String get splashSubtitle => 'Win the morning';
+
+  @override
+  String get rewardGoal => '🎁 Reward Goal';
+
+  @override
+  String get todaysMissionArriveOnTime => 'Today\'s Mission: Arrive on time!';
+
+  @override
+  String get tomorrowsMissionArriveOnTime =>
+      'Tomorrow\'s Mission: Arrive on time!';
+
+  @override
+  String missionForDateArriveOnTime(String date) {
+    return '$date Mission: Arrive on time!';
+  }
+
+  @override
+  String get manage => 'Manage';
+
+  @override
+  String rewardCongratulations(String rewardName) {
+    return '🎉 Congratulations! You earned $rewardName';
+  }
+
+  @override
+  String rewardAlmostThere(String rewardName) {
+    return 'Almost there! 🚀 1 day to earn $rewardName';
+  }
+
+  @override
+  String rewardHalfway(int days, String rewardName) {
+    return 'Halfway there! 🔥 $days days to earn $rewardName';
+  }
+
+  @override
+  String rewardDaysRemaining(int days, String daysWord, String rewardName) {
+    return 'Only $days $daysWord to earn $rewardName';
+  }
+
+  @override
+  String get day => 'day';
+
+  @override
+  String get motivationYouveGotThis => 'You\'ve got this!';
+
+  @override
+  String get motivationLetsDoThis => 'Let\'s do this!';
+
+  @override
+  String get motivationReadyToSucceed => 'Ready to succeed!';
+
+  @override
+  String get motivationTimeToShine => 'Time to shine!';
+
+  @override
+  String get motivationYouCanDoIt => 'You can do it!';
+
+  @override
+  String get wakeUpAt => 'Wake up at:';
+
+  @override
+  String get leaveAt => 'Leave at:';
+
+  @override
+  String daysUntilNextLevel(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days until next level! 🚀',
+      one: '1 day until next level! 🎉',
+    );
+    return '$_temp0';
+  }
 }
