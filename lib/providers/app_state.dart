@@ -450,7 +450,26 @@ class AppState extends ChangeNotifier {
     // Clear test deadline (journey will auto-stop based on confirmation)
     clearTestDeadline();
 
-    // Check if we already have a record for today
+    // Handle failure case using shared helper
+    if (!onTime) {
+      // Use shared logic to mark mission as failed
+      await AlarmService.markMissionFailed();
+      
+      // Reload local state from storage
+      _records = await _storage.loadRecords();
+      _currentStreak = 0; // Streak was reset by markMissionFailed
+      
+      // Play failure message
+      await _voice.playFailureMessage();
+      
+      // Reset check-in for next day
+      _todayCheckIn = CheckInStatus.notStarted;
+      
+      notifyListeners();
+      return;
+    }
+
+    // Handle success case (onTime = true)
     final existingIndex = _records.indexWhere((r) {
       final rDate = DateTime(r.date.year, r.date.month, r.date.day);
       return rDate.isAtSameMomentAs(todayDate);
@@ -458,7 +477,7 @@ class AppState extends ChangeNotifier {
 
     final newRecord = DayRecord(
       date: todayDate,
-      wasOnTime: onTime,
+      wasOnTime: true,
       arrivalTime: DateTime.now(),
     );
 
@@ -474,7 +493,7 @@ class AppState extends ChangeNotifier {
     _currentStreak = _streakService.calculateCurrentStreak(_records);
     await _storage.setCurrentStreak(_currentStreak);
 
-    // Play appropriate message
+    // Play success message and handle rewards
     if (onTime) {
       await _voice.playSuccessMessage(_currentStreak);
       
@@ -497,8 +516,6 @@ class AppState extends ChangeNotifier {
           await _voice.playRewardMessage(nextReward.name, daysRemaining);
         }
       }
-    } else {
-      await _voice.playFailureMessage();
     }
 
     // Reset check-in for next day

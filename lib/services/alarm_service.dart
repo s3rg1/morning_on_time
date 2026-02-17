@@ -538,52 +538,8 @@ void arrivalAlarmCallback() async {
     notificationDetails,
   );
   
-  // Mark today as missed - create proper DayRecord
-  final today = DateTime.now();
-  final todayDate = DateTime(today.year, today.month, today.day);
-  
-  // Load existing records
-  final recordsJson = prefs.getString('day_records');
-  List<dynamic> recordsList = [];
-  if (recordsJson != null) {
-    try {
-      recordsList = json.decode(recordsJson);
-    } catch (e) {
-      print('⚠️ Error loading records: $e');
-    }
-  }
-  
-  // Check if we already have a record for today
-  final existingIndex = recordsList.indexWhere((r) {
-    try {
-      final recordDate = DateTime.parse(r['date']);
-      final rDate = DateTime(recordDate.year, recordDate.month, recordDate.day);
-      return rDate.isAtSameMomentAs(todayDate);
-    } catch (e) {
-      return false;
-    }
-  });
-  
-  // Create new record for failure
-  final newRecord = {
-    'date': todayDate.toIso8601String(),
-    'wasOnTime': false,
-    'arrivalTime': DateTime.now().toIso8601String(),
-  };
-  
-  if (existingIndex >= 0) {
-    recordsList[existingIndex] = newRecord;
-  } else {
-    recordsList.add(newRecord);
-  }
-  
-  // Save records back
-  await prefs.setString('day_records', json.encode(recordsList));
-  
-  // Reset streak
-  await prefs.setInt('current_streak', 0);
-  
-  print('✅ Day marked as missed (DayRecord created), streak reset');
+  // Mark mission as failed using shared helper
+  await AlarmService.markMissionFailed();
   
   // Do NOT reschedule - this alarm is scheduled fresh each day when Pre-Arrival Check fires
 }
@@ -592,6 +548,57 @@ class AlarmService {
   static Future<void> initialize() async {
     await AndroidAlarmManager.initialize();
     print('✅ AlarmManager initialized');
+  }
+  
+  /// Shared helper: Mark mission as failed
+  /// Used by both arrivalAlarmCallback and confirmArrival(false)
+  static Future<void> markMissionFailed() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+    
+    // Load existing records
+    final recordsJson = prefs.getString('day_records');
+    List<dynamic> recordsList = [];
+    if (recordsJson != null) {
+      try {
+        recordsList = json.decode(recordsJson);
+      } catch (e) {
+        print('⚠️ Error loading records: $e');
+      }
+    }
+    
+    // Check if we already have a record for today
+    final existingIndex = recordsList.indexWhere((r) {
+      try {
+        final recordDate = DateTime.parse(r['date']);
+        final rDate = DateTime(recordDate.year, recordDate.month, recordDate.day);
+        return rDate.isAtSameMomentAs(todayDate);
+      } catch (e) {
+        return false;
+      }
+    });
+    
+    // Create new record for failure
+    final newRecord = {
+      'date': todayDate.toIso8601String(),
+      'wasOnTime': false,
+      'arrivalTime': DateTime.now().toIso8601String(),
+    };
+    
+    if (existingIndex >= 0) {
+      recordsList[existingIndex] = newRecord;
+    } else {
+      recordsList.add(newRecord);
+    }
+    
+    // Save records back
+    await prefs.setString('day_records', json.encode(recordsList));
+    
+    // Reset streak
+    await prefs.setInt('current_streak', 0);
+    
+    print('✅ Mission marked as failed: DayRecord created, streak reset');
   }
   
   static Future<void> scheduleTestAlarm() async {
