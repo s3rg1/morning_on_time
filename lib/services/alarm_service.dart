@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -209,7 +210,7 @@ void testAlarmCallback() async {
 }
 
 // Checkpoint alarms fire every 10 minutes - these don't auto-reschedule
-// They only play TTS with no notification UI
+// They show notification with random custom sound, then play TTS
 @pragma('vm:entry-point')
 void checkInAlarmCallback() async {
   print('⏰ CHECKPOINT ALARM FIRED!');
@@ -252,12 +253,101 @@ void checkInAlarmCallback() async {
   // Get localized language
   final ttsLanguage = await LocalizationHelper.getTtsLanguage();
   
-  // Build dynamic message with minutes left
-  final String message;
+  // 🔔 Step 1: Show notification with random custom sound (per PRD: randomly select from checkpoints folder)
+  // Randomly select one of the checkpoint sounds
+  final random = Random();
+  final checkpointSounds = [
+    {'name': 'alarm_clock', 'channel': 'checkpoint_alarm_clock'},
+    {'name': 'church_bell', 'channel': 'checkpoint_church_bell'},
+  ];
+  final selectedSound = checkpointSounds[random.nextInt(checkpointSounds.length)];
+  final soundName = selectedSound['name'] as String;
+  final channelId = selectedSound['channel'] as String;
+  
+  print('🔔 Selected random checkpoint sound: $soundName');
+  
+  // Show notification with custom sound FIRST (per PRD: sound before TTS)
+  final notifications = FlutterLocalNotificationsPlugin();
+  
+  // Initialize the plugin in the background isolate
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  const DarwinInitializationSettings initializationSettingsIOS = 
+      DarwinInitializationSettings();
+  const InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+    iOS: initializationSettingsIOS,
+  );
+  await notifications.initialize(initializationSettings);
+  
+  // CRITICAL: Create notification channel WITH custom sound (Android 8.0+)
+  // Using the randomly selected sound
+  final checkpointChannel = AndroidNotificationChannel(
+    channelId,  // Unique channel per sound
+    'Checkpoint Alarms',
+    description: 'Checkpoint notifications with custom sounds',
+    importance: Importance.max,
+    playSound: true,
+    sound: RawResourceAndroidNotificationSound(soundName),
+    enableVibration: true,
+  );
+  
+  // Create the channel (required for Android 8.0+)
+  await notifications
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(checkpointChannel);
+  
+  // Android: Reference the channel we just created
+  final androidDetails = AndroidNotificationDetails(
+    channelId,  // Must match channel ID above
+    'Checkpoint Alarms',
+    channelDescription: 'Checkpoint notifications with custom sounds',
+    importance: Importance.max,
+    priority: Priority.high,
+    playSound: true,
+    sound: RawResourceAndroidNotificationSound(soundName),
+    enableVibration: true,
+    fullScreenIntent: true,
+  );
+  
+  // iOS: Use custom sound from bundle (if needed)
+  final iosDetails = DarwinNotificationDetails(
+    sound: '$soundName.caf',
+    presentAlert: true,
+    presentBadge: true,
+    presentSound: true,
+  );
+  
+  final notificationDetails = NotificationDetails(
+    android: androidDetails,
+    iOS: iosDetails,
+  );
+  
+  // Build notification message with minutes left
+  final String notificationBody;
   if (ttsLanguage == 'es-ES') {
-    message = '¡Oye! ¿Cómo van las cosas? Tenemos $minutesLeft minutos para salir';
+    notificationBody = 'Tenemos $minutesLeft minutos para salir';
   } else {
-    message = 'Hey! How are things going? We have $minutesLeft minutes left to go';
+    notificationBody = 'We have $minutesLeft minutes left to go';
+  }
+  
+  // Show notification (plays custom sound automatically)
+  await notifications.show(
+    100 + random.nextInt(20),  // Random ID between 100-119 for checkpoint alarms
+    '⏰ How are we going?',  // Per PRD
+    notificationBody,
+    notificationDetails,
+  );
+  
+  print('✅ Checkpoint notification shown with custom sound: $soundName');
+  
+  // 🔊 Step 2: Play TTS message after notification sound
+  // Build dynamic TTS message with minutes left
+  final String ttsMessage;
+  if (ttsLanguage == 'es-ES') {
+    ttsMessage = '¡Oye! ¿Cómo van las cosas? Tenemos $minutesLeft minutos para salir';
+  } else {
+    ttsMessage = 'Hey! How are things going? We have $minutesLeft minutes left to go';
   }
   
   // Initialize TTS and speak
@@ -266,9 +356,9 @@ void checkInAlarmCallback() async {
   await tts.setPitch(1.0);
   await tts.setVolume(1.0);
   await tts.setSpeechRate(0.5);
-  await tts.speak(message);
+  await tts.speak(ttsMessage);
   
-  print('✅ Checkpoint TTS played: "$message"');
+  print('✅ Checkpoint TTS played: "$ttsMessage"');
   // Note: Checkpoint alarms don't auto-reschedule, they're scheduled fresh each day
 }
 
@@ -281,7 +371,87 @@ void leaveHomeSoonCallback() async {
   final leaveHomeSoonMessage = await LocalizationHelper.getLeaveHomeSoonMessage();
   final leaveHomeSoonTitle = await LocalizationHelper.getLeaveHomeSoonTitle();
   
-  // Initialize TTS for voice message
+  // 🚨 Step 1: Show notification with random custom sound (per PRD: randomly select from leave-soon folder)
+  // Randomly select one of the leave-soon sounds
+  final random = Random();
+  final leaveSoonSounds = [
+    {'name': 'nuclear_alarm', 'channel': 'leave_soon_nuclear_alarm'},
+    {'name': 'red_alert_nuclear_buzzer', 'channel': 'leave_soon_red_alert'},
+  ];
+  final selectedSound = leaveSoonSounds[random.nextInt(leaveSoonSounds.length)];
+  final soundName = selectedSound['name'] as String;
+  final channelId = selectedSound['channel'] as String;
+  
+  print('🚨 Selected random leave-soon sound: $soundName');
+  
+  // Show notification with custom sound FIRST (per PRD: sound before TTS)
+  final notifications = FlutterLocalNotificationsPlugin();
+  
+  // Initialize the plugin in the background isolate
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  const DarwinInitializationSettings initializationSettingsIOS = 
+      DarwinInitializationSettings();
+  const InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+    iOS: initializationSettingsIOS,
+  );
+  await notifications.initialize(initializationSettings);
+  
+  // CRITICAL: Create notification channel WITH custom sound (Android 8.0+)
+  // Using the randomly selected sound
+  final leaveSoonChannel = AndroidNotificationChannel(
+    channelId,  // Unique channel per sound
+    'Leave Home Soon Alarms',
+    description: 'Leave home soon notifications with custom sounds',
+    importance: Importance.max,
+    playSound: true,
+    sound: RawResourceAndroidNotificationSound(soundName),
+    enableVibration: true,
+  );
+  
+  // Create the channel (required for Android 8.0+)
+  await notifications
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(leaveSoonChannel);
+  
+  // Android: Reference the channel we just created
+  final androidDetails = AndroidNotificationDetails(
+    channelId,  // Must match channel ID above
+    'Leave Home Soon Alarms',
+    channelDescription: 'Leave home soon notifications with custom sounds',
+    importance: Importance.max,
+    priority: Priority.high,
+    playSound: true,
+    sound: RawResourceAndroidNotificationSound(soundName),
+    enableVibration: true,
+    fullScreenIntent: true,
+  );
+  
+  // iOS: Use custom sound from bundle (if needed)
+  final iosDetails = DarwinNotificationDetails(
+    sound: '$soundName.caf',
+    presentAlert: true,
+    presentBadge: true,
+    presentSound: true,
+  );
+  
+  final notificationDetails = NotificationDetails(
+    android: androidDetails,
+    iOS: iosDetails,
+  );
+  
+  // Show notification (plays custom sound automatically)
+  await notifications.show(
+    3,
+    leaveHomeSoonTitle,
+    leaveHomeSoonMessage,
+    notificationDetails,
+  );
+  
+  print('✅ Leave home soon notification shown with custom sound: $soundName');
+  
+  // 🔊 Step 2: Play TTS message after notification sound
   final FlutterTts tts = FlutterTts();
   await tts.setLanguage(ttsLanguage);
   await tts.setPitch(1.0);
@@ -291,39 +461,7 @@ void leaveHomeSoonCallback() async {
   // Speak the urgent message
   await tts.speak(leaveHomeSoonMessage);
   
-  // Show notification
-  final notifications = FlutterLocalNotificationsPlugin();
-  
-  const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
-  const InitializationSettings initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid,
-  );
-  await notifications.initialize(initializationSettings);
-  
-  const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-    'morning_alarms',
-    'Morning Alarms',
-    channelDescription: 'Wake-up and reminder notifications',
-    importance: Importance.max,
-    priority: Priority.high,
-    playSound: true,
-    enableVibration: true,
-    fullScreenIntent: true,
-  );
-  
-  const NotificationDetails notificationDetails = NotificationDetails(
-    android: androidDetails,
-  );
-  
-  await notifications.show(
-    3,
-    leaveHomeSoonTitle,
-    leaveHomeSoonMessage,
-    notificationDetails,
-  );
-  
-  print('✅ Leave home soon notification shown');
+  print('✅ Leave home soon TTS played: "$leaveHomeSoonMessage"');
   
   // Reschedule for tomorrow
   final now = DateTime.now();

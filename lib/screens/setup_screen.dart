@@ -186,7 +186,13 @@ class _SetupScreenState extends State<SetupScreen> {
         // Navigate back to home after a short delay
         await Future.delayed(const Duration(milliseconds: 500));
         if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/home');
+          // If we can pop (came from Home via settings button), go back
+          // Otherwise (came from onboarding), replace with home route
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          } else {
+            Navigator.of(context).pushReplacementNamed('/home');
+          }
         }
       }
     } catch (e) {
