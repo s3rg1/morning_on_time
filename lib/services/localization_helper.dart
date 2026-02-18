@@ -88,6 +88,18 @@ class LocalizationHelper {
     }
   }
   
+  /// Get localized countdown timer text
+  static Future<String> getOpenAppToSeeCountdown() async {
+    final locale = await getLocale();
+    switch (locale) {
+      case 'es':
+        return 'Abre la aplicación para ver el temporizador de cuenta regresiva.';
+      case 'en':
+      default:
+        return 'Open app to see countdown timer.';
+    }
+  }
+  
   /// Get localized arrival check message
   static Future<String> getArrivalCheckMessage() async {
     final locale = await getLocale();
@@ -205,6 +217,18 @@ class LocalizationHelper {
       case 'en':
       default:
         return '❌ No, we haven\'t';
+    }
+  }
+  
+  /// Get localized default reward name
+  static Future<String> getDefaultRewardName() async {
+    final locale = await getLocale();
+    switch (locale) {
+      case 'es':
+        return 'Noche de película con palomitas 🍿';
+      case 'en':
+      default:
+        return 'Movie night with popcorn 🍿';
     }
   }
 }

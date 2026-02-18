@@ -182,6 +182,12 @@ abstract class AppLocalizations {
   /// **'We leave home now or we\'ll be late.'**
   String get leaveHomeNowMessage;
 
+  /// Additional text for leave home now notification
+  ///
+  /// In en, this message translates to:
+  /// **'Open app to see countdown timer.'**
+  String get openAppToSeeCountdown;
+
   /// Arrival check notification title
   ///
   /// In en, this message translates to:
@@ -259,6 +265,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We didn\'t make it today. Tomorrow is a new day!'**
   String get didntMakeIt;
+
+  /// Encouragement message for on-time arrival
+  ///
+  /// In en, this message translates to:
+  /// **'Keep up the great work!'**
+  String get keepUpGreatWork;
+
+  /// Encouragement message for late arrival
+  ///
+  /// In en, this message translates to:
+  /// **'Try again tomorrow!'**
+  String get tryAgainTomorrow;
 
   /// Arrival dialog title
   ///
@@ -925,6 +943,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ice cream outing'**
   String get rewardIceCreamOuting;
+
+  /// Default reward name for first launch
+  ///
+  /// In en, this message translates to:
+  /// **'Movie night with popcorn 🍿'**
+  String get defaultRewardName;
 
   /// App title on splash screen
   ///

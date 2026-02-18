@@ -21,40 +21,61 @@ void alarmCallback() async {
   final wakeUpMessage = await LocalizationHelper.getWakeUpMessage();
   final wakeUpTitle = await LocalizationHelper.getWakeUpTitle();
   
-  // Initialize TTS for voice message
-  final FlutterTts tts = FlutterTts();
-  await tts.setLanguage(ttsLanguage);
-  await tts.setPitch(1.0);
-  await tts.setVolume(1.0);
-  await tts.setSpeechRate(0.5);
-  
-  // Speak the wake-up message
-  await tts.speak(wakeUpMessage);
-  
-  // Show notification immediately when alarm fires
+  // Show notification with custom sound FIRST (per PRD: sound before TTS)
   final notifications = FlutterLocalNotificationsPlugin();
   
   // Initialize the plugin in the background isolate
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/ic_launcher');
+  const DarwinInitializationSettings initializationSettingsIOS = 
+      DarwinInitializationSettings();
   const InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,
+    iOS: initializationSettingsIOS,
   );
   await notifications.initialize(initializationSettings);
   
+  // CRITICAL: Create notification channel WITH custom sound (Android 8.0+)
+  // Channel settings are immutable after creation, so must include sound here
+  const AndroidNotificationChannel wakeUpChannel = AndroidNotificationChannel(
+    'wake_up_alarm',
+    'Wake-Up Alarms',
+    description: 'Wake-up notifications with custom rooster sound',
+    importance: Importance.max,
+    playSound: true,
+    sound: RawResourceAndroidNotificationSound('morning_rooster'),
+    enableVibration: true,
+  );
+  
+  // Create the channel (required for Android 8.0+)
+  await notifications
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(wakeUpChannel);
+  
+  // Android: Reference the channel we just created
   const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-    'morning_alarms',
-    'Morning Alarms',
-    channelDescription: 'Wake-up and reminder notifications',
+    'wake_up_alarm',  // Must match channel ID above
+    'Wake-Up Alarms',
+    channelDescription: 'Wake-up notifications with custom rooster sound',
     importance: Importance.max,
     priority: Priority.high,
     playSound: true,
+    sound: RawResourceAndroidNotificationSound('morning_rooster'),
     enableVibration: true,
     fullScreenIntent: true,
   );
   
+  // iOS: Use custom sound from bundle
+  const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+    sound: 'morning_rooster.caf',
+    presentAlert: true,
+    presentBadge: true,
+    presentSound: true,
+  );
+  
   const NotificationDetails notificationDetails = NotificationDetails(
     android: androidDetails,
+    iOS: iosDetails,
   );
   
   await notifications.show(
@@ -64,7 +85,24 @@ void alarmCallback() async {
     notificationDetails,
   );
   
-  print('✅ Wake-up notification shown');
+  print('✅ Wake-up notification shown with custom sound');
+  
+  // Wait for sound to finish playing (~5 seconds + 1 second buffer)
+  print('⏳ Waiting 6 seconds for sound to complete...');
+  await Future.delayed(const Duration(seconds: 6));
+  
+  // Play TTS message AFTER sound completes (per PRD: sound → TTS sequence)
+  print('🔊 Starting TTS message...');
+  final FlutterTts tts = FlutterTts();
+  await tts.setLanguage(ttsLanguage);
+  await tts.setPitch(1.0);
+  await tts.setVolume(1.0);
+  await tts.setSpeechRate(0.5);
+  
+  // Speak the wake-up message
+  await tts.speak(wakeUpMessage);
+  
+  print('✅ TTS message spoken');
   
   // === 7-DAY ROLLING WINDOW EXTENSION ===
   // Extend the 7-day window by scheduling day 8 alarms
@@ -317,8 +355,86 @@ void leaveHomeCallback() async {
   final ttsLanguage = await LocalizationHelper.getTtsLanguage();
   final leaveHomeNowMessage = await LocalizationHelper.getLeaveHomeNowMessage();
   final leaveHomeNowTitle = await LocalizationHelper.getLeaveHomeNowTitle();
+  final countdownTimerText = await LocalizationHelper.getOpenAppToSeeCountdown();
   
-  // Initialize TTS for voice message
+  // Show notification with custom sound FIRST (per PRD: war-horn sound before TTS)
+  final notifications = FlutterLocalNotificationsPlugin();
+  
+  // Initialize the plugin in the background isolate
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  const DarwinInitializationSettings initializationSettingsIOS = 
+      DarwinInitializationSettings();
+  const InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+    iOS: initializationSettingsIOS,
+  );
+  await notifications.initialize(initializationSettings);
+  
+  // CRITICAL: Create notification channel WITH custom sound (Android 8.0+)
+  // Channel settings are immutable after creation, so must include sound here
+  const AndroidNotificationChannel leaveHomeChannel = AndroidNotificationChannel(
+    'leave_home_alarm',
+    'Leave Home Alarms',
+    description: 'Leave home notifications with custom war horn sound',
+    importance: Importance.max,
+    playSound: true,
+    sound: RawResourceAndroidNotificationSound('war_horn'),
+    enableVibration: true,
+  );
+  
+  // Create the channel (required for Android 8.0+)
+  await notifications
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(leaveHomeChannel);
+  
+  // Android: Reference the channel we just created
+  const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    'leave_home_alarm',  // Must match channel ID above
+    'Leave Home Alarms',
+    channelDescription: 'Leave home notifications with custom war horn sound',
+    importance: Importance.max,
+    priority: Priority.high,
+    playSound: true,
+    sound: RawResourceAndroidNotificationSound('war_horn'),
+    enableVibration: true,
+    fullScreenIntent: true,
+    ongoing: true, // Make it persistent during journey
+    autoCancel: false,
+  );
+  
+  // iOS: Use custom sound from bundle
+  const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+    sound: 'war_horn.caf',
+    presentAlert: true,
+    presentBadge: true,
+    presentSound: true,
+  );
+  
+  const NotificationDetails notificationDetails = NotificationDetails(
+    android: androidDetails,
+    iOS: iosDetails,
+  );
+  
+  await notifications.show(
+    4,
+    leaveHomeNowTitle,
+    '$leaveHomeNowMessage $countdownTimerText',
+    notificationDetails,
+    payload: 'leave_home', // Add payload to identify this notification
+  );
+  
+  print('✅ Leave home notification shown with custom war horn sound');
+  
+  // No need to set journey flag - countdown now computed purely from time!
+  print('🚀 Leave home time reached - countdown will appear automatically');
+  
+  // Wait for sound to finish playing (~5 seconds + 1 second buffer)
+  print('⏳ Waiting 6 seconds for war horn to complete...');
+  await Future.delayed(const Duration(seconds: 6));
+  
+  // Play TTS message AFTER sound completes (per PRD: sound → TTS sequence)
+  print('🔊 Starting TTS message...');
   final FlutterTts tts = FlutterTts();
   await tts.setLanguage(ttsLanguage);
   await tts.setPitch(1.0);
@@ -328,45 +444,7 @@ void leaveHomeCallback() async {
   // Speak the urgent message
   await tts.speak(leaveHomeNowMessage);
   
-  // No need to set journey flag - countdown now computed purely from time!
-  print('🚀 Leave home time reached - countdown will appear automatically');
-  
-  // Show notification with countdown-style message
-  final notifications = FlutterLocalNotificationsPlugin();
-  
-  const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
-  const InitializationSettings initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid,
-  );
-  await notifications.initialize(initializationSettings);
-  
-  const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-    'morning_alarms',
-    'Morning Alarms',
-    channelDescription: 'Wake-up and reminder notifications',
-    importance: Importance.max,
-    priority: Priority.high,
-    playSound: true,
-    enableVibration: true,
-    fullScreenIntent: true,
-    ongoing: true, // Make it persistent during journey
-    autoCancel: false,
-  );
-  
-  const NotificationDetails notificationDetails = NotificationDetails(
-    android: androidDetails,
-  );
-  
-  await notifications.show(
-    4,
-    '🚀 Journey Started!',
-    '$leaveHomeNowMessage Open app to see countdown timer.',
-    notificationDetails,
-    payload: 'leave_home', // Add payload to identify this notification
-  );
-  
-  print('✅ Leave home notification shown with journey started message');
+  print('✅ TTS message spoken');
   
   // Reschedule for tomorrow
   final now = DateTime.now();

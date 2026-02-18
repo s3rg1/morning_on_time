@@ -85,10 +85,11 @@ class Reward {
   }
 
   // Create default reward for first launch
-  factory Reward.defaultReward() {
+  // Pass localized name from calling code
+  factory Reward.defaultReward({String? name}) {
     return Reward(
       id: 'default_reward',
-      name: 'Movie night with popcorn 🍿',
+      name: name ?? 'Movie night with popcorn 🍿', // Fallback if not provided
       requiredStreakLength: 5,
       creationDate: DateTime.now(),
       isActive: true,

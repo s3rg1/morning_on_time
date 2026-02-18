@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:confetti/confetti.dart';
-import 'package:volume_controller/volume_controller.dart';
 import 'dart:async';
 import 'dart:math';
 import '../l10n/app_localizations.dart';
@@ -12,6 +11,7 @@ import '../providers/app_state.dart';
 import '../models/app_settings.dart';
 import '../models/check_in_status.dart';
 import '../services/alarm_service.dart';
+import '../utils/volume_utils.dart';
 import '../widgets/countdown_timer.dart';
 import '../widgets/reward_card.dart';
 import 'monthly_view_screen.dart';
@@ -44,7 +44,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       print('🏠 HomeScreen loaded - checking journey state...');
       _checkJourneyState();
       // Check volume if user has completed setup
-      _checkVolumeIfSetupComplete();
+      final appState = Provider.of<AppState>(context, listen: false);
+      VolumeUtils.checkVolumeAndWarn(
+        context,
+        checkSetupComplete: () => appState.isSetupComplete,
+      );
     });
   }
 
@@ -68,49 +72,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _checkJourneyState() async {
     final appState = Provider.of<AppState>(context, listen: false);
     await appState.checkAndRestoreJourneyState();
-  }
-
-  Future<void> _checkVolumeIfSetupComplete() async {
-    try {
-      final appState = Provider.of<AppState>(context, listen: false);
-      
-      // Only check volume if user has completed setup (has scheduled notifications)
-      if (!appState.isSetupComplete) {
-        return;
-      }
-      
-      final volume = await VolumeController().getVolume();
-      
-      // Warn if volume is below 30%
-      if (volume < 0.3 && mounted) {
-        final loc = AppLocalizations.of(context)!;
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Row(
-              children: [
-                const Icon(Icons.volume_down, color: Colors.orange, size: 28),
-                const SizedBox(width: 8),
-                Text(loc.lowVolume),
-              ],
-            ),
-            content: Text(
-              loc.lowVolumeMessage((volume * 100).round()),
-              style: const TextStyle(fontSize: 16),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(loc.okIllAdjustIt),
-              ),
-            ],
-          ),
-        );
-      }
-    } catch (e) {
-      // Silently fail if volume check is not available
-      print('Volume check failed: $e');
-    }
   }
 
   Map<String, dynamic> _getStreakLevelInfo(int streak) {
@@ -1324,7 +1285,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  todayRecord.wasOnTime ? '✨ Keep up the great work!' : '💪 Try again tomorrow!',
+                                  todayRecord.wasOnTime 
+                                      ? '✨ ${AppLocalizations.of(context)!.keepUpGreatWork}'
+                                      : '💪 ${AppLocalizations.of(context)!.tryAgainTomorrow}',
                                   style: TextStyle(
                                     fontSize: 16,
                                     color: Colors.white.withOpacity(0.9),

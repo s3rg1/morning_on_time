@@ -446,6 +446,7 @@ See below the diffent types of alarms:
 * **Notification:** "🌅 Good Morning!" with mission message
 * **Behavior:** 
   - Fires exactly at wake-up time using AlarmManager
+  - The notification plays sounds/wake-up/morning-rooster.wav (even when app is closed) before proceeding with the TTS message
   - Plays TTS message automatically in background (even when app is closed)
   - Shows notification with mission reminder
 * **Reliability:** High (uses native Android AlarmManager, survives app closure and device restart)
@@ -482,6 +483,7 @@ See below the diffent types of alarms:
 * **Behavior:**
   - The alarm is triggered at time to leave
   - Final reminder to depart
+  - The notification plays sounds/leave-now/war-horn.wav (even when app is closed) before proceeding with the TTS message
   - Plays TTS message automatically
   - A countdown timer begins from the leave home time to the arrival time so that the user can see how much time they have left
   - The coundown timer is shown in the home screen.
@@ -1414,7 +1416,7 @@ February 2026 Summary:
 | Users forget to confirm arrival | Clear arrival notification \+ grace period |
 | Too many notifications | Strict limit to key moments only |
 | Children ignore voice | Customizable voice tone and energy |
-| Device volume too low to hear TTS | Volume check at app launch (if setup complete) and during setup saves, warns if < 30%, allowing user to adjust |
+| Device volume too low to hear TTS | Volume check at app launch (if setup complete) and during setup saves, warns if < 70%, allowing user to adjust |
 
 ---
 

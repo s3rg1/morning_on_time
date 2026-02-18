@@ -238,7 +238,9 @@ class AppState extends ChangeNotifier {
     
     // Initialize default reward if no rewards exist
     if (_rewards.isEmpty) {
-      final defaultReward = Reward.defaultReward();
+      // Get localized default reward name
+      final localizedRewardName = await LocalizationHelper.getDefaultRewardName();
+      final defaultReward = Reward.defaultReward(name: localizedRewardName);
       _rewards.add(defaultReward);
       await _storage.saveRewards(_rewards);
       print('🎁 Created default reward: ${defaultReward.name}');

@@ -61,6 +61,10 @@
   "@leaveHomeNowMessage": {
     "description": "Leave home now notification message"
   },
+  "openAppToSeeCountdown": "Open app to see countdown timer.",
+  "@openAppToSeeCountdown": {
+    "description": "Additional text for leave home now notification"
+  },
   "arrivalCheck": "🎯 Have we arrived on time?",
   "@arrivalCheck": {
     "description": "Arrival check notification title"
@@ -112,6 +116,14 @@
   "didntMakeIt": "We didn't make it today. Tomorrow is a new day!",
   "@didntMakeIt": {
     "description": "Message for late arrival"
+  },
+  "keepUpGreatWork": "Keep up the great work!",
+  "@keepUpGreatWork": {
+    "description": "Encouragement message for on-time arrival"
+  },
+  "tryAgainTomorrow": "Try again tomorrow!",
+  "@tryAgainTomorrow": {
+    "description": "Encouragement message for late arrival"
   },
   "arrivalConfirmation": "Arrival Confirmation",
   "@arrivalConfirmation": {
@@ -599,6 +611,10 @@
   "rewardIceCreamOuting": "Ice cream outing",
   "@rewardIceCreamOuting": {
     "description": "Reward template"
+  },
+  "defaultRewardName": "Movie night with popcorn 🍿",
+  "@defaultRewardName": {
+    "description": "Default reward name for first launch"
   },
   "splashTitle": "Morning Mission",
   "@splashTitle": {

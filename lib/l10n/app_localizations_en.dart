@@ -61,6 +61,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaveHomeNowMessage => 'We leave home now or we\'ll be late.';
 
   @override
+  String get openAppToSeeCountdown => 'Open app to see countdown timer.';
+
+  @override
   String get arrivalCheck => '🎯 Have we arrived on time?';
 
   @override
@@ -98,6 +101,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get didntMakeIt => 'We didn\'t make it today. Tomorrow is a new day!';
+
+  @override
+  String get keepUpGreatWork => 'Keep up the great work!';
+
+  @override
+  String get tryAgainTomorrow => 'Try again tomorrow!';
 
   @override
   String get arrivalConfirmation => 'Arrival Confirmation';
@@ -471,6 +480,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rewardIceCreamOuting => 'Ice cream outing';
+
+  @override
+  String get defaultRewardName => 'Movie night with popcorn 🍿';
 
   @override
   String get splashTitle => 'Morning Mission';
