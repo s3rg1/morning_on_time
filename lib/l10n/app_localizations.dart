@@ -485,7 +485,7 @@ abstract class AppLocalizations {
   /// Onboarding screen 3 step 2
   ///
   /// In en, this message translates to:
-  /// **'Voice check-ins every 10 minutes to stay on track'**
+  /// **'Voice check-ins every 5 minutes to stay on track'**
   String get onboardingHowItWorksPoint2;
 
   /// Onboarding screen 3 step 3

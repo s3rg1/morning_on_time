@@ -227,7 +227,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get onboardingHowItWorksPoint2 =>
-      'Registros de voz cada 10 minutos para mantenerte en camino';
+      'Registros de voz cada 5 minutos para mantenerte en camino';
 
   @override
   String get onboardingHowItWorksPoint3 =>

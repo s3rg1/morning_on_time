@@ -266,7 +266,7 @@
   "@onboardingHowItWorksPoint1": {
     "description": "Onboarding screen 3 step 1"
   },
-  "onboardingHowItWorksPoint2": "Voice check-ins every 10 minutes to stay on track",
+  "onboardingHowItWorksPoint2": "Voice check-ins every 5 minutes to stay on track",
   "@onboardingHowItWorksPoint2": {
     "description": "Onboarding screen 3 step 2"
   },

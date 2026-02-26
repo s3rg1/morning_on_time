@@ -225,7 +225,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingHowItWorksPoint2 =>
-      'Voice check-ins every 10 minutes to stay on track';
+      'Voice check-ins every 5 minutes to stay on track';
 
   @override
   String get onboardingHowItWorksPoint3 => 'Countdown when it\'s time to leave';

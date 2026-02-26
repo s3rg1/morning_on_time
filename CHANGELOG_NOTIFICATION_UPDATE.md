@@ -1,5 +1,42 @@
 # Notification System Update - Alignment with PRD
 
+## Update — 2026-02-26
+
+### Summary
+This update aligns alarms, localization copy, and debug visibility with the latest PRD direction for 5-minute checkpoint cadence, richer voice prompts, and a persistent 7-day planned-alarms manifest.
+
+### Included Changes
+
+- **Checkpoint cadence updated to 5 minutes** in scheduler logic and user-facing copy.
+- **Checkpoint voice/notification content expanded** with randomized localized templates and optional reward-aware prompts.
+- **Checkpoint and leave-soon custom audio behavior documented and implemented** (sound first, then TTS).
+- **7-day planned alarms manifest introduced and persisted** to SharedPreferences for reliable visibility into the actual scheduled window.
+- **Scheduled Alarms screen now reads manifest data** instead of generating a projection from current settings.
+- **Rolling window extension (day 8) now merges into manifest** when wake-up callback extends schedule.
+- **Arrival failure safety guard added** to avoid overwriting an already on-time day record.
+- **Arrival-alarm cancellation broadened** to cancel arrival-check/arrival IDs across rolling-window offsets and dismiss active notifications.
+- **Volume warning dialog flow hardened** by awaiting dialog completion.
+
+### Files Updated in This Entry
+
+- `docs/MorningOnTime.md`
+- `lib/l10n/app_en.arb`
+- `lib/l10n/app_es.arb`
+- `lib/l10n/app_localizations.dart`
+- `lib/l10n/app_localizations_en.dart`
+- `lib/l10n/app_localizations_es.dart`
+- `lib/screens/scheduled_alarms_screen.dart`
+- `lib/services/alarm_service.dart`
+- `lib/services/localization_helper.dart`
+- `lib/services/notification_service.dart`
+- `lib/services/storage_service.dart`
+- `lib/utils/volume_utils.dart`
+
+### Notes
+
+- This entry corresponds to the commit that introduces manifest-backed scheduled alarm visibility and 5-minute checkpoint behavior.
+- Existing data remains compatible; manifest data is additive and can be rebuilt by re-scheduling alarms.
+
 ## Summary
 Updated the entire notification/alarm system to match the specifications in `docs/MorningOnTime.md`. These changes align the code with the Product Requirements Document and remove unused functionality.
 

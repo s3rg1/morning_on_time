@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
 import '../models/app_settings.dart';
+import '../services/storage_service.dart';
 
 class ScheduledAlarmsScreen extends StatelessWidget {
   const ScheduledAlarmsScreen({super.key});
@@ -24,250 +25,167 @@ class ScheduledAlarmsScreen extends StatelessWidget {
       );
     }
 
-    final alarms = _buildAlarmList(settings);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Scheduled Alarms (7-Day Window)'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
-      body: alarms.isEmpty
-          ? const Center(
+      body: FutureBuilder<_ManifestSnapshot>(
+        future: _loadManifestSnapshot(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final manifestSnapshot = snapshot.data ?? _ManifestSnapshot(alarms: [], updatedAt: null);
+          final alarms = manifestSnapshot.alarms;
+
+          if (alarms.isEmpty) {
+            return const Center(
               child: Padding(
                 padding: EdgeInsets.all(24.0),
                 child: Text(
-                  'No alarms scheduled.\nAll days in the 7-day window are inactive.',
+                  'No planned alarms found yet.\nSave settings to schedule alarms and refresh this screen.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
               ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: alarms.length + 1,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  // Header card
-                  return Card(
-                    color: Colors.blue[50],
-                    margin: const EdgeInsets.only(bottom: 16),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.info_outline, color: Colors.blue),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Total: ${alarms.length} alarms',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue,
-                                ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: alarms.length + 1,
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                // Header card
+                return Card(
+                  color: Colors.blue[50],
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.info_outline, color: Colors.blue),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Total: ${alarms.length} alarms',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue,
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Next 7 days • Active days only',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
                             ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Real scheduled alarms manifest',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Pattern: ${_formatActiveDays(settings.activeDaysOfWeek)}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Pattern: ${_formatActiveDays(settings.activeDaysOfWeek)}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Last update: ${_formatTimestamp(manifestSnapshot.updatedAt)}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                }
-
-                final alarm = alarms[index - 1];
-                final isFirstOfDay = index == 1 || 
-                    alarms[index - 1].date.day != alarms[index - 2].date.day;
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (isFirstOfDay)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 16, bottom: 8, left: 4),
-                        child: Text(
-                          _formatDayHeader(alarm.date),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ),
-                    Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: _getAlarmColor(alarm.type),
-                          child: Icon(
-                            _getAlarmIcon(alarm.type),
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                        title: Text(
-                          alarm.name,
-                          style: const TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        subtitle: Text(
-                          'ID: ${alarm.id}',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                        ),
-                        trailing: Text(
-                          _formatTime(alarm.date),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 );
-              },
-            ),
+              }
+
+              final alarm = alarms[index - 1];
+              final isFirstOfDay = index == 1 ||
+                  alarms[index - 1].date.day != alarms[index - 2].date.day;
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (isFirstOfDay)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16, bottom: 8, left: 4),
+                      child: Text(
+                        _formatDayHeader(alarm.date),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: _getAlarmColor(alarm.type),
+                        child: Icon(
+                          _getAlarmIcon(alarm.type),
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      title: Text(
+                        alarm.name,
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      subtitle: Text(
+                        'ID: ${alarm.id}',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                      trailing: Text(
+                        _formatTime(alarm.date),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
-  List<AlarmInfo> _buildAlarmList(AppSettings settings) {
-    final now = DateTime.now();
-    final List<AlarmInfo> alarms = [];
+  Future<_ManifestSnapshot> _loadManifestSnapshot() async {
+    final storage = StorageService();
+    final manifest = await storage.loadPlannedAlarmsManifest();
+    final updatedAt = await storage.loadPlannedAlarmsManifestUpdatedAt();
 
-    for (int dayOffset = 0; dayOffset <= 6; dayOffset++) {
-      final targetDate = DateTime(now.year, now.month, now.day).add(Duration(days: dayOffset));
-      
-      // Check if this date is active
-      if (!settings.isActiveOnDate(targetDate)) {
-        continue;
-      }
+    final alarms = manifest
+        .map((entry) => AlarmInfo.fromJson(entry))
+        .whereType<AlarmInfo>()
+        .toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
 
-      // Calculate alarm times for this date
-      final wakeUpTime = DateTime(
-        targetDate.year,
-        targetDate.month,
-        targetDate.day,
-        settings.wakeUpTime.hour,
-        settings.wakeUpTime.minute,
-      );
-      
-      final leaveHomeTime = DateTime(
-        targetDate.year,
-        targetDate.month,
-        targetDate.day,
-        settings.leaveHomeTime.hour,
-        settings.leaveHomeTime.minute,
-      );
-      
-      final arrivalDeadline = DateTime(
-        targetDate.year,
-        targetDate.month,
-        targetDate.day,
-        settings.arrivalDeadline.hour,
-        settings.arrivalDeadline.minute,
-      );
+    return _ManifestSnapshot(alarms: alarms, updatedAt: updatedAt);
+  }
 
-      // 1. Wake-up alarm
-      final wakeUpId = (dayOffset * 1000) + 1;
-      if (wakeUpTime.isAfter(now.add(const Duration(minutes: 2)))) {
-        alarms.add(AlarmInfo(
-          id: wakeUpId,
-          name: '🌅 Wake-up',
-          type: 'wake-up',
-          date: wakeUpTime,
-        ));
-      }
-
-      // 2. Checkpoint alarms
-      final cutoffTime = leaveHomeTime.subtract(const Duration(minutes: 5));
-      DateTime nextCheckIn = wakeUpTime.add(const Duration(minutes: 10));
-      int checkpointIndex = 0;
-
-      while (nextCheckIn.isBefore(cutoffTime) && checkpointIndex < 20) {
-        final checkpointId = (dayOffset * 1000) + 100 + checkpointIndex;
-        
-        if (nextCheckIn.isAfter(now.add(const Duration(minutes: 2)))) {
-          alarms.add(AlarmInfo(
-            id: checkpointId,
-            name: '⏰ Checkpoint #${checkpointIndex + 1}',
-            type: 'checkpoint',
-            date: nextCheckIn,
-          ));
-        }
-        
-        nextCheckIn = nextCheckIn.add(const Duration(minutes: 10));
-        checkpointIndex++;
-      }
-
-      // 3. Leave-home-soon alarm
-      final leaveHomeSoonTime = leaveHomeTime.subtract(Duration(minutes: settings.minutesBeforeLeaving1));
-      final leaveHomeSoonId = (dayOffset * 1000) + 3;
-      if (leaveHomeSoonTime.isAfter(now.add(const Duration(minutes: 2)))) {
-        alarms.add(AlarmInfo(
-          id: leaveHomeSoonId,
-          name: '🏃 Leave-soon',
-          type: 'leave-soon',
-          date: leaveHomeSoonTime,
-        ));
-      }
-
-      // 4. Leave-home alarm
-      final leaveHomeId = (dayOffset * 1000) + 4;
-      if (leaveHomeTime.isAfter(now)) {
-        alarms.add(AlarmInfo(
-          id: leaveHomeId,
-          name: '🚪 Leave-home',
-          type: 'leave-home',
-          date: leaveHomeTime,
-        ));
-      }
-
-      // 5. Arrival-check alarm
-      final arrivalCheckTime = arrivalDeadline.subtract(Duration(minutes: settings.minutesBeforeArrival));
-      final arrivalCheckId = (dayOffset * 1000) + 5;
-      if (arrivalCheckTime.isAfter(now.add(const Duration(seconds: 30)))) {
-        alarms.add(AlarmInfo(
-          id: arrivalCheckId,
-          name: '🎯 Arrival-check',
-          type: 'arrival-check',
-          date: arrivalCheckTime,
-        ));
-      }
-
-      // 6. Arrival alarm
-      final arrivalId = (dayOffset * 1000) + 6;
-      if (arrivalDeadline.isAfter(now.add(const Duration(minutes: 1)))) {
-        alarms.add(AlarmInfo(
-          id: arrivalId,
-          name: '⌛ Arrival',
-          type: 'arrival',
-          date: arrivalDeadline,
-        ));
-      }
-    }
-
-    // Sort by date+time ascending
-    alarms.sort((a, b) => a.date.compareTo(b.date));
-
-    return alarms;
+  String _formatTimestamp(DateTime? timestamp) {
+    if (timestamp == null) return 'unknown';
+    return '${timestamp.year}-${timestamp.month.toString().padLeft(2, '0')}-${timestamp.day.toString().padLeft(2, '0')} ${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
   }
 
   String _formatActiveDays(Set<int> activeDays) {
@@ -356,5 +274,27 @@ class AlarmInfo {
     required this.name,
     required this.type,
     required this.date,
+  });
+
+  static AlarmInfo? fromJson(Map<String, dynamic> json) {
+    try {
+      final id = json['id'] as int;
+      final name = json['name'] as String;
+      final type = json['type'] as String;
+      final date = DateTime.parse(json['date'] as String);
+      return AlarmInfo(id: id, name: name, type: type, date: date);
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+class _ManifestSnapshot {
+  final List<AlarmInfo> alarms;
+  final DateTime? updatedAt;
+
+  _ManifestSnapshot({
+    required this.alarms,
+    required this.updatedAt,
   });
 }

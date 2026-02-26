@@ -233,29 +233,29 @@ class NotificationService {
       
       print('📅 Expected Notification Times:');
       print('   ─────────────────────────────────────────────────────────');
-      print('   ℹ️  NOTE: Wake-up and check-in notifications are now managed by AlarmService');
-      print('   ℹ️  This service only handles manual notifications (Time to Leave, Arrival)\n');
+      print('   ℹ️  NOTE: Alarms are managed by AlarmService.scheduleAlarmsFor7Days()');
+      print('   ℹ️  This service reports expected timings from current settings\n');
       
       print('   1️⃣  Wake-up alarm (AlarmService):');
-      print('      📍 Managed by: AlarmService.scheduleWakeUpAlarm()');
+      print('      📍 Managed by: AlarmService.scheduleAlarmsFor7Days()');
       print('      ⏱️  Fires at: ${formatTime(settings.wakeUpTime)}');
       print('      📢 Message: "🌅 Good Morning! Today\'s mission is to arrive at school on time."');
-      print('      ℹ️  Repeats: Daily\n');
+      print('      ℹ️  Scheduled in 7-day rolling window\n');
       
       print('   2️⃣  Check-in alarms (AlarmService):');
-      print('      📍 Managed by: AlarmService.scheduleCheckInAlarms()');
-      print('      ⏱️  Fires: Every 8 minutes from wake-up until 6 min before leave time');
+      print('      📍 Managed by: AlarmService.scheduleAlarmsFor7Days()');
+      print('      ⏱️  Fires: Every 5 minutes from wake-up until 5 min before leave time');
       print('      📢 Message: "⏰ Quick Check-In - How are things going?"');
       print('      ℹ️  Multiple alarms scheduled throughout morning\n');
       
       print('   3️⃣  Leave Home Soon alarm (AlarmService):');
-      print('      📍 Managed by: AlarmService.scheduleLeaveHomeSoonAlarm()');
+      print('      📍 Managed by: AlarmService.scheduleAlarmsFor7Days()');
       print('      ⏱️  Fires: 5 minutes before ${formatTime(settings.leaveHomeTime)}');
       print('      📢 Message: "🏃 Leave Home Soon!"');
-      print('      ℹ️  Repeats: Daily\n');
+      print('      ℹ️  Scheduled in 7-day rolling window\n');
       
       print('   4️⃣  Leave Home Now alarm (AlarmService):');
-      print('      📍 Managed by: AlarmService.scheduleLeaveHomeAlarm()');
+      print('      📍 Managed by: AlarmService.scheduleAlarmsFor7Days()');
       print('      ⏱️  Fires at: ${formatTime(settings.leaveHomeTime)}');
       print('      📢 Message: "🚪 Leave Home Now!" + starts countdown timer');
       print('      ℹ️  Sets journey_active flag in SharedPreferences');
@@ -268,10 +268,10 @@ class NotificationService {
       print('      ℹ️  Colors change based on urgency (green → amber → orange → red)\n');
       
       print('   6️⃣  Arrival check alarm (AlarmService):');
-      print('      📍 Managed by: AlarmService.scheduleArrivalCheckAlarm()');
+      print('      📍 Managed by: AlarmService.scheduleAlarmsFor7Days()');
       print('      ⏱️  Fires: 2 minutes before ${formatTime(settings.arrivalDeadline)}');
       print('      📢 Message: "🎯 Have we arrived on time?"');
-      print('      ℹ️  Repeats: Daily\n');
+      print('      ℹ️  Scheduled in 7-day rolling window\n');
     } else {
       print('⚠️  No settings configured yet. Run setup first.\n');
     }

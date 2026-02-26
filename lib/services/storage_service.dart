@@ -15,6 +15,8 @@ class StorageService {
   static const String _journeyStartTimeKey = 'journey_start_time';
   static const String _testArrivalDeadlineKey = 'test_arrival_deadline';
   static const String _arrivalConfirmedKey = 'arrival_confirmed';
+  static const String _plannedAlarmsManifestKey = 'planned_alarms_manifest';
+  static const String _plannedAlarmsManifestUpdatedAtKey = 'planned_alarms_manifest_updated_at';
 
   Future<AppSettings?> loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
@@ -163,6 +165,42 @@ class StorageService {
   Future<bool> getArrivalConfirmed() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_arrivalConfirmedKey) ?? false;
+  }
+
+  Future<void> savePlannedAlarmsManifest(List<Map<String, dynamic>> alarms) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_plannedAlarmsManifestKey, jsonEncode(alarms));
+    await prefs.setString(
+      _plannedAlarmsManifestUpdatedAtKey,
+      DateTime.now().toIso8601String(),
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> loadPlannedAlarmsManifest() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? alarmsJson = prefs.getString(_plannedAlarmsManifestKey);
+    if (alarmsJson == null) return [];
+
+    try {
+      final List<dynamic> decoded = jsonDecode(alarmsJson) as List<dynamic>;
+      return decoded
+          .whereType<Map<String, dynamic>>()
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<DateTime?> loadPlannedAlarmsManifestUpdatedAt() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? value = prefs.getString(_plannedAlarmsManifestUpdatedAtKey);
+    if (value == null) return null;
+
+    try {
+      return DateTime.parse(value);
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> clearAll() async {

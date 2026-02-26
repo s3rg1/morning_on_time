@@ -25,7 +25,7 @@ class VolumeUtils {
       // Warn if volume is below 70%
       if (volume < 0.7 && context.mounted) {
         final loc = AppLocalizations.of(context)!;
-        showDialog(
+        await showDialog<void>(
           context: context,
           builder: (context) => AlertDialog(
             title: Row(

@@ -453,13 +453,22 @@ See below the diffent types of alarms:
 
 #### **4.2. Checkpoint Alarms (IDs: 100-119)**
 
-* **Trigger:** Every 10 minutes starting from wake-up time until the leave time
+* **Trigger:** Every 5 minutes starting from wake-up time until the leave time
 * **Voice Message (TTS):** "Hey! How are things going? We have x minutes left to go"
-* **Notification:** "⏰ How are we going?" with the minutes left to leave home
+* **Notification:** Custom message with the minutes left to leave home
 * **Behavior:**
-  - The alarm is triggered 10 minutes after the wake up time
+  - The alarm is triggered 5 minutes after the wake up time
+  - The notification plays randomly one of the audio files found at sounds/checkpoints/ (even when app is closed) before proceeding with the TTS message
   - It plays a TTS message that includes the minutes left to go, so the message is dynamic.
-  - It's triggered again every 10 minutes updating the TTS message with the minutes left to go.
+  - There are different types of notification message (TTS) choosen randonmly:
+    - "Hurry up! We have {minutes left to go} minutes left to go"
+    - "I've seen faster turtles. We have {minutes left to go} minutes left to leave."
+    - "Are you deaf? We have to leave in {minutes left to go} minutes"
+    - "Come on! We've a streak to beat, we're leaving in {minutes left to go} minutes."
+    - If there is a reward defined not achieved yet: "Come on, we have to leave in {minutes left to go} minutes if we want to win the {reward}"
+    - If there is a reward defined not achieved yet: "We need to leave in {minutes left to go} minutes if we want {reward}"
+    - If there is a reward defined not achieved yet: "Do you still want the {reward}? If we don't leave the house in {minutes left to go} minutes, we won't get it.
+  - It's triggered again every 5 minutes updating the TTS message with the minutes left to go.
   - The alarm doesn't trigger after 5 minutes before time to leave.
   - Each plays TTS message automatically in background. No need to open app.
 * **Reliability:** High (uses AlarmManager for guaranteed delivery)
@@ -472,6 +481,7 @@ See below the diffent types of alarms:
 * **Behavior:**
   - The alarm is triggered 5 minutes before the time to leave
   - Creates sense of urgency as departure time approaches
+  - The notification plays randomly one of the audio files found at sounds/leave-soon/ (even when app is closed) before proceeding with the TTS message
   - Plays TTS message automatically
 * **Reliability:** High (AlarmManager-based)
 
