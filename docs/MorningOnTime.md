@@ -454,20 +454,29 @@ See below the diffent types of alarms:
 #### **4.2. Checkpoint Alarms (IDs: 100-119)**
 
 * **Trigger:** Every 5 minutes starting from wake-up time until the leave time
-* **Voice Message (TTS):** "Hey! How are things going? We have x minutes left to go"
+* **Voice Message (TTS):** Different messages are available
 * **Notification:** Custom message with the minutes left to leave home
 * **Behavior:**
   - The alarm is triggered 5 minutes after the wake up time
   - The notification plays randomly one of the audio files found at sounds/checkpoints/ (even when app is closed) before proceeding with the TTS message
   - It plays a TTS message that includes the minutes left to go, so the message is dynamic.
-  - There are different types of notification message (TTS) choosen randonmly:
-    - "Hurry up! We have {minutes left to go} minutes left to go"
-    - "I've seen faster turtles. We have {minutes left to go} minutes left to leave."
-    - "Are you deaf? We have to leave in {minutes left to go} minutes"
-    - "Come on! We've a streak to beat, we're leaving in {minutes left to go} minutes."
-    - If there is a reward defined not achieved yet: "Come on, we have to leave in {minutes left to go} minutes if we want to win the {reward}"
-    - If there is a reward defined not achieved yet: "We need to leave in {minutes left to go} minutes if we want {reward}"
-    - If there is a reward defined not achieved yet: "Do you still want the {reward}? If we don't leave the house in {minutes left to go} minutes, we won't get it.
+  - There are different types of notification message (TTS) depending on the time available. Choose one randomly from the right category based on minutes available.
+    - if there is more than 75% of the time available from wake-up to leave time:
+      - "Come on! We've a streak to beat, we're leaving in {minutes left to go} minutes."
+      - "What, I won't be the first? Come on, we still have {minutes left to go} minutes to leave."
+      - "Today is a fantastic day to be first. We still have {minutes left to go} minutes."
+      - If there is a reward defined not achieved yet: "Come on, we have to leave in {minutes left to go} minutes if we want to win the {reward}"
+    - else if there is more than 50% of the time available from wake-up to leave time:
+      - "I've seen faster turtles. We have {minutes left to go} minutes left to leave."
+      - "Do you expect to arrive on time? Hurry, we only have {minutes left to go} minutes left."
+      - "Why are you moving so slowly? We need to leave in {minutes left to go} minutes."
+      - If there is a reward defined not achieved yet: "We need to leave in {minutes left to go} minutes if we want {reward}"
+    - else
+      - "You look like sloths, run because you only have {minutes left to go} minutes left"
+      - "I've never seen a family this slow. You have {minutes left to go} minutes left."
+      - "Hurry up! We have {minutes left to go} minutes left to go"
+      - "Are you deaf? We have to leave in {minutes left to go} minutes"
+      - If there is a reward defined not achieved yet: "Do you still want the {reward}? If we don't leave the house in {minutes left to go} minutes, we won't get it.
   - It's triggered again every 5 minutes updating the TTS message with the minutes left to go.
   - The alarm doesn't trigger after 5 minutes before time to leave.
   - Each plays TTS message automatically in background. No need to open app.
