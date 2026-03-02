@@ -7,6 +7,45 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'localization_helper.dart';
 import '../models/app_settings.dart';
 
+const Duration _notificationToTtsDelay = Duration(seconds: 5);
+
+const AndroidNotificationChannel _arrivalCheckSilentChannel = AndroidNotificationChannel(
+  'arrival_check_silent_v2',
+  'Arrival Check Alerts',
+  description: 'Silent arrival confirmation notifications',
+  importance: Importance.max,
+  playSound: false,
+  enableVibration: true,
+);
+
+const AndroidNotificationChannel _arrivalDeadlineSilentChannel = AndroidNotificationChannel(
+  'arrival_deadline_silent_v2',
+  'Arrival Deadline Alerts',
+  description: 'Silent arrival deadline notifications',
+  importance: Importance.max,
+  playSound: false,
+  enableVibration: true,
+);
+
+Future<void> _speakAfterStandardDelay({
+  required String ttsLanguage,
+  required String message,
+  required String delayLog,
+  required String completionLog,
+}) async {
+  print(delayLog);
+  await Future.delayed(_notificationToTtsDelay);
+
+  final FlutterTts tts = FlutterTts();
+  await tts.setLanguage(ttsLanguage);
+  await tts.setPitch(1.0);
+  await tts.setVolume(1.0);
+  await tts.setSpeechRate(0.5);
+  await tts.speak(message);
+
+  print(completionLog);
+}
+
 // Top-level callback function - must be static or top-level
 @pragma('vm:entry-point')
 void alarmCallback() async {
@@ -88,22 +127,12 @@ void alarmCallback() async {
   
   print('✅ Wake-up notification shown with custom sound');
   
-  // Wait for sound to finish playing (~5 seconds + 1 second buffer)
-  print('⏳ Waiting 6 seconds for sound to complete...');
-  await Future.delayed(const Duration(seconds: 6));
-  
-  // Play TTS message AFTER sound completes (per PRD: sound → TTS sequence)
-  print('🔊 Starting TTS message...');
-  final FlutterTts tts = FlutterTts();
-  await tts.setLanguage(ttsLanguage);
-  await tts.setPitch(1.0);
-  await tts.setVolume(1.0);
-  await tts.setSpeechRate(0.5);
-  
-  // Speak the wake-up message
-  await tts.speak(wakeUpMessage);
-  
-  print('✅ TTS message spoken');
+  await _speakAfterStandardDelay(
+    ttsLanguage: ttsLanguage,
+    message: wakeUpMessage,
+    delayLog: '⏳ Waiting 5 seconds before wake-up TTS...',
+    completionLog: '✅ Wake-up TTS message spoken',
+  );
   
   // === 7-DAY ROLLING WINDOW EXTENSION ===
   // Extend the 7-day window by scheduling day 8 alarms
@@ -390,16 +419,13 @@ void checkInAlarmCallback() async {
   // 🔊 Step 2: Play TTS message after notification sound
   // Build dynamic TTS message with minutes left
   final String ttsMessage = selectedMessage;
-  
-  // Initialize TTS and speak
-  final FlutterTts tts = FlutterTts();
-  await tts.setLanguage(ttsLanguage);
-  await tts.setPitch(1.0);
-  await tts.setVolume(1.0);
-  await tts.setSpeechRate(0.5);
-  await tts.speak(ttsMessage);
-  
-  print('✅ Checkpoint TTS played: "$ttsMessage"');
+
+  await _speakAfterStandardDelay(
+    ttsLanguage: ttsLanguage,
+    message: ttsMessage,
+    delayLog: '⏳ Waiting 5 seconds before checkpoint TTS...',
+    completionLog: '✅ Checkpoint TTS played: "$ttsMessage"',
+  );
   // Note: Checkpoint alarms don't auto-reschedule, they're scheduled fresh each day
 }
 
@@ -493,37 +519,12 @@ void leaveHomeSoonCallback() async {
   print('✅ Leave home soon notification shown with custom sound: $soundName');
   
   // 🔊 Step 2: Play TTS message after notification sound
-  final FlutterTts tts = FlutterTts();
-  await tts.setLanguage(ttsLanguage);
-  await tts.setPitch(1.0);
-  await tts.setVolume(1.0);
-  await tts.setSpeechRate(0.5);
-  
-  // Speak the urgent message
-  await tts.speak(leaveHomeSoonMessage);
-  
-  print('✅ Leave home soon TTS played: "$leaveHomeSoonMessage"');
-  
-  // Reschedule for tomorrow
-  final now = DateTime.now();
-  final tomorrow = DateTime(
-    now.year,
-    now.month,
-    now.day,
-    now.hour,
-    now.minute,
-  ).add(const Duration(days: 1));
-  
-  await AndroidAlarmManager.oneShotAt(
-    tomorrow,
-    3,
-    leaveHomeSoonCallback,
-    exact: true,
-    wakeup: true,
-    rescheduleOnReboot: true,
+  await _speakAfterStandardDelay(
+    ttsLanguage: ttsLanguage,
+    message: leaveHomeSoonMessage,
+    delayLog: '⏳ Waiting 5 seconds before leave-soon TTS...',
+    completionLog: '✅ Leave home soon TTS played: "$leaveHomeSoonMessage"',
   );
-  
-  print('✅ Leave home soon rescheduled for tomorrow: $tomorrow');
 }
 
 @pragma('vm:entry-point')
@@ -608,43 +609,12 @@ void leaveHomeCallback() async {
   // No need to set journey flag - countdown now computed purely from time!
   print('🚀 Leave home time reached - countdown will appear automatically');
   
-  // Wait for sound to finish playing (~5 seconds + 1 second buffer)
-  print('⏳ Waiting 6 seconds for war horn to complete...');
-  await Future.delayed(const Duration(seconds: 6));
-  
-  // Play TTS message AFTER sound completes (per PRD: sound → TTS sequence)
-  print('🔊 Starting TTS message...');
-  final FlutterTts tts = FlutterTts();
-  await tts.setLanguage(ttsLanguage);
-  await tts.setPitch(1.0);
-  await tts.setVolume(1.0);
-  await tts.setSpeechRate(0.5);
-  
-  // Speak the urgent message
-  await tts.speak(leaveHomeNowMessage);
-  
-  print('✅ TTS message spoken');
-  
-  // Reschedule for tomorrow
-  final now = DateTime.now();
-  final tomorrow = DateTime(
-    now.year,
-    now.month,
-    now.day,
-    now.hour,
-    now.minute,
-  ).add(const Duration(days: 1));
-  
-  await AndroidAlarmManager.oneShotAt(
-    tomorrow,
-    4,
-    leaveHomeCallback,
-    exact: true,
-    wakeup: true,
-    rescheduleOnReboot: true,
+  await _speakAfterStandardDelay(
+    ttsLanguage: ttsLanguage,
+    message: leaveHomeNowMessage,
+    delayLog: '⏳ Waiting 5 seconds before leave-home TTS...',
+    completionLog: '✅ Leave-home TTS message spoken',
   );
-  
-  print('✅ Leave home rescheduled for tomorrow: $tomorrow');
 }
 
 @pragma('vm:entry-point')
@@ -666,14 +636,18 @@ void arrivalCheckCallback() async {
     android: initializationSettingsAndroid,
   );
   await notifications.initialize(initializationSettings);
+
+  await notifications
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(_arrivalCheckSilentChannel);
   
   final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-    'morning_alarms',
-    'Morning Alarms',
-    channelDescription: 'Wake-up and reminder notifications',
+    _arrivalCheckSilentChannel.id,
+    _arrivalCheckSilentChannel.name,
+    channelDescription: _arrivalCheckSilentChannel.description,
     importance: Importance.max,
     priority: Priority.high,
-    playSound: true,
+    playSound: false,
     enableVibration: true,
     fullScreenIntent: true,
     actions: [
@@ -684,9 +658,16 @@ void arrivalCheckCallback() async {
       ),
     ],
   );
+
+  const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+    presentAlert: true,
+    presentBadge: true,
+    presentSound: false,
+  );
   
   final NotificationDetails notificationDetails = NotificationDetails(
     android: androidDetails,
+    iOS: iosDetails,
   );
   
   await notifications.show(
@@ -697,27 +678,6 @@ void arrivalCheckCallback() async {
   );
   
   print('✅ Arrival check notification shown');
-  
-  // Reschedule for tomorrow
-  final now = DateTime.now();
-  final tomorrow = DateTime(
-    now.year,
-    now.month,
-    now.day,
-    now.hour,
-    now.minute,
-  ).add(const Duration(days: 1));
-  
-  await AndroidAlarmManager.oneShotAt(
-    tomorrow,
-    5,
-    arrivalCheckCallback,
-    exact: true,
-    wakeup: true,
-    rescheduleOnReboot: true,
-  );
-  
-  print('✅ Arrival check rescheduled for tomorrow: $tomorrow');
 }
 
 // Arrival Alarm (ID: 6) - fires at exact arrival deadline
@@ -744,31 +704,18 @@ void arrivalAlarmCallback() async {
   
   print('❌ Arrival NOT confirmed - marking day as missed');
   
-  // Get localized language for TTS and notification
+  // Get localized notification copy
   final locale = await LocalizationHelper.getLocale();
-  final ttsLanguage = await LocalizationHelper.getTtsLanguage();
   final String title;
   final String body;
-  final String ttsMessage;
   
   if (locale == 'es') {
     title = '⌛ ¡Se acabó el tiempo!';
     body = 'No llegamos a tiempo hoy';
-    ttsMessage = 'Lo sentimos, no llegamos a tiempo hoy';
   } else {
     title = '⌛ Time is up!';
     body = 'We did not arrive on time today';
-    ttsMessage = 'Sorry, you did not make it today';
   }
-  
-  // Play TTS message
-  final FlutterTts tts = FlutterTts();
-  await tts.setLanguage(ttsLanguage);
-  await tts.setPitch(1.0);
-  await tts.setVolume(1.0);
-  await tts.setSpeechRate(0.5);
-  await tts.speak(ttsMessage);
-  print('🔊 TTS message played: $ttsMessage');
   
   // Show notification
   final notifications = FlutterLocalNotificationsPlugin();
@@ -779,20 +726,31 @@ void arrivalAlarmCallback() async {
     android: initializationSettingsAndroid,
   );
   await notifications.initialize(initializationSettings);
+
+  await notifications
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(_arrivalDeadlineSilentChannel);
   
   final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-    'morning_alarms',
-    'Morning Alarms',
-    channelDescription: 'Wake-up and reminder notifications',
+    _arrivalDeadlineSilentChannel.id,
+    _arrivalDeadlineSilentChannel.name,
+    channelDescription: _arrivalDeadlineSilentChannel.description,
     importance: Importance.max,
     priority: Priority.high,
-    playSound: true,
+    playSound: false,
     enableVibration: true,
     fullScreenIntent: true,
+  );
+
+  const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+    presentAlert: true,
+    presentBadge: true,
+    presentSound: false,
   );
   
   final NotificationDetails notificationDetails = NotificationDetails(
     android: androidDetails,
+    iOS: iosDetails,
   );
   
   await notifications.show(
@@ -805,7 +763,7 @@ void arrivalAlarmCallback() async {
   // Mark mission as failed using shared helper
   await AlarmService.markMissionFailed();
   
-  // Do NOT reschedule - this alarm is scheduled fresh each day when Pre-Arrival Check fires
+  // Do NOT reschedule here - this alarm is scheduled by the 7-day rolling window planner.
 }
 
 class AlarmService {

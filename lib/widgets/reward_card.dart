@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
 import '../models/reward.dart';
@@ -12,17 +13,131 @@ class RewardCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final reward = appState.currentReward;
+    final latestCompletedReward = appState.latestCompletedReward;
 
-    // Don't show card if no reward exists
-    if (reward == null) return const SizedBox.shrink();
+    if (reward == null) {
+      if (latestCompletedReward == null || latestCompletedReward.completionDate == null) {
+        return const SizedBox.shrink();
+      }
+
+      final locale = Localizations.localeOf(context).toString();
+      final completionDate = DateFormat('MMM d', locale).format(latestCompletedReward.completionDate!);
+
+      return Container(
+        margin: EdgeInsets.zero,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.green.shade100,
+              Colors.green.shade200,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.green.withValues(alpha: 0.22),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: const Icon(
+                      Icons.emoji_events,
+                      color: Color(0xFF2E7D32),
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Last Achievement',
+                          style: TextStyle(
+                            fontSize: 21,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green.shade900,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Completed on $completionDate',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.green.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ],
+              ),
+              const SizedBox(height: 14),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.78),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  '✅ ${latestCompletedReward.name}',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green.shade900,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton.icon(
+                  onPressed: () => _showRewardDialog(context),
+                  icon: const Icon(Icons.add_circle_outline, size: 18),
+                  label: Text(AppLocalizations.of(context)!.manage),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.green.shade800,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     final currentStreak = appState.currentStreak;
-    final daysRemaining = reward.daysRemaining(currentStreak);
     final progressPercent = reward.progressPercentage(currentStreak);
     final isAchieved = reward.isAchieved(currentStreak);
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: EdgeInsets.zero,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -40,7 +155,7 @@ class RewardCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: (isAchieved ? Colors.amber : Colors.blue).withOpacity(0.2),
+            color: (isAchieved ? Colors.amber : Colors.blue).withValues(alpha: 0.2),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -81,7 +196,7 @@ class RewardCard extends StatelessWidget {
               height: 14,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.white.withValues(alpha: 0.3),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
@@ -154,7 +269,6 @@ class RewardCard extends StatelessWidget {
               ),
             ],
 
-            // Last completed reward badge (if exists)
             if (!isAchieved && reward.completionDate != null) ...[
               const SizedBox(height: 8),
               Container(

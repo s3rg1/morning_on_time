@@ -124,10 +124,13 @@ class _MonthlyViewScreenState extends State<MonthlyViewScreen> {
                       return r.date.day == day;
                     }).firstOrNull;
 
+                    final hasRewardAchievement = appState.hasRewardAchievementOnDate(date);
+
                     return _DayCell(
                       day: day,
                       isOnTime: dayRecord?.wasOnTime,
                       isToday: _isToday(date),
+                      hasRewardAchievement: hasRewardAchievement,
                     );
                   },
                 ),
@@ -136,13 +139,14 @@ class _MonthlyViewScreenState extends State<MonthlyViewScreen> {
               // Legend
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 16,
+                  runSpacing: 8,
                   children: [
                     _LegendItem(color: Colors.green.shade100, label: AppLocalizations.of(context)!.onTimeArrival),
-                    const SizedBox(width: 16),
                     _LegendItem(color: Colors.red.shade100, label: AppLocalizations.of(context)!.lateArrival),
-                    const SizedBox(width: 16),
+                    _LegendItem(color: Colors.amber.shade100, label: 'Reward won'),
                     _LegendItem(color: Colors.grey.shade200, label: AppLocalizations.of(context)!.noRecord),
                   ],
                 ),
@@ -202,17 +206,19 @@ class _DayCell extends StatelessWidget {
   final int day;
   final bool? isOnTime;
   final bool isToday;
+  final bool hasRewardAchievement;
 
   const _DayCell({
     required this.day,
     this.isOnTime,
     required this.isToday,
+    required this.hasRewardAchievement,
   });
 
   @override
   Widget build(BuildContext context) {
     Color backgroundColor;
-    Color textColor = Colors.black87;
+    const textColor = Colors.black87;
     
     if (isOnTime == null) {
       backgroundColor = Colors.grey.shade200;
@@ -225,16 +231,15 @@ class _DayCell extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         border: isToday
             ? Border.all(color: Colors.blue, width: 2)
             : null,
       ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
+      child: Stack(
+        children: [
+          Center(
+            child: Text(
               '$day',
               style: TextStyle(
                 fontSize: 16,
@@ -242,14 +247,29 @@ class _DayCell extends StatelessWidget {
                 color: textColor,
               ),
             ),
-            if (isOnTime != null)
-              Icon(
+          ),
+          if (isOnTime != null)
+            Positioned(
+              bottom: 4,
+              left: 0,
+              right: 0,
+              child: Icon(
                 isOnTime! ? Icons.check : Icons.close,
                 size: 16,
                 color: isOnTime! ? Colors.green : Colors.red,
               ),
-          ],
-        ),
+            ),
+          if (hasRewardAchievement)
+            const Positioned(
+              top: 4,
+              right: 4,
+              child: Icon(
+                Icons.emoji_events,
+                size: 12,
+                color: Colors.amber,
+              ),
+            ),
+        ],
       ),
     );
   }

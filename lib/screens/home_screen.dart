@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -377,6 +378,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         );
       }
     }
+  }
+
+  Future<void> _simulateRewardAchievement(BuildContext context) async {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final completed = await appState.forceCompleteCurrentRewardForTesting();
+
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          completed
+              ? '🧪 Reward marked as achieved for testing. Check home badge and monthly view.'
+              : 'No active reward found to complete.',
+        ),
+        backgroundColor: completed ? Colors.green : Colors.orange,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   /// Find the next active day with scheduled alarms
@@ -776,6 +796,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         shadowColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         actions: [
+          if (kDebugMode)
+            IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.green.shade100,
+                ),
+                child: const Icon(Icons.emoji_events, color: Colors.green, size: 20),
+              ),
+              tooltip: 'Simulate Reward Achieved',
+              onPressed: () => _simulateRewardAchievement(context),
+            ),
           // Test button (remove in production)
           IconButton(
             icon: Container(
@@ -1120,9 +1153,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
 
                 // Reward Card - Below streak card
+                const SizedBox(height: 16),
                 const RewardCard(),
-
-                const SizedBox(height: 24),
 
                 // Journey Status - Show countdown if journey is active
                 if (appState.isJourneyActive && appState.arrivalDeadline != null) ...[

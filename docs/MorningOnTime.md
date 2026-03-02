@@ -446,8 +446,9 @@ See below the diffent types of alarms:
 * **Notification:** "🌅 Good Morning!" with mission message
 * **Behavior:** 
   - Fires exactly at wake-up time using AlarmManager
-  - The notification plays sounds/wake-up/morning-rooster.wav (even when app is closed) before proceeding with the TTS message
-  - Plays TTS message automatically in background (even when app is closed)
+   - The notification plays sounds/wake-up/morning-rooster.wav (even when app is closed)
+   - TTS starts 5 seconds after notification sound playback begins
+   - Plays TTS message automatically in background (even when app is closed)
   - Shows notification with mission reminder
 * **Reliability:** High (uses native Android AlarmManager, survives app closure and device restart)
 
@@ -458,7 +459,8 @@ See below the diffent types of alarms:
 * **Notification:** Custom message with the minutes left to leave home
 * **Behavior:**
   - The alarm is triggered 5 minutes after the wake up time
-  - The notification plays randomly one of the audio files found at sounds/checkpoints/ (even when app is closed) before proceeding with the TTS message
+   - The notification plays randomly one of the audio files found at sounds/checkpoints/ (even when app is closed)
+   - TTS starts 5 seconds after notification sound playback begins
   - It plays a TTS message that includes the minutes left to go, so the message is dynamic.
   - There are different types of notification message (TTS) depending on the time available. Choose one randomly from the right category based on minutes available.
     - if there is more than 75% of the time available from wake-up to leave time:
@@ -490,7 +492,8 @@ See below the diffent types of alarms:
 * **Behavior:**
   - The alarm is triggered 5 minutes before the time to leave
   - Creates sense of urgency as departure time approaches
-  - The notification plays randomly one of the audio files found at sounds/leave-soon/ (even when app is closed) before proceeding with the TTS message
+   - The notification plays randomly one of the audio files found at sounds/leave-soon/ (even when app is closed)
+   - TTS starts 5 seconds after notification sound playback begins
   - Plays TTS message automatically
 * **Reliability:** High (AlarmManager-based)
 
@@ -502,7 +505,8 @@ See below the diffent types of alarms:
 * **Behavior:**
   - The alarm is triggered at time to leave
   - Final reminder to depart
-  - The notification plays sounds/leave-now/war-horn.wav (even when app is closed) before proceeding with the TTS message
+   - The notification plays sounds/leave-now/war-horn.wav (even when app is closed)
+   - TTS starts 5 seconds after notification sound playback begins
   - Plays TTS message automatically
   - A countdown timer begins from the leave home time to the arrival time so that the user can see how much time they have left
   - The coundown timer is shown in the home screen.
@@ -516,6 +520,7 @@ See below the diffent types of alarms:
 * **Action Buttons:**
   - "✅ Yes, we have" - Arrived on time.
 * **Behavior:**
+   - Silent notification only (no custom sound and no TTS)
   - Shows notification with confirmation buttons
   - Tapping "Yes" increments streak and marks day as achieved. Also stops the countdown timer and disables Arrival Alarm since it's not needed
 * **Reliability:** High (AlarmManager-based)
@@ -526,6 +531,7 @@ See below the diffent types of alarms:
 * **Notification:** "⌛ Time is up!"
 * **Message:** "Sorry, you did not make it today"
 * **Behavior:**
+   - Silent notification only (no custom sound and no TTS)
   - This notification is triggered if the user hasn't confirmed they arrived on time
   - It marks day as missed.
 * **Reliability:** High (AlarmManager-based)
@@ -869,15 +875,6 @@ After a reward is achieved, show a small completion badge:
 2. Progress bar resets to empty
 3. Show "delayed but not lost" message
 4. Offer options to continue or change reward
-
-#### **Integration with Voice Alarms** (Future Enhancement)
-
-Voice messages can reference reward progress:
-
-* Wake-up: "Good morning! Only 2 more days to earn movie night!"
-* Pre-arrival: "Let's arrive on time and get closer to pizza night!"
-
-*Note: Voice integration optional for MVP*
 
 #### **Technical Implementation**
 

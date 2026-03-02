@@ -43,6 +43,30 @@ class AppState extends ChangeNotifier {
       return null;
     }
   }
+
+  Reward? get latestCompletedReward {
+    final completed = _rewards
+        .where((r) => r.completionDate != null)
+        .toList()
+      ..sort((a, b) => b.completionDate!.compareTo(a.completionDate!));
+
+    if (completed.isEmpty) return null;
+    return completed.first;
+  }
+
+  bool hasRewardAchievementOnDate(DateTime date) {
+    final targetDate = DateTime(date.year, date.month, date.day);
+    return _rewards.any((reward) {
+      final completedAt = reward.completionDate;
+      if (completedAt == null) return false;
+      final completedDate = DateTime(
+        completedAt.year,
+        completedAt.month,
+        completedAt.day,
+      );
+      return completedDate.isAtSameMomentAs(targetDate);
+    });
+  }
   
   // Pure time-based computation - no state needed!
   bool get isJourneyActive {
@@ -580,6 +604,21 @@ class AppState extends ChangeNotifier {
       await updateReward(current.id, completed);
       print('🏆 Reward completed: ${current.name}');
     }
+  }
+
+  Future<bool> forceCompleteCurrentRewardForTesting() async {
+    final current = currentReward;
+    if (current == null) return false;
+
+    final required = current.requiredStreakLength;
+    if (_currentStreak < required) {
+      _currentStreak = required;
+      await _storage.setCurrentStreak(_currentStreak);
+    }
+
+    await markRewardAsCompleted();
+    notifyListeners();
+    return true;
   }
 
   // Reset reward progress (when streak resets)
