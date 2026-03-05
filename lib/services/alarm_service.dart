@@ -1,18 +1,55 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:dnd_checker/dnd_checker.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:native_sound_player/native_sound_player.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'localization_helper.dart';
 import '../models/app_settings.dart';
 
 const Duration _notificationToTtsDelay = Duration(seconds: 5);
 
-const AndroidNotificationChannel _arrivalCheckSilentChannel = AndroidNotificationChannel(
-  'arrival_check_silent_v2',
-  'Arrival Check Alerts',
-  description: 'Silent arrival confirmation notifications',
+/// Plays a notification sound on the **music stream** using Android's native
+/// MediaPlayer via our native_sound_player plugin. This ensures notification
+/// sounds and TTS share the same volume slider, and works reliably in
+/// background isolates (unlike the `audioplayers` package whose AssetSource
+/// resolver fails in background engines created by android_alarm_manager_plus).
+///
+/// [assetPath] – Flutter asset path, e.g. 'assets/sounds/wake-up/morning-rooster.wav'
+Future<void> _playNotificationSound(String assetPath) async {
+  try {
+    await NativeSoundPlayer.playAsset(assetPath);
+    print('🔊 Playing notification sound on media stream: $assetPath');
+  } catch (e) {
+    print('⚠️ Failed to play notification sound: $e');
+  }
+}
+
+// Pre-Arrival Check channels with escalating custom sounds
+const AndroidNotificationChannel _preArrivalGentleChannel = AndroidNotificationChannel(
+  'pre_arrival_gentle_v2',
+  'Pre-Arrival Reminder',
+  description: 'Gentle reminder to confirm arrival (1 minute left)',
+  importance: Importance.max,
+  playSound: false,
+  enableVibration: true,
+);
+
+const AndroidNotificationChannel _preArrivalUrgentChannel = AndroidNotificationChannel(
+  'pre_arrival_urgent_v2',
+  'Pre-Arrival Urgent',
+  description: 'Urgent reminder to confirm arrival (30 seconds left)',
+  importance: Importance.max,
+  playSound: false,
+  enableVibration: true,
+);
+
+const AndroidNotificationChannel _preArrivalCriticalChannel = AndroidNotificationChannel(
+  'pre_arrival_critical_v2',
+  'Pre-Arrival Critical',
+  description: 'Critical last-chance reminder to confirm arrival (10 seconds left)',
   importance: Importance.max,
   playSound: false,
   enableVibration: true,
@@ -75,15 +112,14 @@ void alarmCallback() async {
   );
   await notifications.initialize(initializationSettings);
   
-  // CRITICAL: Create notification channel WITH custom sound (Android 8.0+)
-  // Channel settings are immutable after creation, so must include sound here
+  // CRITICAL: Create notification channel WITHOUT custom sound (Android 8.0+)
+  // Sound is now played via audioplayers on the media stream for unified volume
   const AndroidNotificationChannel wakeUpChannel = AndroidNotificationChannel(
-    'wake_up_alarm',
+    'wake_up_alarm_v2',
     'Wake-Up Alarms',
-    description: 'Wake-up notifications with custom rooster sound',
+    description: 'Wake-up notifications',
     importance: Importance.max,
-    playSound: true,
-    sound: RawResourceAndroidNotificationSound('morning_rooster'),
+    playSound: false,
     enableVibration: true,
   );
   
@@ -94,23 +130,21 @@ void alarmCallback() async {
   
   // Android: Reference the channel we just created
   const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-    'wake_up_alarm',  // Must match channel ID above
+    'wake_up_alarm_v2',  // Must match channel ID above
     'Wake-Up Alarms',
-    channelDescription: 'Wake-up notifications with custom rooster sound',
+    channelDescription: 'Wake-up notifications',
     importance: Importance.max,
     priority: Priority.high,
-    playSound: true,
-    sound: RawResourceAndroidNotificationSound('morning_rooster'),
+    playSound: false,
     enableVibration: true,
     fullScreenIntent: true,
   );
   
-  // iOS: Use custom sound from bundle
+  // iOS: Sound also played via audioplayers for consistency
   const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-    sound: 'morning_rooster.caf',
     presentAlert: true,
     presentBadge: true,
-    presentSound: true,
+    presentSound: false,
   );
   
   const NotificationDetails notificationDetails = NotificationDetails(
@@ -125,14 +159,23 @@ void alarmCallback() async {
     notificationDetails,
   );
   
-  print('✅ Wake-up notification shown with custom sound');
+  print('✅ Wake-up notification shown (silent channel)');
   
-  await _speakAfterStandardDelay(
-    ttsLanguage: ttsLanguage,
-    message: wakeUpMessage,
-    delayLog: '⏳ Waiting 5 seconds before wake-up TTS...',
-    completionLog: '✅ Wake-up TTS message spoken',
-  );
+  // Skip audio when Do Not Disturb is active (notification + vibration still fire)
+  final dndActive = await DndChecker.isDndActive();
+  if (dndActive) {
+    print('🔇 DND active — skipping wake-up sound & TTS');
+  } else {
+    // Play notification sound on media stream (same stream as TTS)
+    await _playNotificationSound('assets/sounds/wake-up/morning-rooster.wav');
+    
+    await _speakAfterStandardDelay(
+      ttsLanguage: ttsLanguage,
+      message: wakeUpMessage,
+      delayLog: '⏳ Waiting 5 seconds before wake-up TTS...',
+      completionLog: '✅ Wake-up TTS message spoken',
+    );
+  }
   
   // === 7-DAY ROLLING WINDOW EXTENSION ===
   // Extend the 7-day window by scheduling day 8 alarms
@@ -325,18 +368,18 @@ void checkInAlarmCallback() async {
   final ttsLanguage = await LocalizationHelper.getTtsLanguage();
   final checkInTitle = await LocalizationHelper.getCheckInTitle();
   
-  // 🔔 Step 1: Show notification with random custom sound (per PRD: randomly select from checkpoints folder)
+  // 🔔 Step 1: Show notification with sound played via audioplayers (media stream)
   // Randomly select one of the checkpoint sounds
   final random = Random();
   final checkpointSounds = [
-    {'name': 'alarm_clock', 'channel': 'checkpoint_alarm_clock'},
-    {'name': 'church_bell', 'channel': 'checkpoint_church_bell'},
+    {'asset': 'assets/sounds/checkpoints/alarm-clock.wav', 'channel': 'checkpoint_silent_v2'},
+    {'asset': 'assets/sounds/checkpoints/church-bell.wav', 'channel': 'checkpoint_silent_v2'},
   ];
   final selectedSound = checkpointSounds[random.nextInt(checkpointSounds.length)];
-  final soundName = selectedSound['name'] as String;
+  final soundAsset = selectedSound['asset'] as String;
   final channelId = selectedSound['channel'] as String;
   
-  print('🔔 Selected random checkpoint sound: $soundName');
+  print('🔔 Selected random checkpoint sound: $soundAsset');
   
   // Show notification with custom sound FIRST (per PRD: sound before TTS)
   final notifications = FlutterLocalNotificationsPlugin();
@@ -352,15 +395,14 @@ void checkInAlarmCallback() async {
   );
   await notifications.initialize(initializationSettings);
   
-  // CRITICAL: Create notification channel WITH custom sound (Android 8.0+)
-  // Using the randomly selected sound
+  // CRITICAL: Create notification channel WITHOUT custom sound (Android 8.0+)
+  // Sound is now played via audioplayers on the media stream for unified volume
   final checkpointChannel = AndroidNotificationChannel(
-    channelId,  // Unique channel per sound
+    channelId,  // Shared silent channel
     'Checkpoint Alarms',
-    description: 'Checkpoint notifications with custom sounds',
+    description: 'Checkpoint notifications',
     importance: Importance.max,
-    playSound: true,
-    sound: RawResourceAndroidNotificationSound(soundName),
+    playSound: false,
     enableVibration: true,
   );
   
@@ -373,18 +415,16 @@ void checkInAlarmCallback() async {
   final androidDetails = AndroidNotificationDetails(
     channelId,  // Must match channel ID above
     'Checkpoint Alarms',
-    channelDescription: 'Checkpoint notifications with custom sounds',
+    channelDescription: 'Checkpoint notifications',
     importance: Importance.max,
     priority: Priority.high,
-    playSound: true,
-    sound: RawResourceAndroidNotificationSound(soundName),
+    playSound: false,
     enableVibration: true,
     fullScreenIntent: true,
   );
   
   // iOS: Use custom sound from bundle (if needed)
-  final iosDetails = DarwinNotificationDetails(
-    sound: '$soundName.caf',
+  const iosDetails = DarwinNotificationDetails(
     presentAlert: true,
     presentBadge: true,
     presentSound: true,
@@ -406,7 +446,7 @@ void checkInAlarmCallback() async {
   );
   final String notificationBody = selectedMessage;
   
-  // Show notification (plays custom sound automatically)
+  // Show notification (silent — sound played separately below)
   await notifications.show(
     100 + random.nextInt(20),  // Random ID between 100-119 for checkpoint alarms
     checkInTitle,
@@ -414,18 +454,27 @@ void checkInAlarmCallback() async {
     notificationDetails,
   );
   
-  print('✅ Checkpoint notification shown with custom sound: $soundName');
+  print('✅ Checkpoint notification shown (silent channel)');
   
-  // 🔊 Step 2: Play TTS message after notification sound
-  // Build dynamic TTS message with minutes left
-  final String ttsMessage = selectedMessage;
+  // Skip audio when Do Not Disturb is active
+  final dndActive = await DndChecker.isDndActive();
+  if (dndActive) {
+    print('🔇 DND active — skipping checkpoint sound & TTS');
+  } else {
+    // Play notification sound on media stream (same stream as TTS)
+    await _playNotificationSound(soundAsset);
+    
+    // 🔊 Step 2: Play TTS message after notification sound
+    // Build dynamic TTS message with minutes left
+    final String ttsMessage = selectedMessage;
 
-  await _speakAfterStandardDelay(
-    ttsLanguage: ttsLanguage,
-    message: ttsMessage,
-    delayLog: '⏳ Waiting 5 seconds before checkpoint TTS...',
-    completionLog: '✅ Checkpoint TTS played: "$ttsMessage"',
-  );
+    await _speakAfterStandardDelay(
+      ttsLanguage: ttsLanguage,
+      message: ttsMessage,
+      delayLog: '⏳ Waiting 5 seconds before checkpoint TTS...',
+      completionLog: '✅ Checkpoint TTS played: "$ttsMessage"',
+    );
+  }
   // Note: Checkpoint alarms don't auto-reschedule, they're scheduled fresh each day
 }
 
@@ -438,18 +487,17 @@ void leaveHomeSoonCallback() async {
   final leaveHomeSoonMessage = await LocalizationHelper.getLeaveHomeSoonMessage();
   final leaveHomeSoonTitle = await LocalizationHelper.getLeaveHomeSoonTitle();
   
-  // 🚨 Step 1: Show notification with random custom sound (per PRD: randomly select from leave-soon folder)
+  // 🚨 Step 1: Show notification with sound played via audioplayers (media stream)
   // Randomly select one of the leave-soon sounds
   final random = Random();
   final leaveSoonSounds = [
-    {'name': 'nuclear_alarm', 'channel': 'leave_soon_nuclear_alarm'},
-    {'name': 'red_alert_nuclear_buzzer', 'channel': 'leave_soon_red_alert'},
+    'assets/sounds/leave-soon/nuclear-alarm.wav',
+    'assets/sounds/leave-soon/red-alert_nuclear_buzzer.mp3',
   ];
-  final selectedSound = leaveSoonSounds[random.nextInt(leaveSoonSounds.length)];
-  final soundName = selectedSound['name'] as String;
-  final channelId = selectedSound['channel'] as String;
+  final soundAsset = leaveSoonSounds[random.nextInt(leaveSoonSounds.length)];
+  final channelId = 'leave_soon_silent_v2';
   
-  print('🚨 Selected random leave-soon sound: $soundName');
+  print('🚨 Selected random leave-soon sound: $soundAsset');
   
   // Show notification with custom sound FIRST (per PRD: sound before TTS)
   final notifications = FlutterLocalNotificationsPlugin();
@@ -465,15 +513,14 @@ void leaveHomeSoonCallback() async {
   );
   await notifications.initialize(initializationSettings);
   
-  // CRITICAL: Create notification channel WITH custom sound (Android 8.0+)
-  // Using the randomly selected sound
+  // CRITICAL: Create notification channel WITHOUT custom sound (Android 8.0+)
+  // Sound is now played via audioplayers on the media stream for unified volume
   final leaveSoonChannel = AndroidNotificationChannel(
-    channelId,  // Unique channel per sound
+    channelId,  // Shared silent channel
     'Leave Home Soon Alarms',
-    description: 'Leave home soon notifications with custom sounds',
+    description: 'Leave home soon notifications',
     importance: Importance.max,
-    playSound: true,
-    sound: RawResourceAndroidNotificationSound(soundName),
+    playSound: false,
     enableVibration: true,
   );
   
@@ -486,18 +533,16 @@ void leaveHomeSoonCallback() async {
   final androidDetails = AndroidNotificationDetails(
     channelId,  // Must match channel ID above
     'Leave Home Soon Alarms',
-    channelDescription: 'Leave home soon notifications with custom sounds',
+    channelDescription: 'Leave home soon notifications',
     importance: Importance.max,
     priority: Priority.high,
-    playSound: true,
-    sound: RawResourceAndroidNotificationSound(soundName),
+    playSound: false,
     enableVibration: true,
     fullScreenIntent: true,
   );
   
   // iOS: Use custom sound from bundle (if needed)
-  final iosDetails = DarwinNotificationDetails(
-    sound: '$soundName.caf',
+  const iosDetails = DarwinNotificationDetails(
     presentAlert: true,
     presentBadge: true,
     presentSound: true,
@@ -508,7 +553,7 @@ void leaveHomeSoonCallback() async {
     iOS: iosDetails,
   );
   
-  // Show notification (plays custom sound automatically)
+  // Show notification (silent — sound played separately below)
   await notifications.show(
     3,
     leaveHomeSoonTitle,
@@ -516,15 +561,24 @@ void leaveHomeSoonCallback() async {
     notificationDetails,
   );
   
-  print('✅ Leave home soon notification shown with custom sound: $soundName');
+  print('✅ Leave home soon notification shown (silent channel)');
   
-  // 🔊 Step 2: Play TTS message after notification sound
-  await _speakAfterStandardDelay(
-    ttsLanguage: ttsLanguage,
-    message: leaveHomeSoonMessage,
-    delayLog: '⏳ Waiting 5 seconds before leave-soon TTS...',
-    completionLog: '✅ Leave home soon TTS played: "$leaveHomeSoonMessage"',
-  );
+  // Skip audio when Do Not Disturb is active
+  final dndActive = await DndChecker.isDndActive();
+  if (dndActive) {
+    print('🔇 DND active — skipping leave-soon sound & TTS');
+  } else {
+    // Play notification sound on media stream (same stream as TTS)
+    await _playNotificationSound(soundAsset);
+    
+    // 🔊 Step 2: Play TTS message after notification sound
+    await _speakAfterStandardDelay(
+      ttsLanguage: ttsLanguage,
+      message: leaveHomeSoonMessage,
+      delayLog: '⏳ Waiting 5 seconds before leave-soon TTS...',
+      completionLog: '✅ Leave home soon TTS played: "$leaveHomeSoonMessage"',
+    );
+  }
 }
 
 @pragma('vm:entry-point')
@@ -551,15 +605,14 @@ void leaveHomeCallback() async {
   );
   await notifications.initialize(initializationSettings);
   
-  // CRITICAL: Create notification channel WITH custom sound (Android 8.0+)
-  // Channel settings are immutable after creation, so must include sound here
+  // CRITICAL: Create notification channel WITHOUT custom sound (Android 8.0+)
+  // Sound is now played via audioplayers on the media stream for unified volume
   const AndroidNotificationChannel leaveHomeChannel = AndroidNotificationChannel(
-    'leave_home_alarm',
+    'leave_home_alarm_v2',
     'Leave Home Alarms',
-    description: 'Leave home notifications with custom war horn sound',
+    description: 'Leave home notifications',
     importance: Importance.max,
-    playSound: true,
-    sound: RawResourceAndroidNotificationSound('war_horn'),
+    playSound: false,
     enableVibration: true,
   );
   
@@ -570,25 +623,23 @@ void leaveHomeCallback() async {
   
   // Android: Reference the channel we just created
   const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-    'leave_home_alarm',  // Must match channel ID above
+    'leave_home_alarm_v2',  // Must match channel ID above
     'Leave Home Alarms',
-    channelDescription: 'Leave home notifications with custom war horn sound',
+    channelDescription: 'Leave home notifications',
     importance: Importance.max,
     priority: Priority.high,
-    playSound: true,
-    sound: RawResourceAndroidNotificationSound('war_horn'),
+    playSound: false,
     enableVibration: true,
     fullScreenIntent: true,
     ongoing: true, // Make it persistent during journey
     autoCancel: false,
   );
   
-  // iOS: Use custom sound from bundle
+  // iOS: Sound also played via audioplayers for consistency
   const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-    sound: 'war_horn.caf',
     presentAlert: true,
     presentBadge: true,
-    presentSound: true,
+    presentSound: false,
   );
   
   const NotificationDetails notificationDetails = NotificationDetails(
@@ -604,32 +655,109 @@ void leaveHomeCallback() async {
     payload: 'leave_home', // Add payload to identify this notification
   );
   
-  print('✅ Leave home notification shown with custom war horn sound');
+  print('✅ Leave home notification shown (silent channel)');
   
   // No need to set journey flag - countdown now computed purely from time!
   print('🚀 Leave home time reached - countdown will appear automatically');
   
-  await _speakAfterStandardDelay(
-    ttsLanguage: ttsLanguage,
-    message: leaveHomeNowMessage,
-    delayLog: '⏳ Waiting 5 seconds before leave-home TTS...',
-    completionLog: '✅ Leave-home TTS message spoken',
-  );
+  // Skip audio when Do Not Disturb is active
+  final dndActive = await DndChecker.isDndActive();
+  if (dndActive) {
+    print('🔇 DND active — skipping leave-home sound & TTS');
+  } else {
+    // Play notification sound on media stream (same stream as TTS)
+    await _playNotificationSound('assets/sounds/leave-now/war-horn.wav');
+    
+    await _speakAfterStandardDelay(
+      ttsLanguage: ttsLanguage,
+      message: leaveHomeNowMessage,
+      delayLog: '⏳ Waiting 5 seconds before leave-home TTS...',
+      completionLog: '✅ Leave-home TTS message spoken',
+    );
+  }
 }
 
+/// Shared callback for all 3 Pre-Arrival Check alarms (IDs: 5, 7, 8).
+/// Determines urgency level from time remaining until arrival deadline,
+/// then shows a notification with the appropriate escalating sound and text.
 @pragma('vm:entry-point')
-void arrivalCheckCallback() async {
-  print('🎯 ARRIVAL CHECK ALARM FIRED!');
-  
-  // Get localized messages
-  final arrivalCheckTitle = await LocalizationHelper.getArrivalCheckTitle();
-  final arrivalCheckBody = await LocalizationHelper.getArrivalCheckBody();
+void preArrivalCheckCallback() async {
+  print('🎯 PRE-ARRIVAL CHECK ALARM FIRED!');
+
+  // Skip if arrival already confirmed
+  final prefs = await SharedPreferences.getInstance();
+  final arrivalConfirmed = prefs.getBool('arrival_confirmed') ?? false;
+  if (arrivalConfirmed) {
+    print('✅ Arrival already confirmed - skipping pre-arrival notification');
+    return;
+  }
+
+  // Determine arrival deadline from settings or test deadline
+  DateTime? arrivalDeadline;
+  final testDeadlineStr = prefs.getString('test_arrival_deadline');
+  if (testDeadlineStr != null) {
+    arrivalDeadline = DateTime.tryParse(testDeadlineStr);
+  }
+  if (arrivalDeadline == null) {
+    final settingsJson = prefs.getString('app_settings');
+    if (settingsJson != null) {
+      try {
+        final settingsMap = jsonDecode(settingsJson) as Map<String, dynamic>;
+        final settings = AppSettings.fromJson(settingsMap);
+        final now = DateTime.now();
+        arrivalDeadline = DateTime(
+          now.year, now.month, now.day,
+          settings.arrivalDeadline.hour,
+          settings.arrivalDeadline.minute,
+        );
+      } catch (e) {
+        print('⚠️ Error reading settings for arrival deadline: $e');
+      }
+    }
+  }
+
+  // Calculate seconds remaining to pick urgency level
+  final secondsRemaining = arrivalDeadline != null
+      ? arrivalDeadline.difference(DateTime.now()).inSeconds
+      : 60; // fallback if we can't determine
+
+  // Pick channel, notification ID, title and body based on remaining time
+  final AndroidNotificationChannel channel;
+  final int notificationId;
+  final String soundAsset;
+
+  final String title;
+  final String body;
   final arrivedYesText = await LocalizationHelper.getArrivedYesText();
-  // Note: 'No' button removed per PRD - user can only confirm arrival
-  
-  // Show notification with single action button
+
+  if (secondsRemaining > 45) {
+    // T-60s alarm (gentle)
+    channel = _preArrivalGentleChannel;
+    notificationId = 5;
+    soundAsset = 'assets/sounds/pre-arrival/pre_arrival_gentle.wav';
+    title = await LocalizationHelper.getPreArrivalTitle1();
+    body = await LocalizationHelper.getPreArrivalBody1();
+  } else if (secondsRemaining > 15) {
+    // T-30s alarm (urgent)
+    channel = _preArrivalUrgentChannel;
+    notificationId = 7;
+    soundAsset = 'assets/sounds/pre-arrival/pre_arrival_urgent.wav';
+    title = await LocalizationHelper.getPreArrivalTitle2();
+    body = await LocalizationHelper.getPreArrivalBody2();
+  } else {
+    // T-10s alarm (critical)
+    channel = _preArrivalCriticalChannel;
+    notificationId = 8;
+    soundAsset = 'assets/sounds/pre-arrival/pre_arrival_critical.wav';
+    title = await LocalizationHelper.getPreArrivalTitle3();
+    body = await LocalizationHelper.getPreArrivalBody3();
+  }
+
+  print('🔔 Pre-arrival urgency: ${secondsRemaining}s remaining → notification ID $notificationId');
+
+  // Initialize notifications in background isolate
   final notifications = FlutterLocalNotificationsPlugin();
-  
+
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/ic_launcher');
   const InitializationSettings initializationSettings = InitializationSettings(
@@ -637,14 +765,15 @@ void arrivalCheckCallback() async {
   );
   await notifications.initialize(initializationSettings);
 
+  // Create the appropriate channel
   await notifications
       .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(_arrivalCheckSilentChannel);
-  
+      ?.createNotificationChannel(channel);
+
   final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-    _arrivalCheckSilentChannel.id,
-    _arrivalCheckSilentChannel.name,
-    channelDescription: _arrivalCheckSilentChannel.description,
+    channel.id,
+    channel.name,
+    channelDescription: channel.description,
     importance: Importance.max,
     priority: Priority.high,
     playSound: false,
@@ -662,22 +791,31 @@ void arrivalCheckCallback() async {
   const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
     presentAlert: true,
     presentBadge: true,
-    presentSound: false,
+    presentSound: true,
   );
-  
+
   final NotificationDetails notificationDetails = NotificationDetails(
     android: androidDetails,
     iOS: iosDetails,
   );
-  
+
   await notifications.show(
-    5,
-    arrivalCheckTitle,
-    arrivalCheckBody,
+    notificationId,
+    title,
+    body,
     notificationDetails,
   );
-  
-  print('✅ Arrival check notification shown');
+
+  // Skip audio when Do Not Disturb is active
+  final dndActive = await DndChecker.isDndActive();
+  if (dndActive) {
+    print('🔇 DND active — skipping pre-arrival sound');
+  } else {
+    // Play notification sound on media stream (same stream as TTS)
+    await _playNotificationSound(soundAsset);
+  }
+
+  print('✅ Pre-arrival check notification shown (ID: $notificationId)');
 }
 
 // Arrival Alarm (ID: 6) - fires at exact arrival deadline
@@ -1110,26 +1248,37 @@ class AlarmService {
       ));
     }
 
-    // 5. Schedule Arrival-Check Alarm (base ID: 5)
-    final arrivalCheckTime = arrivalDeadline.subtract(Duration(minutes: minutesBeforeArrival));
-    final arrivalCheckId = (dayOffset * 1000) + 5;
-    if (arrivalCheckTime.isAfter(now.add(const Duration(seconds: 30)))) {
-      await AndroidAlarmManager.oneShotAt(
-        arrivalCheckTime,
-        arrivalCheckId,
-        arrivalCheckCallback,
-        exact: true,
-        wakeup: true,
-        rescheduleOnReboot: true,
+    // 5. Schedule Pre-Arrival Check Alarms (base IDs: 5, 7, 8)
+    // Three alarms at T-60s, T-30s, T-10s before arrival deadline
+    final preArrivalOffsets = [
+      {'baseId': 5, 'seconds': 60, 'name': '🎯 Pre-arrival (T-60s)'},
+      {'baseId': 7, 'seconds': 30, 'name': '🎯 Pre-arrival (T-30s)'},
+      {'baseId': 8, 'seconds': 10, 'name': '⚠️ Pre-arrival (T-10s)'},
+    ];
+
+    for (final offset in preArrivalOffsets) {
+      final preArrivalTime = arrivalDeadline.subtract(
+        Duration(seconds: offset['seconds'] as int),
       );
-      scheduledCount++;
-      print('   ⏰ Arrival-check (ID $arrivalCheckId): ${_formatTime(arrivalCheckTime)}');
-      manifestCollector?.add(_createManifestEntry(
-        id: arrivalCheckId,
-        name: '🎯 Arrival-check',
-        type: 'arrival-check',
-        date: arrivalCheckTime,
-      ));
+      final preArrivalId = (dayOffset * 1000) + (offset['baseId'] as int);
+      if (preArrivalTime.isAfter(now.add(const Duration(seconds: 5)))) {
+        await AndroidAlarmManager.oneShotAt(
+          preArrivalTime,
+          preArrivalId,
+          preArrivalCheckCallback,
+          exact: true,
+          wakeup: true,
+          rescheduleOnReboot: true,
+        );
+        scheduledCount++;
+        print('   ⏰ ${offset['name']} (ID $preArrivalId): ${_formatTime(preArrivalTime)}');
+        manifestCollector?.add(_createManifestEntry(
+          id: preArrivalId,
+          name: offset['name'] as String,
+          type: 'pre-arrival-check',
+          date: preArrivalTime,
+        ));
+      }
     }
 
     // 6. Schedule Arrival Alarm (base ID: 6)
@@ -1186,8 +1335,10 @@ class AlarmService {
       // Cancel leave-home alarm (ID: dayOffset * 1000 + 4)
       await AndroidAlarmManager.cancel((dayOffset * 1000) + 4);
       
-      // Cancel arrival-check alarm (ID: dayOffset * 1000 + 5)
+      // Cancel pre-arrival-check alarms (IDs: dayOffset * 1000 + 5, 7, 8)
       await AndroidAlarmManager.cancel((dayOffset * 1000) + 5);
+      await AndroidAlarmManager.cancel((dayOffset * 1000) + 7);
+      await AndroidAlarmManager.cancel((dayOffset * 1000) + 8);
       
       // Cancel arrival alarm (ID: dayOffset * 1000 + 6)
       await AndroidAlarmManager.cancel((dayOffset * 1000) + 6);
@@ -1200,17 +1351,21 @@ class AlarmService {
   }
   
   static Future<void> cancelArrivalAlarm() async {
-    // Cancel arrival-related alarms across the full rolling window
+    // Cancel all pre-arrival check + arrival alarms across the full rolling window
     for (int dayOffset = 0; dayOffset <= 7; dayOffset++) {
       await AndroidAlarmManager.cancel((dayOffset * 1000) + 5);
+      await AndroidAlarmManager.cancel((dayOffset * 1000) + 7);
+      await AndroidAlarmManager.cancel((dayOffset * 1000) + 8);
       await AndroidAlarmManager.cancel((dayOffset * 1000) + 6);
     }
 
     // Dismiss already-shown arrival notifications if present
     final notifications = FlutterLocalNotificationsPlugin();
     await notifications.cancel(5);
+    await notifications.cancel(7);
+    await notifications.cancel(8);
     await notifications.cancel(6);
 
-    print('✅ Arrival-related alarms cancelled (IDs: *005, *006)');
+    print('✅ Arrival-related alarms cancelled (IDs: *005, *007, *008, *006)');
   }
 }

@@ -77,8 +77,8 @@ class NotificationService {
       // Leave home notification tapped - journey should be active
       // The app will automatically check and restore journey state via didChangeAppLifecycleState
       print('🚪 Leave home notification tapped - app will check journey state');
-    } else if (response.id == 5) {
-      // Arrival check notification - only 'Yes' button available
+    } else if (response.id == 5 || response.id == 7 || response.id == 8) {
+      // Pre-Arrival Check notifications (IDs 5, 7, 8) - same action button
       if (response.actionId == 'arrived_yes') {
         onArrivalConfirmation?.call(true); // Arrived on time
       }

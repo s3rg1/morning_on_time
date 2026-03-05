@@ -195,6 +195,77 @@ class LocalizationHelper {
         return 'Tap to confirm your arrival status';
     }
   }
+
+  // --- Pre-Arrival Check Alarms (IDs 5, 7, 8) ---
+
+  /// Pre-Arrival Check 1 (T-60s) - Gentle reminder
+  static Future<String> getPreArrivalTitle1() async {
+    final locale = await getLocale();
+    switch (locale) {
+      case 'es':
+        return '🎯 ¿Ya hemos llegado?';
+      case 'en':
+      default:
+        return '🎯 Have we arrived already?';
+    }
+  }
+
+  static Future<String> getPreArrivalBody1() async {
+    final locale = await getLocale();
+    switch (locale) {
+      case 'es':
+        return 'No olvides confirmar tu llegada. ¡Queda 1 minuto!';
+      case 'en':
+      default:
+        return "Don't forget to confirm your arrival. 1 minute left!";
+    }
+  }
+
+  /// Pre-Arrival Check 2 (T-30s) - Urgent
+  static Future<String> getPreArrivalTitle2() async {
+    final locale = await getLocale();
+    switch (locale) {
+      case 'es':
+        return '🎯 ¿Ya hemos llegado?';
+      case 'en':
+      default:
+        return '🎯 Have we arrived already?';
+    }
+  }
+
+  static Future<String> getPreArrivalBody2() async {
+    final locale = await getLocale();
+    switch (locale) {
+      case 'es':
+        return 'No olvides confirmar tu llegada. ¡Quedan 30 segundos!';
+      case 'en':
+      default:
+        return "Don't forget to confirm your arrival. 30 seconds left!";
+    }
+  }
+
+  /// Pre-Arrival Check 3 (T-10s) - Critical / Last chance
+  static Future<String> getPreArrivalTitle3() async {
+    final locale = await getLocale();
+    switch (locale) {
+      case 'es':
+        return '⚠️ ¡Última oportunidad!';
+      case 'en':
+      default:
+        return '⚠️ Last chance!';
+    }
+  }
+
+  static Future<String> getPreArrivalBody3() async {
+    final locale = await getLocale();
+    switch (locale) {
+      case 'es':
+        return 'Confirma ahora o el día se marcará como tarde. ¡Quedan 10 segundos!';
+      case 'en':
+      default:
+        return 'Confirm now or today will be marked as late. 10 seconds left!';
+    }
+  }
   
   /// Get localized action button text for "Yes, we have"
   static Future<String> getArrivedYesText() async {

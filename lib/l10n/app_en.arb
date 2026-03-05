@@ -376,6 +376,18 @@
   "@okIllAdjustIt": {
     "description": "Volume adjustment acknowledgment button"
   },
+  "dndEnabled": "Do Not Disturb is On",
+  "@dndEnabled": {
+    "description": "DND warning dialog title"
+  },
+  "dndEnabledMessage": "Do Not Disturb mode is active on your device.\n\nMorning voice messages and notification sounds will not play while DND is enabled.",
+  "@dndEnabledMessage": {
+    "description": "DND warning message explaining audio won't play"
+  },
+  "gotIt": "Got it",
+  "@gotIt": {
+    "description": "DND warning acknowledgment button"
+  },
   "streakLevelBeginner": "Beginner Runner",
   "@streakLevelBeginner": {
     "description": "Streak level 0-9 days"

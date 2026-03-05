@@ -1,5 +1,37 @@
 # **Product Requirements Document (PRD)**
 
+## **Table of Contents**
+
+1. [Product Name (Working Title)](#product-name-working-title)
+2. [Product Vision](#product-vision)
+3. [Problem Statement](#problem-statement)
+4. [Target Users](#target-users)
+   - [Primary User](#primary-user)
+   - [Secondary User](#secondary-user)
+5. [Goals & Success Criteria](#goals--success-criteria)
+   - [User Goals](#user-goals)
+   - [Product Goals](#product-goals)
+   - [Success Metrics (MVP)](#success-metrics-mvp)
+6. [Core Principles](#core-principles)
+7. [MVP Scope](#mvp-scope)
+8. [User Flow (Daily)](#user-flow-daily)
+9. [Functional Requirements](#functional-requirements)
+   - [1. Initial Setup](#1-initial-setup)
+   - [2. Today's Mission Frame](#2-todays-mission-frame)
+   - [3. Automatic Morning Activation](#3-automatic-morning-activation)
+   - [4. Voice & Notification Engine](#4-voice--notification-engine)
+   - [5. Today's Result: Success or Failure](#5-todays-result-success-or-failure)
+   - [6. Streak System](#6-streak-system)
+   - [7. Rewards System (Parent‑Driven)](#7-rewards-system-parentdriven)
+10. [8. Testing Tools (Development Only)](#8-testing-tools-development-only---not-for-production)
+11. [9. Monthly History View](#9-monthly-history-view)
+12. [Non‑Functional Requirements](#nonfunctional-requirements)
+13. [Risks & Mitigations](#risks--mitigations)
+14. [MVP Definition of Done](#mvp-definition-of-done)
+15. [Product Statement](#product-statement)
+
+---
+
 ## **Product Name (Working Title)**
 
 **Morning On Time**
@@ -512,18 +544,51 @@ See below the diffent types of alarms:
   - The coundown timer is shown in the home screen.
 * **Reliability:** High (AlarmManager-based)
 
-#### **4.5. Pre Arrival Check Alarm (ID: 5)**
+#### **4.5. Pre Arrival Check Alarms (IDs: 5, 7, 8)**
 
-* **Trigger:** Two minutes before the arrival deadline
-* **Notification:** "🎯 Have we arrived on time?"
-* **Message:** "Tap to confirm your arrival status"
-* **Action Buttons:**
-  - "✅ Yes, we have" - Arrived on time.
-* **Behavior:**
-   - Silent notification only (no custom sound and no TTS)
-  - Shows notification with confirmation buttons
-  - Tapping "Yes" increments streak and marks day as achieved. Also stops the countdown timer and disables Arrival Alarm since it's not needed
-* **Reliability:** High (AlarmManager-based)
+Three scheduled reminder alarms prompt the user to confirm arrival before the deadline. Their purpose is twofold:
+
+1. **Urgency:** Alert the family that the countdown is finishing so they must hurry up.
+2. **Prevent accidental failure:** If the family arrived on time but forgot to tap the confirmation button, the day would be recorded as a failure. Repeated reminders reduce the chance of this happening.
+
+Each alarm fires at a fixed offset before the arrival deadline, plays a custom notification sound (no TTS), and includes an action button to confirm arrival directly from the notification.
+
+##### **Alarm Schedule**
+
+| Alarm | ID | Trigger | Notification Title | Notification Message |
+|-------|----|---------|--------------------|----------------------|
+| Pre Arrival Check 1 | 5 | 60 seconds before arrival deadline | "🎯 Have we arrived already?" | "Don't forget to confirm your arrival. 1 minute left!" |
+| Pre Arrival Check 2 | 7 | 30 seconds before arrival deadline | "🎯 Have we arrived already?" | "Don't forget to confirm your arrival. 30 seconds left!" |
+| Pre Arrival Check 3 | 8 | 10 seconds before arrival deadline | "⚠️ Last chance!" | "Confirm now or today will be marked as late. 10 seconds left!" |
+
+##### **Action Buttons**
+
+All three notifications include the same action button:
+  - "✅ Yes, we have" — Marks the day as arrived on time
+
+##### **Behavior**
+
+* Each notification plays a **custom sound** that escalates in urgency:
+  - **T-60s (ID 5):** Gentle reminder chime
+  - **T-30s (ID 7):** More urgent alert tone
+  - **T-10s (ID 8):** Critical/alarm tone
+* **No TTS** — sound-only notifications to avoid overlapping voice messages near the deadline
+* Notifications are delivered even when the app is in the background, closed, or the device is locked (AlarmManager-based)
+* Tapping "✅ Yes, we have" on **any** of the three notifications:
+  - Increments streak and marks day as achieved
+  - Stops the countdown timer
+  - Cancels any remaining Pre Arrival Check alarms that haven't fired yet
+  - Cancels the Arrival Alarm (ID 6) since it's no longer needed
+* If the user already confirmed arrival (e.g., via an earlier notification), subsequent Pre Arrival Check alarms are **silently skipped** (no notification shown)
+
+##### **Cancellation Logic**
+
+When the user confirms arrival from any source (notification action button or in-app button):
+* All three Pre Arrival Check alarms (IDs 5, 7, 8) are cancelled for the current day
+* The Arrival Alarm (ID 6) is cancelled for the current day
+* No further notifications are shown for the current journey
+
+* **Reliability:** High (AlarmManager-based, 3 independent alarms for redundancy)
 
 #### **4.6. Arrival Alarm (ID: 6)**
 

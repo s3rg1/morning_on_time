@@ -632,6 +632,24 @@ abstract class AppLocalizations {
   /// **'OK, I\'ll adjust it'**
   String get okIllAdjustIt;
 
+  /// DND warning dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Do Not Disturb is On'**
+  String get dndEnabled;
+
+  /// DND warning message explaining audio won't play
+  ///
+  /// In en, this message translates to:
+  /// **'Do Not Disturb mode is active on your device.\n\nMorning voice messages and notification sounds will not play while DND is enabled.'**
+  String get dndEnabledMessage;
+
+  /// DND warning acknowledgment button
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get gotIt;
+
   /// Streak level 0-9 days
   ///
   /// In en, this message translates to:

@@ -467,11 +467,11 @@ class AppState extends ChangeNotifier {
     final today = DateTime.now();
     final todayDate = DateTime(today.year, today.month, today.day);
 
-    // Set arrival confirmed flag and cancel Arrival Alarm (ID: 6)
+    // Set arrival confirmed flag and cancel all arrival-related alarms (IDs: 5, 7, 8, 6)
     await _storage.setArrivalConfirmed(true);
     _arrivalConfirmedToday = true; // Update local state immediately
     await AlarmService.cancelArrivalAlarm();
-    print('✅ Arrival confirmed - Arrival Alarm (ID: 6) cancelled');
+    print('✅ Arrival confirmed - Pre-arrival (IDs: 5, 7, 8) & Arrival (ID: 6) cancelled');
     
     // Clear test deadline (journey will auto-stop based on confirmation)
     clearTestDeadline();

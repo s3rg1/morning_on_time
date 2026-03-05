@@ -311,6 +311,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get okIllAdjustIt => 'OK, I\'ll adjust it';
 
   @override
+  String get dndEnabled => 'Do Not Disturb is On';
+
+  @override
+  String get dndEnabledMessage =>
+      'Do Not Disturb mode is active on your device.\n\nMorning voice messages and notification sounds will not play while DND is enabled.';
+
+  @override
+  String get gotIt => 'Got it';
+
+  @override
   String get streakLevelBeginner => 'Beginner Runner';
 
   @override

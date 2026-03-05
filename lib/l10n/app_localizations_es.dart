@@ -314,6 +314,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get okIllAdjustIt => 'OK, lo ajustaré';
 
   @override
+  String get dndEnabled => 'No Molestar está Activado';
+
+  @override
+  String get dndEnabledMessage =>
+      'El modo No Molestar está activo en tu dispositivo.\n\nLos mensajes de voz matutinos y los sonidos de notificación no se reproducirán mientras esté activado.';
+
+  @override
+  String get gotIt => 'Entendido';
+
+  @override
   String get streakLevelBeginner => 'Corredor Principiante';
 
   @override

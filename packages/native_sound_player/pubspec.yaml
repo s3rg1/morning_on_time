@@ -1,0 +1,18 @@
+name: native_sound_player
+description: Plays Flutter asset sounds using Android's native MediaPlayer on the music stream. Works reliably in background isolates.
+version: 0.0.1
+
+environment:
+  sdk: ^3.10.7
+  flutter: '>=3.0.0'
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.lagunitacrew.native_sound_player
+        pluginClass: NativeSoundPlayerPlugin
+
+dependencies:
+  flutter:
+    sdk: flutter
