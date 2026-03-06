@@ -577,4 +577,29 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get journeyGettingReady => 'Preparándose';
+
+  @override
+  String get journeyOnTheWay => 'En Camino';
+
+  @override
+  String get journeyLeaveBy => 'Salir a las';
+
+  @override
+  String get journeyArriveBy => 'Llegar antes de';
+
+  @override
+  String nextAlarmIn(String time) {
+    return 'Próxima alarma en $time';
+  }
+
+  @override
+  String nextAlarmTomorrow(String time) {
+    return 'Próxima alarma mañana a las $time';
+  }
+
+  @override
+  String get noUpcomingAlarms => 'Sin alarmas próximas';
 }

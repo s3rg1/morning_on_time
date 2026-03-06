@@ -165,5 +165,12 @@
   "wakeUpAt": "Despertar a las:",
   "leaveAt": "Salir a las:",
   "arriveBy": "Llegar antes de:",
-  "daysUntilNextLevel": "{days, plural, =1{¡1 día hasta el siguiente nivel! 🎉} other{¡{days} días hasta el siguiente nivel! 🚀}}"
+  "daysUntilNextLevel": "{days, plural, =1{¡1 día hasta el siguiente nivel! 🎉} other{¡{days} días hasta el siguiente nivel! 🚀}}",
+  "journeyGettingReady": "Preparándose",
+  "journeyOnTheWay": "En Camino",
+  "journeyLeaveBy": "Salir a las",
+  "journeyArriveBy": "Llegar antes de",
+  "nextAlarmIn": "Próxima alarma en {time}",
+  "nextAlarmTomorrow": "Próxima alarma mañana a las {time}",
+  "noUpcomingAlarms": "Sin alarmas próximas"
 }

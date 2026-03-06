@@ -3,17 +3,16 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:confetti/confetti.dart';
 import 'dart:async';
 import 'dart:math';
 import '../l10n/app_localizations.dart';
 import '../providers/app_state.dart';
 import '../models/app_settings.dart';
-import '../models/check_in_status.dart';
 import '../services/alarm_service.dart';
 import '../utils/volume_utils.dart';
-import '../widgets/countdown_timer.dart';
+import '../widgets/journey_card.dart';
+import '../widgets/next_alarm_indicator.dart';
 import '../widgets/reward_card.dart';
 import 'monthly_view_screen.dart';
 import 'setup_screen.dart';
@@ -28,7 +27,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late ConfettiController _confettiController;
   Timer? _journeyCheckTimer;
-  bool _wasJourneyActive = false;
+  JourneyPhase _lastJourneyPhase = JourneyPhase.idle;
 
   @override
   void initState() {
@@ -67,6 +66,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // App came back from background - check if journey was started
       print('🔄 App resumed - checking journey state...');
       _checkJourneyState();
+      // Refresh notification banner from SharedPreferences
+      final appState = Provider.of<AppState>(context, listen: false);
+      appState.refreshLastJourneyNotification();
     }
   }
 
@@ -115,45 +117,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  List<Color> _getJourneyGradient(Duration remaining) {
-    final minutes = remaining.inMinutes;
-    if (minutes <= 2) {
-      return const [Color(0xFFFF4B4B), Color(0xFFE03E3E)]; // Red
-    } else if (minutes <= 5) {
-      return const [Color(0xFFFF9600), Color(0xFFFF8000)]; // Orange
-    } else if (minutes <= 10) {
-      return const [Color(0xFFFFC837), Color(0xFFFFB300)]; // Amber
-    } else {
-      return const [Color(0xFF58CC02), Color(0xFF46A302)]; // Green
-    }
-  }
-
-  Color _getJourneyShadowColor(Duration remaining) {
-    final minutes = remaining.inMinutes;
-    if (minutes <= 2) {
-      return Colors.red;
-    } else if (minutes <= 5) {
-      return Colors.orange;
-    } else if (minutes <= 10) {
-      return Colors.amber;
-    } else {
-      return Colors.green;
-    }
-  }
-
   void _startJourneyStateMonitoring() {
     // Check every 5 seconds for journey state changes
     _journeyCheckTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       if (!mounted) return;
       
       final appState = Provider.of<AppState>(context, listen: false);
-      final isActive = appState.isJourneyActive;
+      final phase = appState.currentJourneyPhase;
       
-      // If journey state changed, trigger a rebuild
-      if (isActive != _wasJourneyActive) {
-        print('🔄 Journey state changed: $_wasJourneyActive → $isActive');
-        _wasJourneyActive = isActive;
-        setState(() {}); // Force rebuild to show/hide countdown
+      // Refresh notification banner from SharedPreferences
+      appState.refreshLastJourneyNotification();
+      
+      // If journey phase changed, trigger a rebuild
+      if (phase != _lastJourneyPhase) {
+        print('🔄 Journey phase changed: $_lastJourneyPhase → $phase');
+        _lastJourneyPhase = phase;
+        setState(() {}); // Force rebuild to show/hide journey card
       }
     });
   }
@@ -179,56 +158,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     
     await androidImplementation?.requestExactAlarmsPermission();
-  }
-
-  Future<void> _testNotification(BuildContext context) async {
-    print('🧪 Testing notification system...');
-    
-    final canSchedule = await _checkExactAlarmPermission();
-    
-    if (!canSchedule) {
-      if (context.mounted) {
-        final loc = AppLocalizations.of(context)!;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(loc.cannotScheduleNotifications),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-      await _openExactAlarmSettings();
-    } else {
-      // Schedule a test notification
-      final appState = Provider.of<AppState>(context, listen: false);
-      
-      try {
-        await appState.notificationService.scheduleTestNotification();
-        
-        if (context.mounted) {
-          final loc = AppLocalizations.of(context)!;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(loc.testNotificationSuccess),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 4),
-            ),
-          );
-        }
-      } catch (e) {
-        print('❌ Error scheduling test: $e');
-        if (context.mounted) {
-          final loc = AppLocalizations.of(context)!;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(loc.errorWithDetails(e.toString())),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        }
-      }
-    }
   }
 
   void _showTestMenu(BuildContext context, AppState appState) {
@@ -397,384 +326,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         duration: const Duration(seconds: 3),
       ),
     );
-  }
-
-  /// Find the next active day with scheduled alarms
-  DateTime? _findNextActiveDay(AppSettings settings) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    
-    // Check today first - if we haven't passed arrival deadline and it's active
-    if (settings.isActiveOnDate(today)) {
-      final arrivalTime = DateTime(
-        today.year,
-        today.month,
-        today.day,
-        settings.arrivalDeadline.hour,
-        settings.arrivalDeadline.minute,
-      );
-      
-      if (now.isBefore(arrivalTime)) {
-        return today;
-      }
-    }
-    
-    // Check next 7 days
-    for (int i = 1; i <= 7; i++) {
-      final checkDate = today.add(Duration(days: i));
-      if (settings.isActiveOnDate(checkDate)) {
-        return checkDate;
-      }
-    }
-    
-    return null; // No active days in next 7 days
-  }
-
-  /// Get pending alarms for a specific date (only wake/leave/arrival that haven't passed)
-  List<Map<String, dynamic>> _getPendingAlarms(DateTime date, AppSettings settings) {
-    final now = DateTime.now();
-    final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
-    
-    final alarms = <Map<String, dynamic>>[];
-    
-    // Wake-up
-    final wakeUpTime = DateTime(
-      date.year,
-      date.month,
-      date.day,
-      settings.wakeUpTime.hour,
-      settings.wakeUpTime.minute,
-    );
-    
-    final loc = AppLocalizations.of(context)!;
-    
-    if (!isToday || now.isBefore(wakeUpTime)) {
-      alarms.add({
-        'icon': Icons.wb_sunny,
-        'label': loc.wakeUpAt,
-        'time': wakeUpTime,
-      });
-    }
-    
-    // Leave home
-    final leaveTime = DateTime(
-      date.year,
-      date.month,
-      date.day,
-      settings.leaveHomeTime.hour,
-      settings.leaveHomeTime.minute,
-    );
-    
-    if (!isToday || now.isBefore(leaveTime)) {
-      alarms.add({
-        'icon': Icons.logout,
-        'label': loc.leaveAt,
-        'time': leaveTime,
-      });
-    }
-    
-    // Arrival
-    final arrivalTime = DateTime(
-      date.year,
-      date.month,
-      date.day,
-      settings.arrivalDeadline.hour,
-      settings.arrivalDeadline.minute,
-    );
-    
-    if (!isToday || now.isBefore(arrivalTime)) {
-      alarms.add({
-        'icon': Icons.school,
-        'label': loc.arriveBy,
-        'time': arrivalTime,
-      });
-    }
-    
-    return alarms;
-  }
-
-  /// Get mission header based on date
-  String _getMissionHeader(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = today.add(const Duration(days: 1));
-    final loc = AppLocalizations.of(context)!;
-    
-    if (date.year == today.year && date.month == today.month && date.day == today.day) {
-      return loc.todaysMissionArriveOnTime;
-    } else if (date.year == tomorrow.year && date.month == tomorrow.month && date.day == tomorrow.day) {
-      return loc.tomorrowsMissionArriveOnTime;
-    } else {
-      final locale = Localizations.localeOf(context).toString();
-      final weekday = DateFormat.EEEE(locale).format(date); // Full weekday name
-      final monthDay = DateFormat.MMMd(locale).format(date); // Abbreviated month + day
-      return loc.missionForDateArriveOnTime('$weekday, $monthDay');
-    }
-  }
-
-  /// Build the mission frame widget with Timeline Journey design
-  Widget _buildMissionFrame(AppSettings settings) {
-    final nextDay = _findNextActiveDay(settings);
-    
-    if (nextDay == null) {
-      // No active days in next 7 days
-      return Container(
-        decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              const Icon(Icons.event_busy, size: 56, color: Colors.grey),
-              const SizedBox(height: 16),
-              const Text(
-                'No upcoming journeys',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Check your settings to enable active days',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey.shade600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    
-    final pendingAlarms = _getPendingAlarms(nextDay, settings);
-    final header = _getMissionHeader(nextDay);
-    
-    if (pendingAlarms.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    
-    // Duolingo-inspired Timeline Journey design
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFFF9600), // Bright orange
-            Color(0xFFFFC837), // Bright yellow
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.orange.withOpacity(0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Mission header with emoji
-            Row(
-              children: [
-                const Text(
-                  '🎯',
-                  style: TextStyle(fontSize: 28),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    header,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            
-            // Timeline visualization
-            _buildTimeline(pendingAlarms),
-            
-            const SizedBox(height: 24),
-            
-            // Alarm details
-            ...pendingAlarms.map((alarm) => _buildAlarmRow(alarm)),
-            
-            const SizedBox(height: 16),
-            
-            // Motivational message
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.25),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    '💪',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _getMotivationalMessage(),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  
-  /// Build visual timeline
-  Widget _buildTimeline(List<Map<String, dynamic>> alarms) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        for (int i = 0; i < alarms.length; i++) ...[
-          // Timeline dot
-          Container(
-            width: 16,
-            height: 16,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              border: Border.all(
-                color: Colors.white,
-                width: 3,
-              ),
-            ),
-          ),
-          // Connector line (except after last item)
-          if (i < alarms.length - 1)
-            Container(
-              width: 40,
-              height: 3,
-              color: Colors.white.withOpacity(0.5),
-            ),
-        ],
-      ],
-    );
-  }
-  
-  /// Build individual alarm row
-  Widget _buildAlarmRow(Map<String, dynamic> alarm) {
-    final IconData icon = alarm['icon'] as IconData;
-    final String label = (alarm['label'] as String).replaceAll(' at:', '').replaceAll(' by:', '');
-    final DateTime time = alarm['time'] as DateTime;
-    
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        children: [
-          // Icon with white background circle
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Icon(
-              icon,
-              size: 28,
-              color: const Color(0xFFFF9600),
-            ),
-          ),
-          const SizedBox(width: 16),
-          // Label
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          // Time - LARGE and BOLD
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Text(
-              DateFormat.jm().format(time),
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFFFF9600),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  /// Get random motivational message
-  String _getMotivationalMessage() {
-    final loc = AppLocalizations.of(context)!;
-    final messages = [
-      loc.motivationYouveGotThis,
-      loc.motivationLetsDoThis,
-      loc.motivationReadyToSucceed,
-      loc.motivationTimeToShine,
-      loc.motivationYouCanDoIt,
-    ];
-    return messages[DateTime.now().second % messages.length];
   }
 
   @override
@@ -978,7 +529,109 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
+                // Journey Card - shows during Getting Ready or On the Way (ABOVE streak/reward per PRD)
+                if (appState.currentJourneyPhase != JourneyPhase.idle &&
+                    appState.todayWakeUpTime != null &&
+                    appState.todayLeaveTime != null &&
+                    appState.arrivalDeadline != null) ...[
+                  JourneyCard(
+                    phase: appState.currentJourneyPhase,
+                    wakeUpTime: appState.todayWakeUpTime!,
+                    leaveTime: appState.todayLeaveTime!,
+                    arrivalDeadline: appState.arrivalDeadline!,
+                    lastNotification: appState.lastJourneyNotification,
+                    onArrivalPressed: () => _showArrivalDialog(context, appState),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                // Idle state: next alarm indicator + today's result (ABOVE streak/reward per PRD)
+                if (appState.currentJourneyPhase == JourneyPhase.idle) ...[
+                  if (settings != null) ...[
+                    Center(child: NextAlarmIndicator(settings: settings)),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Today's Result - Show completion status if available
+                  if (todayRecord != null) ...[
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: todayRecord.wasOnTime
+                              ? [
+                                  const Color(0xFF58CC02),
+                                  const Color(0xFF46A302),
+                                ]
+                              : [
+                                  const Color(0xFFFF4B4B),
+                                  const Color(0xFFE03E3E),
+                                ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (todayRecord.wasOnTime ? Colors.green : Colors.red).withOpacity(0.3),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 56,
+                              height: 56,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                              ),
+                              child: Icon(
+                                todayRecord.wasOnTime ? Icons.check_circle : Icons.cancel,
+                                size: 40,
+                                color: todayRecord.wasOnTime ? const Color(0xFF58CC02) : const Color(0xFFFF4B4B),
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    todayRecord.wasOnTime
+                                        ? AppLocalizations.of(context)!.greatJob
+                                        : AppLocalizations.of(context)!.didntMakeIt,
+                                    style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    todayRecord.wasOnTime 
+                                        ? '✨ ${AppLocalizations.of(context)!.keepUpGreatWork}'
+                                        : '💪 ${AppLocalizations.of(context)!.tryAgainTomorrow}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white.withOpacity(0.9),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ],
+
                 // Streak Card with Level-Up Character (Duolingo style)
                 Container(
                   decoration: BoxDecoration(
@@ -1155,191 +808,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 // Reward Card - Below streak card
                 const SizedBox(height: 16),
                 const RewardCard(),
-
-                // Journey Status - Show countdown if journey is active
-                if (appState.isJourneyActive && appState.arrivalDeadline != null) ...[
-                  const SizedBox(height: 16),
-                  Builder(
-                    builder: (context) {
-                      final remaining = appState.arrivalDeadline!.difference(DateTime.now());
-                      final gradientColors = _getJourneyGradient(remaining);
-                      final shadowColor = _getJourneyShadowColor(remaining);
-                      
-                      return Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: gradientColors,
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: shadowColor.withOpacity(0.3),
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                '🏃',
-                                style: TextStyle(fontSize: 32),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                AppLocalizations.of(context)!.journeyInProgress,
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          CountdownTimer(
-                            arrivalDeadline: appState.arrivalDeadline!,
-                            totalDuration: appState.arrivalDeadline!.difference(
-                              DateTime(
-                                appState.arrivalDeadline!.year,
-                                appState.arrivalDeadline!.month,
-                                appState.arrivalDeadline!.day,
-                                appState.settings!.leaveHomeTime.hour,
-                                appState.settings!.leaveHomeTime.minute,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: () {
-                              _showArrivalDialog(context, appState);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: gradientColors[0],
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 32,
-                                vertical: 16,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 4,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.school, size: 28),
-                                const SizedBox(width: 12),
-                                Text(
-                                  AppLocalizations.of(context)!.arrivedAtSchool,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                    },
-                  ),
-                ],
-                
-                // Today's Result - Show completion status if available
-                if (todayRecord != null && !appState.isJourneyActive) ...[
-                  const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: todayRecord.wasOnTime
-                            ? [
-                                const Color(0xFF58CC02),
-                                const Color(0xFF46A302),
-                              ]
-                            : [
-                                const Color(0xFFFF4B4B),
-                                const Color(0xFFE03E3E),
-                              ],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: (todayRecord.wasOnTime ? Colors.green : Colors.red).withOpacity(0.3),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 56,
-                            height: 56,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white,
-                            ),
-                            child: Icon(
-                              todayRecord.wasOnTime ? Icons.check_circle : Icons.cancel,
-                              size: 40,
-                              color: todayRecord.wasOnTime ? const Color(0xFF58CC02) : const Color(0xFFFF4B4B),
-                            ),
-                          ),
-                          const SizedBox(width: 20),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  todayRecord.wasOnTime
-                                      ? AppLocalizations.of(context)!.greatJob
-                                      : AppLocalizations.of(context)!.didntMakeIt,
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  todayRecord.wasOnTime 
-                                      ? '✨ ${AppLocalizations.of(context)!.keepUpGreatWork}'
-                                      : '💪 ${AppLocalizations.of(context)!.tryAgainTomorrow}',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.white.withOpacity(0.9),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-
-                // Mission Frame - Dynamic display showing next active day's pending alarms
-                if (!appState.isJourneyActive && settings != null) ...[
-                  const SizedBox(height: 16),
-                  _buildMissionFrame(settings),
-                  const SizedBox(height: 24),
-                ],
 
               ],
             ),

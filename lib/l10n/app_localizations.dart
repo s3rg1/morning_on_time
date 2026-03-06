@@ -1087,6 +1087,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{days, plural, =1{1 day until next level! 🎉} other{{days} days until next level! 🚀}}'**
   String daysUntilNextLevel(int days);
+
+  /// Journey card phase label when between wake-up and leave time
+  ///
+  /// In en, this message translates to:
+  /// **'Getting Ready'**
+  String get journeyGettingReady;
+
+  /// Journey card phase label when between leave and arrival time
+  ///
+  /// In en, this message translates to:
+  /// **'On the Way'**
+  String get journeyOnTheWay;
+
+  /// Prefix for leave time in journey card context line
+  ///
+  /// In en, this message translates to:
+  /// **'Leave by'**
+  String get journeyLeaveBy;
+
+  /// Prefix for arrival time in journey card context line
+  ///
+  /// In en, this message translates to:
+  /// **'Arrive by'**
+  String get journeyArriveBy;
+
+  /// Next alarm indicator on idle home screen
+  ///
+  /// In en, this message translates to:
+  /// **'Next alarm in {time}'**
+  String nextAlarmIn(String time);
+
+  /// Next alarm indicator when alarm is tomorrow
+  ///
+  /// In en, this message translates to:
+  /// **'Next alarm tomorrow at {time}'**
+  String nextAlarmTomorrow(String time);
+
+  /// Shown when no alarms are scheduled in the next 7 days
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming alarms'**
+  String get noUpcomingAlarms;
 }
 
 class _AppLocalizationsDelegate

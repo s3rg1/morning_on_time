@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/app_settings.dart';
 import '../models/day_record.dart';
 import '../models/reward.dart';
@@ -9,6 +10,8 @@ import '../services/voice_service.dart';
 import '../services/streak_service.dart';
 import '../services/alarm_service.dart';
 import '../services/localization_helper.dart';
+
+enum JourneyPhase { idle, gettingReady, onTheWay }
 
 class AppState extends ChangeNotifier {
   final StorageService _storage = StorageService();
@@ -141,6 +144,136 @@ class AppState extends ChangeNotifier {
     
     return inJourney;
   }
+
+  /// Three-state journey model: idle, gettingReady, onTheWay
+  JourneyPhase get currentJourneyPhase {
+    if (_settings == null) return JourneyPhase.idle;
+    if (_arrivalConfirmedToday) return JourneyPhase.idle;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    // Idle if today is not an active day (unless test deadline is set)
+    if (_testArrivalDeadline == null && !_settings!.isActiveOnDate(today)) {
+      return JourneyPhase.idle;
+    }
+
+    // Calculate wake-up, leave, and arrival times for today
+    var wakeUpTime = DateTime(
+      today.year, today.month, today.day,
+      _settings!.wakeUpTime.hour, _settings!.wakeUpTime.minute,
+    );
+    var leaveTime = DateTime(
+      today.year, today.month, today.day,
+      _settings!.leaveHomeTime.hour, _settings!.leaveHomeTime.minute,
+    );
+    var arrivalTime = _testArrivalDeadline;
+    if (arrivalTime == null) {
+      arrivalTime = DateTime(
+        today.year, today.month, today.day,
+        _settings!.arrivalDeadline.hour, _settings!.arrivalDeadline.minute,
+      );
+      if (_settings!.arrivalDeadline.hour < _settings!.leaveHomeTime.hour ||
+          (_settings!.arrivalDeadline.hour == _settings!.leaveHomeTime.hour &&
+           _settings!.arrivalDeadline.minute < _settings!.leaveHomeTime.minute)) {
+        arrivalTime = arrivalTime.add(const Duration(days: 1));
+      }
+    }
+
+    // Handle leave time crossing midnight relative to wake-up
+    if (leaveTime.isBefore(wakeUpTime) || leaveTime.isAtSameMomentAs(wakeUpTime)) {
+      leaveTime = leaveTime.add(const Duration(days: 1));
+    }
+
+    // Check today's times
+    final afterWakeUp = now.isAfter(wakeUpTime) || now.isAtSameMomentAs(wakeUpTime);
+    final beforeLeave = now.isBefore(leaveTime);
+    final afterLeave = now.isAfter(leaveTime) || now.isAtSameMomentAs(leaveTime);
+    final beforeArrival = now.isBefore(arrivalTime);
+
+    if (afterWakeUp && beforeLeave) return JourneyPhase.gettingReady;
+    if (afterLeave && beforeArrival) return JourneyPhase.onTheWay;
+
+    // Check yesterday's journey for early morning hours
+    if (now.hour < 6) {
+      final yesterday = today.subtract(const Duration(days: 1));
+      var yWakeUp = DateTime(yesterday.year, yesterday.month, yesterday.day,
+        _settings!.wakeUpTime.hour, _settings!.wakeUpTime.minute);
+      var yLeave = DateTime(yesterday.year, yesterday.month, yesterday.day,
+        _settings!.leaveHomeTime.hour, _settings!.leaveHomeTime.minute);
+      var yArrival = DateTime(yesterday.year, yesterday.month, yesterday.day,
+        _settings!.arrivalDeadline.hour, _settings!.arrivalDeadline.minute);
+
+      if (yLeave.isBefore(yWakeUp) || yLeave.isAtSameMomentAs(yWakeUp)) {
+        yLeave = yLeave.add(const Duration(days: 1));
+      }
+      if (_settings!.arrivalDeadline.hour < _settings!.leaveHomeTime.hour ||
+          (_settings!.arrivalDeadline.hour == _settings!.leaveHomeTime.hour &&
+           _settings!.arrivalDeadline.minute < _settings!.leaveHomeTime.minute)) {
+        yArrival = yArrival.add(const Duration(days: 1));
+      }
+
+      final yAfterWakeUp = now.isAfter(yWakeUp) || now.isAtSameMomentAs(yWakeUp);
+      final yBeforeLeave = now.isBefore(yLeave);
+      final yAfterLeave = now.isAfter(yLeave) || now.isAtSameMomentAs(yLeave);
+      final yBeforeArrival = now.isBefore(yArrival);
+
+      if (yAfterWakeUp && yBeforeLeave) return JourneyPhase.gettingReady;
+      if (yAfterLeave && yBeforeArrival) return JourneyPhase.onTheWay;
+    }
+
+    return JourneyPhase.idle;
+  }
+
+  /// Get today's wake-up time as DateTime (for progress calculations)
+  DateTime? get todayWakeUpTime {
+    if (_settings == null) return null;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return DateTime(
+      today.year, today.month, today.day,
+      _settings!.wakeUpTime.hour, _settings!.wakeUpTime.minute,
+    );
+  }
+
+  /// Get today's leave-home time as DateTime
+  DateTime? get todayLeaveTime {
+    if (_settings == null) return null;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    var leaveTime = DateTime(
+      today.year, today.month, today.day,
+      _settings!.leaveHomeTime.hour, _settings!.leaveHomeTime.minute,
+    );
+    // Handle leave crossing midnight relative to wake-up
+    final wakeUpTime = DateTime(
+      today.year, today.month, today.day,
+      _settings!.wakeUpTime.hour, _settings!.wakeUpTime.minute,
+    );
+    if (leaveTime.isBefore(wakeUpTime) || leaveTime.isAtSameMomentAs(wakeUpTime)) {
+      leaveTime = leaveTime.add(const Duration(days: 1));
+    }
+    return leaveTime;
+  }
+
+  /// Last notification message written by alarm callbacks
+  String _lastJourneyNotification = '';
+  int _lastJourneyNotificationTime = 0;
+
+  String get lastJourneyNotification => _lastJourneyNotification;
+
+  /// Reload last journey notification from SharedPreferences
+  Future<void> refreshLastJourneyNotification() async {
+    final prefs = await SharedPreferences.getInstance();
+    final message = prefs.getString('last_journey_notification') ?? '';
+    final time = prefs.getInt('last_journey_notification_time') ?? 0;
+    if (time != _lastJourneyNotificationTime) {
+      _lastJourneyNotification = message;
+      _lastJourneyNotificationTime = time;
+      notifyListeners();
+    }
+  }
+
   NotificationService get notificationService => _notifications;
   
   DateTime? _testArrivalDeadline;

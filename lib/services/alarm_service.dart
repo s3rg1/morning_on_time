@@ -83,6 +83,14 @@ Future<void> _speakAfterStandardDelay({
   print(completionLog);
 }
 
+/// Persist the last journey notification message so the UI can display it.
+Future<void> _saveLastJourneyNotification(String message) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('last_journey_notification', message);
+  await prefs.setInt('last_journey_notification_time',
+      DateTime.now().millisecondsSinceEpoch);
+}
+
 // Top-level callback function - must be static or top-level
 @pragma('vm:entry-point')
 void alarmCallback() async {
@@ -97,6 +105,9 @@ void alarmCallback() async {
   final ttsLanguage = await LocalizationHelper.getTtsLanguage();
   final wakeUpMessage = await LocalizationHelper.getWakeUpMessage();
   final wakeUpTitle = await LocalizationHelper.getWakeUpTitle();
+
+  // Persist for journey card banner
+  await _saveLastJourneyNotification('☀️ $wakeUpMessage');
   
   // Show notification with custom sound FIRST (per PRD: sound before TTS)
   final notifications = FlutterLocalNotificationsPlugin();
@@ -445,6 +456,9 @@ void checkInAlarmCallback() async {
     pendingRewardName: pendingRewardName,
   );
   final String notificationBody = selectedMessage;
+
+  // Persist for journey card banner
+  await _saveLastJourneyNotification('⏰ $notificationBody');
   
   // Show notification (silent — sound played separately below)
   await notifications.show(
@@ -486,6 +500,9 @@ void leaveHomeSoonCallback() async {
   final ttsLanguage = await LocalizationHelper.getTtsLanguage();
   final leaveHomeSoonMessage = await LocalizationHelper.getLeaveHomeSoonMessage();
   final leaveHomeSoonTitle = await LocalizationHelper.getLeaveHomeSoonTitle();
+
+  // Persist for journey card banner
+  await _saveLastJourneyNotification('🚨 $leaveHomeSoonMessage');
   
   // 🚨 Step 1: Show notification with sound played via audioplayers (media stream)
   // Randomly select one of the leave-soon sounds
@@ -590,6 +607,9 @@ void leaveHomeCallback() async {
   final leaveHomeNowMessage = await LocalizationHelper.getLeaveHomeNowMessage();
   final leaveHomeNowTitle = await LocalizationHelper.getLeaveHomeNowTitle();
   final countdownTimerText = await LocalizationHelper.getOpenAppToSeeCountdown();
+
+  // Persist for journey card banner
+  await _saveLastJourneyNotification('🚗 $leaveHomeNowMessage');
   
   // Show notification with custom sound FIRST (per PRD: war-horn sound before TTS)
   final notifications = FlutterLocalNotificationsPlugin();
@@ -754,6 +774,11 @@ void preArrivalCheckCallback() async {
   }
 
   print('🔔 Pre-arrival urgency: ${secondsRemaining}s remaining → notification ID $notificationId');
+
+  // Persist for journey card banner
+  await _saveLastJourneyNotification(
+    notificationId == 8 ? '🚨 $body' : notificationId == 7 ? '⚠️ $body' : '🎯 $body',
+  );
 
   // Initialize notifications in background isolate
   final notifications = FlutterLocalNotificationsPlugin();

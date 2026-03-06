@@ -750,5 +750,43 @@
         "type": "int"
       }
     }
+  },
+  "journeyGettingReady": "Getting Ready",
+  "@journeyGettingReady": {
+    "description": "Journey card phase label when between wake-up and leave time"
+  },
+  "journeyOnTheWay": "On the Way",
+  "@journeyOnTheWay": {
+    "description": "Journey card phase label when between leave and arrival time"
+  },
+  "journeyLeaveBy": "Leave by",
+  "@journeyLeaveBy": {
+    "description": "Prefix for leave time in journey card context line"
+  },
+  "journeyArriveBy": "Arrive by",
+  "@journeyArriveBy": {
+    "description": "Prefix for arrival time in journey card context line"
+  },
+  "nextAlarmIn": "Next alarm in {time}",
+  "@nextAlarmIn": {
+    "description": "Next alarm indicator on idle home screen",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "nextAlarmTomorrow": "Next alarm tomorrow at {time}",
+  "@nextAlarmTomorrow": {
+    "description": "Next alarm indicator when alarm is tomorrow",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "noUpcomingAlarms": "No upcoming alarms",
+  "@noUpcomingAlarms": {
+    "description": "Shown when no alarms are scheduled in the next 7 days"
   }
 }
