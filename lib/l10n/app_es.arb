@@ -172,5 +172,12 @@
   "journeyArriveBy": "Llegar antes de",
   "nextAlarmIn": "Próxima alarma en {time}",
   "nextAlarmTomorrow": "Próxima alarma mañana a las {time}",
-  "noUpcomingAlarms": "Sin alarmas próximas"
+  "noUpcomingAlarms": "Sin alarmas próximas",
+  "bannerWakeUp": "☀️ ¡Buenos días! La misión de hoy: ¡llegar a tiempo!",
+  "bannerMinutesLeft": "⏰ {minutes} minutos para salir de casa",
+  "bannerLeaveSoon": "🚨 ¡Casi es hora de salir! ¡Prepárate!",
+  "bannerLeaveNow": "🚗 ¡Es hora de salir! ¡Vamos!",
+  "bannerOnTheWay": "🚗 ¡En camino! Llegar antes de las {time}",
+  "bannerAlmostThere": "🎯 ¡Casi llegamos! Confirma tu llegada",
+  "bannerLastChance": "🚨 ¡Última oportunidad! ¡Confirma ahora!"
 }

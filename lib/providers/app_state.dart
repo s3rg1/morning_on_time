@@ -262,9 +262,12 @@ class AppState extends ChangeNotifier {
 
   String get lastJourneyNotification => _lastJourneyNotification;
 
-  /// Reload last journey notification from SharedPreferences
+  /// Reload last journey notification from SharedPreferences.
+  /// Must call prefs.reload() because alarm callbacks write from a
+  /// separate background isolate whose writes bypass the in-memory cache.
   Future<void> refreshLastJourneyNotification() async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
     final message = prefs.getString('last_journey_notification') ?? '';
     final time = prefs.getInt('last_journey_notification_time') ?? 0;
     if (time != _lastJourneyNotificationTime) {

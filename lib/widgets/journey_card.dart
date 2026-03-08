@@ -90,12 +90,39 @@ class _JourneyCardState extends State<JourneyCard> {
     return (leaveOffset / total).clamp(0.0, 1.0);
   }
 
+  /// Compute a deterministic banner message based on current time in the
+  /// journey.  Used as primary display; the SharedPreferences value
+  /// (written by background alarm callbacks) overrides when present.
+  String _computedBanner(AppLocalizations loc) {
+    final now = DateTime.now();
+
+    if (widget.phase == JourneyPhase.onTheWay) {
+      final secsToArrival = widget.arrivalDeadline.difference(now).inSeconds;
+      if (secsToArrival <= 15) return loc.bannerLastChance;
+      if (secsToArrival <= 45) return loc.bannerAlmostThere;
+      return loc.bannerOnTheWay(DateFormat.jm().format(widget.arrivalDeadline));
+    }
+
+    // Getting Ready phase
+    final minsToLeave = widget.leaveTime.difference(now).inMinutes;
+    if (minsToLeave <= 5) return loc.bannerLeaveSoon;
+    final sinceWakeUp = now.difference(widget.wakeUpTime).inMinutes;
+    if (sinceWakeUp < 5) return loc.bannerWakeUp;
+    return loc.bannerMinutesLeft(minsToLeave);
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final color = _interpolateJourneyColor(_ratio);
     final colorDarker = _interpolateJourneyColor((_ratio + 0.1).clamp(0.0, 1.0));
     final isOnTheWay = widget.phase == JourneyPhase.onTheWay;
+
+    // Use SharedPreferences notification if available (actual alarm text),
+    // otherwise fall back to a computed banner based on current time.
+    final bannerText = widget.lastNotification.isNotEmpty
+        ? widget.lastNotification
+        : _computedBanner(loc);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 500),
@@ -172,29 +199,27 @@ class _JourneyCardState extends State<JourneyCard> {
               const SizedBox(height: 12),
             ],
 
-            // Last notification banner
-            if (widget.lastNotification.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  widget.lastNotification,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+            // Last notification banner (always shown: actual alarm text or computed fallback)
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
               ),
-            ],
+              child: Text(
+                bannerText,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
 
             // Arrived at School button (On the Way only)
             if (isOnTheWay) ...[

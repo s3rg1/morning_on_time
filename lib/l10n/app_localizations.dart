@@ -1129,6 +1129,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No upcoming alarms'**
   String get noUpcomingAlarms;
+
+  /// Computed journey banner right after wake-up
+  ///
+  /// In en, this message translates to:
+  /// **'☀️ Good morning! Today\'s mission: arrive on time!'**
+  String get bannerWakeUp;
+
+  /// Computed journey banner showing minutes until leave time
+  ///
+  /// In en, this message translates to:
+  /// **'⏰ {minutes} minutes left until you need to leave'**
+  String bannerMinutesLeft(int minutes);
+
+  /// Computed journey banner when close to leave time
+  ///
+  /// In en, this message translates to:
+  /// **'🚨 Almost time to leave! Get ready!'**
+  String get bannerLeaveSoon;
+
+  /// Computed journey banner right after leave time
+  ///
+  /// In en, this message translates to:
+  /// **'🚗 Time to leave! Head out now!'**
+  String get bannerLeaveNow;
+
+  /// Computed journey banner after leaving home
+  ///
+  /// In en, this message translates to:
+  /// **'🚗 On the way! Arrive by {time}'**
+  String bannerOnTheWay(String time);
+
+  /// Computed journey banner when close to arrival deadline
+  ///
+  /// In en, this message translates to:
+  /// **'🎯 Almost there! Confirm your arrival'**
+  String get bannerAlmostThere;
+
+  /// Computed journey banner at the very end before deadline
+  ///
+  /// In en, this message translates to:
+  /// **'🚨 Last chance! Confirm arrival now!'**
+  String get bannerLastChance;
 }
 
 class _AppLocalizationsDelegate

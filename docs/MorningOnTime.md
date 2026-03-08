@@ -396,20 +396,42 @@ When the wake-up alarm fires and the journey begins, the Mission frame transform
 * Provides reference without being the focus — the progress bar and color carry the urgency
 
 ##### **Last Notification Banner**
-* Displays the **most recent notification message** triggered during the journey
-* Shown inside the card as a single line of text with an appropriate emoji prefix
-* Updates when a new notification fires (animated text change: fade or slide)
+* **Always visible** while the journey card is showing — never empty
+* Two data sources with automatic fallback:
+  1. **SharedPreferences value** (primary): written by background alarm callbacks with the actual randomized notification message. Read via `prefs.reload()` to pick up cross-isolate writes.
+  2. **Computed fallback**: deterministic message derived from current time vs the alarm schedule. Used when no alarm has fired yet (e.g., the first minutes after wake-up) or if the SharedPreferences read fails for any reason.
+* Updates every second (via the card's ticker) so the computed banner reflects the current moment
 * Catches the user up if they missed the actual notification
 
-**Banner content matches the alarm that fired:**
+**Computed banner logic (Getting Ready phase):**
+
+| Time Window | Computed Banner |
+|-------------|-----------------|
+| Within 5 min after wake-up | "☀️ Good morning! Today's mission: arrive on time!" |
+| ≤ 5 min until leave time | "🚨 Almost time to leave! Get ready!" |
+| Otherwise (checkpoint zone) | "⏰ X minutes left until you need to leave" |
+
+**Computed banner logic (On the Way phase):**
+
+| Time Window | Computed Banner |
+|-------------|-----------------|
+| ≤ 15 sec to arrival | "🚨 Last chance! Confirm arrival now!" |
+| ≤ 45 sec to arrival | "🎯 Almost there! Confirm your arrival" |
+| Otherwise | "🚗 On the way! Arrive by HH:MM" |
+
+**SharedPreferences override content (matches the alarm that fired):**
 
 | After Alarm | Banner Text |
 |-------------|-------------|
 | Wake-up (ID: 1) | "☀️ Good morning! Today's mission: arrive on time" |
-| Checkpoint (IDs: 100-119) | "⏰ X minutes until you need to leave" (uses the actual minutes from the checkpoint message) |
-| Leave Home Soon (ID: 3) | "🚨 5 minutes — time to get ready to leave!" |
+| Checkpoint (IDs: 100-119) | "⏰ X minutes until you need to leave" (uses the actual randomized text from the checkpoint message) |
+| Leave Home Soon (ID: 3) | "🚨 In five minutes we must leave home, hurry up!" |
+| Leave Home (ID: 4) | "🚗 We leave home now or we'll be late." |
+| Pre-Arrival T-60s (ID: 5) | "🎯 Don't forget to confirm your arrival. 1 minute left!" |
+| Pre-Arrival T-30s (ID: 7) | "⚠️ Don't forget to confirm your arrival. 30 seconds left!" |
+| Pre-Arrival T-10s (ID: 8) | "🚨 Confirm now or today will be marked as late. 10 seconds left!" |
 
-**Persistence:** The last notification message must be written to SharedPreferences by the alarm callback (which runs in an isolate) so the UI can read and display it when the app is opened or foregrounded.
+**Persistence:** The notification message is written to SharedPreferences by the alarm callback (which runs in a separate Dart isolate). The main isolate reads it via `prefs.reload()` to bypass the in-memory cache. The computed fallback ensures the banner is never empty even before the first alarm fires.
 
 ##### **Progressive Background Color**
 

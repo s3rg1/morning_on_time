@@ -788,5 +788,43 @@
   "noUpcomingAlarms": "No upcoming alarms",
   "@noUpcomingAlarms": {
     "description": "Shown when no alarms are scheduled in the next 7 days"
+  },
+  "bannerWakeUp": "☀️ Good morning! Today's mission: arrive on time!",
+  "@bannerWakeUp": {
+    "description": "Computed journey banner right after wake-up"
+  },
+  "bannerMinutesLeft": "⏰ {minutes} minutes left until you need to leave",
+  "@bannerMinutesLeft": {
+    "description": "Computed journey banner showing minutes until leave time",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "bannerLeaveSoon": "🚨 Almost time to leave! Get ready!",
+  "@bannerLeaveSoon": {
+    "description": "Computed journey banner when close to leave time"
+  },
+  "bannerLeaveNow": "🚗 Time to leave! Head out now!",
+  "@bannerLeaveNow": {
+    "description": "Computed journey banner right after leave time"
+  },
+  "bannerOnTheWay": "🚗 On the way! Arrive by {time}",
+  "@bannerOnTheWay": {
+    "description": "Computed journey banner after leaving home",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "bannerAlmostThere": "🎯 Almost there! Confirm your arrival",
+  "@bannerAlmostThere": {
+    "description": "Computed journey banner when close to arrival deadline"
+  },
+  "bannerLastChance": "🚨 Last chance! Confirm arrival now!",
+  "@bannerLastChance": {
+    "description": "Computed journey banner at the very end before deadline"
   }
 }

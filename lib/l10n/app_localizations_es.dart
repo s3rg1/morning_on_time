@@ -602,4 +602,30 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get noUpcomingAlarms => 'Sin alarmas próximas';
+
+  @override
+  String get bannerWakeUp =>
+      '☀️ ¡Buenos días! La misión de hoy: ¡llegar a tiempo!';
+
+  @override
+  String bannerMinutesLeft(int minutes) {
+    return '⏰ $minutes minutos para salir de casa';
+  }
+
+  @override
+  String get bannerLeaveSoon => '🚨 ¡Casi es hora de salir! ¡Prepárate!';
+
+  @override
+  String get bannerLeaveNow => '🚗 ¡Es hora de salir! ¡Vamos!';
+
+  @override
+  String bannerOnTheWay(String time) {
+    return '🚗 ¡En camino! Llegar antes de las $time';
+  }
+
+  @override
+  String get bannerAlmostThere => '🎯 ¡Casi llegamos! Confirma tu llegada';
+
+  @override
+  String get bannerLastChance => '🚨 ¡Última oportunidad! ¡Confirma ahora!';
 }
