@@ -536,7 +536,9 @@ class AppState extends ChangeNotifier {
       return rDate.isAtSameMomentAs(todayDate);
     });
     await _storage.saveRecords(_records);
-    _currentStreak = _streakService.calculateCurrentStreak(_records);
+    // Note: don't recalculate streak here — removing today's record is just
+    // clearing stale UI state. The streak will be recalculated when the new
+    // journey completes (in confirmArrival / markMissionFailed).
     
     // Clear test deadline if this is NOT a test save (test save = deadline set within last 30 sec)
     // This ensures that changing settings cancels any ongoing test journey
