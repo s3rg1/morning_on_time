@@ -10,6 +10,7 @@ import '../l10n/app_localizations.dart';
 import '../providers/app_state.dart';
 import '../models/app_settings.dart';
 import '../services/alarm_service.dart';
+import '../services/analytics_service.dart';
 import '../utils/volume_utils.dart';
 import '../widgets/journey_card.dart';
 import '../widgets/next_alarm_indicator.dart';
@@ -131,6 +132,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // If journey phase changed, trigger a rebuild
       if (phase != _lastJourneyPhase) {
         print('🔄 Journey phase changed: $_lastJourneyPhase → $phase');
+
+        // Log journey_started when transitioning from idle to gettingReady
+        if (_lastJourneyPhase == JourneyPhase.idle &&
+            phase == JourneyPhase.gettingReady) {
+          AnalyticsService.logJourneyStarted();
+        }
+
         _lastJourneyPhase = phase;
         setState(() {}); // Force rebuild to show/hide journey card
       }
