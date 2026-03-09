@@ -6,6 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:native_sound_player/native_sound_player.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'analytics_service.dart';
 import 'localization_helper.dart';
 import '../models/app_settings.dart';
 
@@ -1062,19 +1063,6 @@ class AlarmService {
       }
     });
 
-    // Never overwrite an existing on-time success for today
-    if (existingIndex >= 0) {
-      try {
-        final existingRecord = recordsList[existingIndex] as Map<String, dynamic>;
-        if (existingRecord['wasOnTime'] == true) {
-          print('✅ Existing on-time record found for today - skipping failure overwrite');
-          return;
-        }
-      } catch (e) {
-        print('⚠️ Error reading existing record: $e');
-      }
-    }
-    
     // Create new record for failure
     final newRecord = {
       'date': todayDate.toIso8601String(),
@@ -1091,6 +1079,19 @@ class AlarmService {
     // Save records back
     await prefs.setString('day_records', json.encode(recordsList));
     
+    // Queue deferred analytics events (may run in background isolate)
+    final previousStreak = prefs.getInt('current_streak') ?? 0;
+    await AnalyticsService.queueDeferredEvent(
+      name: 'journey_completed',
+      parameters: {'on_time': 'false'},
+    );
+    if (previousStreak > 0) {
+      await AnalyticsService.queueDeferredEvent(
+        name: 'streak_broken',
+        parameters: {'streak_length_before_reset': previousStreak},
+      );
+    }
+
     // Reset streak
     await prefs.setInt('current_streak', 0);
     

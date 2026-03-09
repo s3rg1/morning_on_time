@@ -9,6 +9,7 @@ import '../services/notification_service.dart';
 import '../services/voice_service.dart';
 import '../services/streak_service.dart';
 import '../services/alarm_service.dart';
+import '../services/analytics_service.dart';
 import '../services/localization_helper.dart';
 
 enum JourneyPhase { idle, gettingReady, onTheWay }
@@ -389,6 +390,9 @@ class AppState extends ChangeNotifier {
       confirmArrival(arrivedOnTime);
     };
 
+    // Flush any analytics events queued from background isolates
+    await AnalyticsService.flushDeferredEvents();
+
     _settings = await _storage.loadSettings();
     _records = await _storage.loadRecords();
     _rewards = await _storage.loadRewards();
@@ -495,6 +499,14 @@ class AppState extends ChangeNotifier {
       print('🧪 Test deadline loaded: $_testArrivalDeadline');
     }
     
+    // Sync arrival confirmation from SharedPreferences
+    // (background alarm isolate may have reset it)
+    final arrivalConfirmed = await _storage.getArrivalConfirmed();
+    if (_arrivalConfirmedToday != arrivalConfirmed) {
+      print('🔄 Synced arrival_confirmed: $_arrivalConfirmedToday → $arrivalConfirmed');
+      _arrivalConfirmedToday = arrivalConfirmed;
+    }
+    
     // isJourneyActive is now a computed getter - no state to restore!
     print('🔍 Journey active (computed): $isJourneyActive');
     print('🔍 Current time vs leave/arrival: ${DateTime.now()}');
@@ -509,9 +521,25 @@ class AppState extends ChangeNotifier {
     await _storage.setSetupComplete(true);
     _isSetupComplete = true;
     
+    final now = DateTime.now();
+    
+    // Reset arrival confirmation — new settings mean a new journey,
+    // so a previous journey's confirmation should not block it
+    _arrivalConfirmedToday = false;
+    await _storage.setArrivalConfirmed(false);
+    
+    // Clear today's day record so the new journey starts fresh
+    // (prevents a previous journey's result from persisting)
+    final todayDate = DateTime(now.year, now.month, now.day);
+    _records.removeWhere((r) {
+      final rDate = DateTime(r.date.year, r.date.month, r.date.day);
+      return rDate.isAtSameMomentAs(todayDate);
+    });
+    await _storage.saveRecords(_records);
+    _currentStreak = _streakService.calculateCurrentStreak(_records);
+    
     // Clear test deadline if this is NOT a test save (test save = deadline set within last 30 sec)
     // This ensures that changing settings cancels any ongoing test journey
-    final now = DateTime.now();
     if (_testArrivalDeadline != null) {
       final deadlineAge = _testArrivalDeadline!.difference(now).inSeconds;
       // If deadline is more than 30 seconds in the future or in the past, clear it (not a fresh test)
@@ -614,6 +642,10 @@ class AppState extends ChangeNotifier {
 
     // Handle failure case using shared helper
     if (!onTime) {
+      // Log analytics before resetting streak
+      await AnalyticsService.logJourneyCompleted(onTime: false);
+      await AnalyticsService.logStreakBroken(streakLengthBeforeReset: _currentStreak);
+
       // Use shared logic to mark mission as failed
       await AlarmService.markMissionFailed();
       
@@ -654,6 +686,10 @@ class AppState extends ChangeNotifier {
     // Recalculate streak
     _currentStreak = _streakService.calculateCurrentStreak(_records);
     await _storage.setCurrentStreak(_currentStreak);
+
+    // Log analytics for successful arrival
+    await AnalyticsService.logJourneyCompleted(onTime: true);
+    await AnalyticsService.logStreakUpdated(streakLength: _currentStreak);
 
     // Play success message and handle rewards
     if (onTime) {
