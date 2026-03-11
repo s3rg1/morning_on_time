@@ -648,8 +648,8 @@ class AppState extends ChangeNotifier {
       await AnalyticsService.logJourneyCompleted(onTime: false);
       await AnalyticsService.logStreakBroken(streakLengthBeforeReset: _currentStreak);
 
-      // Use shared logic to mark mission as failed
-      await AlarmService.markMissionFailed();
+      // Use shared logic to mark mission as failed (skip analytics — already logged above)
+      await AlarmService.markMissionFailed(skipAnalytics: true);
       
       // Reload local state from storage
       _records = await _storage.loadRecords();

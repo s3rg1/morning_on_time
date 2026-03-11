@@ -1036,7 +1036,7 @@ class AlarmService {
     }
   }
 
-  static Future<void> markMissionFailed() async {
+  static Future<void> markMissionFailed({bool skipAnalytics = false}) async {
     final prefs = await SharedPreferences.getInstance();
     final today = DateTime.now();
     final todayDate = DateTime(today.year, today.month, today.day);
@@ -1079,17 +1079,20 @@ class AlarmService {
     // Save records back
     await prefs.setString('day_records', json.encode(recordsList));
     
-    // Queue deferred analytics events (may run in background isolate)
+    // Queue deferred analytics events only from background isolate;
+    // foreground callers log events directly and pass skipAnalytics: true.
     final previousStreak = prefs.getInt('current_streak') ?? 0;
-    await AnalyticsService.queueDeferredEvent(
-      name: 'journey_completed',
-      parameters: {'on_time': 'false'},
-    );
-    if (previousStreak > 0) {
+    if (!skipAnalytics) {
       await AnalyticsService.queueDeferredEvent(
-        name: 'streak_broken',
-        parameters: {'streak_length_before_reset': previousStreak},
+        name: 'journey_completed',
+        parameters: {'on_time': 'false'},
       );
+      if (previousStreak > 0) {
+        await AnalyticsService.queueDeferredEvent(
+          name: 'streak_broken',
+          parameters: {'streak_length_before_reset': previousStreak},
+        );
+      }
     }
 
     // Reset streak
