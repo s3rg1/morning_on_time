@@ -1,5 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -195,7 +197,21 @@ class NotificationService {
   }
 
   Future<void> cancelAll() async {
-    await _notifications.cancelAll();
+    try {
+      await _notifications.cancelAll();
+    } on PlatformException catch (e) {
+      // Known issue with flutter_local_notifications 17.x: corrupted scheduled
+      // notification data causes "Missing type parameter" during cancelAll().
+      // Clear the corrupted data via SharedPreferences and retry.
+      print('⚠️ cancelAll failed: $e — clearing corrupted notification data');
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('flutter_local_notifications');
+      try {
+        await _notifications.cancelAll();
+      } catch (_) {
+        // Best-effort: notifications may already be cleared by removing the key
+      }
+    }
   }
 
   Future<void> getPendingNotifications() async {
