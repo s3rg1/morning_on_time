@@ -37,6 +37,10 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
 
+platforms:
+  android:
+  ios:
+
 flutter:
   uses-material-design: true
   generate: true
