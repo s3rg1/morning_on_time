@@ -37,14 +37,28 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.5
+
+flutter_native_splash:
+  color: "#1565C0"
+  image: assets/images/app_icon.png
+  color_dark: "#0D47A1"
+  image_dark: assets/images/app_icon.png
+  android_12:
+    color: "#1565C0"
+    icon_background_color: "#1565C0"
+    image: assets/images/app_icon_android12.png
+    color_dark: "#0D47A1"
+    icon_background_color_dark: "#0D47A1"
+    image_dark: assets/images/app_icon_android12.png
 
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/app-icon.png"
+  image_path: "assets/images/app_icon.png"
   min_sdk_android: 21
   remove_alpha_ios: true
-  adaptive_icon_foreground: "assets/images/app-icon.png"
+  adaptive_icon_foreground: "assets/images/app_icon.png"
   adaptive_icon_background: "#4CAF50"
 
 platforms:
