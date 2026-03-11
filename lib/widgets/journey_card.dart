@@ -87,7 +87,10 @@ class _JourneyCardState extends State<JourneyCard> {
     if (total <= 0) return 0.5;
     final leaveOffset =
         widget.leaveTime.difference(widget.wakeUpTime).inSeconds;
-    return (leaveOffset / total).clamp(0.0, 1.0);
+    // The bar depletes from 1.0 (wake-up) to 0.0 (arrival), so the marker
+    // must sit at the progress-remaining level that corresponds to leave time:
+    // (arrival − leave) / (arrival − wake).  This equals 1 − leaveOffset/total.
+    return (1.0 - leaveOffset / total).clamp(0.0, 1.0);
   }
 
   /// Compute a deterministic banner message based on current time in the
