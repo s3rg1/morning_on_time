@@ -215,7 +215,14 @@ class NotificationService {
   }
 
   Future<void> getPendingNotifications() async {
-    final pending = await _notifications.pendingNotificationRequests();
+    List<PendingNotificationRequest> pending;
+    try {
+      pending = await _notifications.pendingNotificationRequests();
+    } catch (e) {
+      print('⚠️ Failed to load pending notifications (corrupted data), clearing: $e');
+      await _notifications.cancelAll();
+      pending = [];
+    }
     print('📋 Pending notifications: ${pending.length}');
     for (var notification in pending) {
       print('   - ID: ${notification.id}, Title: ${notification.title}, Body: ${notification.body}');
@@ -293,7 +300,14 @@ class NotificationService {
     }
     
     // Get actual pending notifications from the system
-    final pending = await _notifications.pendingNotificationRequests();
+    List<PendingNotificationRequest> pending;
+    try {
+      pending = await _notifications.pendingNotificationRequests();
+    } catch (e) {
+      print('⚠️ Failed to load pending notifications (corrupted data), clearing: $e');
+      await _notifications.cancelAll();
+      pending = [];
+    }
     
     print('═══════════════════════════════════════════════════════════');
     print('📱 SYSTEM-SCHEDULED NOTIFICATIONS');
