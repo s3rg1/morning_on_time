@@ -507,11 +507,18 @@ class AppState extends ChangeNotifier {
       _arrivalConfirmedToday = arrivalConfirmed;
     }
     
+    // Reload records and streak from SharedPreferences — the background alarm
+    // isolate may have written a failure record and reset the streak via
+    // markMissionFailed() while the app was closed/backgrounded.
+    _records = await _storage.loadRecords();
+    _currentStreak = _streakService.calculateCurrentStreak(_records);
+    print('🔄 Reloaded records (${_records.length}) and streak ($_currentStreak) from storage');
+    
     // isJourneyActive is now a computed getter - no state to restore!
     print('🔍 Journey active (computed): $isJourneyActive');
     print('🔍 Current time vs leave/arrival: ${DateTime.now()}');
     
-    // Just trigger UI update - countdown will appear if time is right
+    // Trigger UI update with fresh data
     notifyListeners();
   }
 
