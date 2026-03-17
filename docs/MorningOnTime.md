@@ -149,7 +149,7 @@ When the app is launched for the first time, the user goes through a welcoming o
 * **Visual:** Illustration of calm, organized morning (smiling parent, child ready, streak trophy icon)
 * **Headline:** "Turn mornings into a mission"
 * **Body Text:**
-  - "Morning Mission helps your family arrive on time consistently"
+  - "Never Late helps your family arrive on time consistently"
   - "Voice-driven reminders at key moments—no screens, no checklists"
   - "Motivates with streaks and rewards, not guilt or pressure"
   - "The app activates itself. You just live your morning."
@@ -188,7 +188,7 @@ After user taps "Grant Permissions & Continue":
 
 2. **Battery Optimization Dialog** (system prompt):
    * App calls `Permission.ignoreBatteryOptimizations.request()`
-   * Opens Android settings page: Settings > Apps > Morning Mission > Battery
+   * Opens Android settings page: Settings > Apps > Never Late > Battery
    * User must select "Unrestricted" or "Don't optimize"
 
 3. **Permission Verification:**
@@ -196,7 +196,7 @@ After user taps "Grant Permissions & Continue":
    * If **both granted:** Proceed to Configuration Screen
    * If **either denied:** Show retry prompt:
      - "Permissions Required"
-     - "Morning Mission needs both permissions to work reliably. Without them, alarms may not fire when your family needs them most."
+     - "Never Late needs both permissions to work reliably. Without them, alarms may not fire when your family needs them most."
      - "Try Again" button (re-launches permission flow)
      - "Exit App" button (closes app - cannot proceed without permissions)
 

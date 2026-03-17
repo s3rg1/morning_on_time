@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// The application title
   ///
   /// In en, this message translates to:
-  /// **'Morning Mission'**
+  /// **'Never Late'**
   String get appTitle;
 
   /// Title for today's mission section
@@ -449,7 +449,7 @@ abstract class AppLocalizations {
   /// Onboarding screen 2 solution point 1
   ///
   /// In en, this message translates to:
-  /// **'Morning Mission helps your family arrive on time consistently'**
+  /// **'Never Late helps your family arrive on time consistently'**
   String get onboardingSolutionPoint1;
 
   /// Onboarding screen 2 solution point 2
@@ -557,7 +557,7 @@ abstract class AppLocalizations {
   /// Permissions denied dialog message
   ///
   /// In en, this message translates to:
-  /// **'Morning Mission needs both permissions to work reliably. Without them, alarms may not fire when your family needs them most.\n\nPlease grant both Notifications and Battery Unrestricted permissions to continue.'**
+  /// **'Never Late needs both permissions to work reliably. Without them, alarms may not fire when your family needs them most.\n\nPlease grant both Notifications and Battery Unrestricted permissions to continue.'**
   String get onboardingPermissionsRequiredMessage;
 
   /// Exit app button
@@ -971,7 +971,7 @@ abstract class AppLocalizations {
   /// App title on splash screen
   ///
   /// In en, this message translates to:
-  /// **'Morning Mission'**
+  /// **'Never Late'**
   String get splashTitle;
 
   /// App subtitle on splash screen

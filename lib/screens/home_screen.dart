@@ -368,7 +368,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               tooltip: 'Simulate Reward Achieved',
               onPressed: () => _simulateRewardAchievement(context),
             ),
-          // Test button (remove in production)
+          if (kDebugMode)
           IconButton(
             icon: Container(
               padding: const EdgeInsets.all(8),

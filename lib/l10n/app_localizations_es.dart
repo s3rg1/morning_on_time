@@ -9,7 +9,7 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
-  String get appTitle => 'Morning Mission';
+  String get appTitle => 'Never Late';
 
   @override
   String get todaysMission => 'Misión de Hoy';
@@ -203,7 +203,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get onboardingSolutionPoint1 =>
-      'Morning Mission ayuda a tu familia a llegar a tiempo consistentemente';
+      'Never Late ayuda a tu familia a llegar a tiempo consistentemente';
 
   @override
   String get onboardingSolutionPoint2 =>
@@ -271,7 +271,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get onboardingPermissionsRequiredMessage =>
-      'Morning Mission necesita ambos permisos para funcionar correctamente. Sin ellos, las alarmas podrían no sonar cuando tu familia más las necesita.\n\nPor favor otorga ambos permisos de Notificaciones y Batería Sin Restricciones para continuar.';
+      'Never Late necesita ambos permisos para funcionar correctamente. Sin ellos, las alarmas podrían no sonar cuando tu familia más las necesita.\n\nPor favor otorga ambos permisos de Notificaciones y Batería Sin Restricciones para continuar.';
 
   @override
   String get onboardingExitApp => 'Salir de la App';
@@ -500,7 +500,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get defaultRewardName => 'Noche de película con palomitas 🍿';
 
   @override
-  String get splashTitle => 'Morning Mission';
+  String get splashTitle => 'Never Late';
 
   @override
   String get splashSubtitle => 'Gana la mañana';

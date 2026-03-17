@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appTitle": "Morning Mission",
+  "appTitle": "Never Late",
   "@appTitle": {
     "description": "The application title"
   },
@@ -242,7 +242,7 @@
   "@onboardingSolutionHeadline": {
     "description": "Onboarding screen 2 headline"
   },
-  "onboardingSolutionPoint1": "Morning Mission helps your family arrive on time consistently",
+  "onboardingSolutionPoint1": "Never Late helps your family arrive on time consistently",
   "@onboardingSolutionPoint1": {
     "description": "Onboarding screen 2 solution point 1"
   },
@@ -314,7 +314,7 @@
   "@onboardingPermissionsRequired": {
     "description": "Permissions denied dialog title"
   },
-  "onboardingPermissionsRequiredMessage": "Morning Mission needs both permissions to work reliably. Without them, alarms may not fire when your family needs them most.\n\nPlease grant both Notifications and Battery Unrestricted permissions to continue.",
+  "onboardingPermissionsRequiredMessage": "Never Late needs both permissions to work reliably. Without them, alarms may not fire when your family needs them most.\n\nPlease grant both Notifications and Battery Unrestricted permissions to continue.",
   "@onboardingPermissionsRequiredMessage": {
     "description": "Permissions denied dialog message"
   },
@@ -628,7 +628,7 @@
   "@defaultRewardName": {
     "description": "Default reward name for first launch"
   },
-  "splashTitle": "Morning Mission",
+  "splashTitle": "Never Late",
   "@splashTitle": {
     "description": "App title on splash screen"
   },
