@@ -21,14 +21,25 @@ See below the diffent types of alarms:
 #### **4.1. Wake-Up Alarm (ID: 1)**
 
 * **Trigger:** At the user's configured wake-up time
-* **Voice Message (TTS):** "Good morning! Today's mission is to arrive at school on time. Let's go!"
-* **Notification:** "🌅 Good Morning!" with mission message
+* **Voice Message (TTS):** Different messages are available
+* **Notification:** Random message
 * **Behavior:** 
   - Fires exactly at wake-up time using AlarmManager
-   - The notification plays sounds/wake-up/morning-rooster.wav (even when app is closed)
-   - TTS starts 5 seconds after notification sound playback begins
-   - Plays TTS message automatically in background (even when app is closed)
-  - Shows notification with mission reminder
+  - The notification plays sounds/wake-up/morning-rooster.wav (even when app is closed)
+  - TTS starts 5 seconds after notification sound playback begins
+  - Plays TTS message automatically in background (even when app is closed)
+  - There are different notification message (TTS) available:
+    - "Today's mission is to arrive at school on time. Let's go!"
+    - “Good morning, team! Today we’re heading to school right on time—let’s do it together!”
+    - “Rise and shine! Our family mission today: calm, happy, and on time to school.”
+    - “New day, new adventure! Let’s get ready and arrive at school right on time.”
+    - “Good morning! Small steps, big win—let’s get out the door on time today.”
+    - “Wake up, superheroes! Our mission is a smooth morning and an on-time arrival.”
+    - “Good morning! Let’s start the day with smiles and make it to school right on time.”
+    - “Team family, assemble! Today we move together and arrive at school on time.”
+    - “Good morning! Let’s make today easy, fun, and right on schedule.”
+    - “It’s a brand new day! Let’s help each other get ready and be on time.”
+    - “Morning, everyone! Let’s win the day early by arriving at school on time.”
 * **Reliability:** High (uses native Android AlarmManager, survives app closure and device restart)
 
 #### **4.2. Checkpoint Alarms (IDs: 100-119)**

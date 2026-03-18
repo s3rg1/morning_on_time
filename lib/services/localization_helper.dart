@@ -40,15 +40,39 @@ class LocalizationHelper {
     }
   }
   
-  /// Get localized wake-up message
-  static Future<String> getWakeUpMessage() async {
+  /// Get localized wake-up message templates for random selection
+  static Future<List<String>> getWakeUpMessages() async {
     final locale = await getLocale();
     switch (locale) {
       case 'es':
-        return '¡Buenos días! Hoy vamos a llegar a la escuela a tiempo. ¡Vamos!';
+        return [
+          '¡La misión de hoy es llegar a la escuela a tiempo. ¡A por ello!',
+          '¡Buenos días, equipo! Hoy vamos a llegar a la escuela justo a tiempo. ¡Hagámoslo juntos!',
+          '¡Arriba chavales! Nuestra misión familiar de hoy: tranquilos, felices y a tiempo en la escuela.',
+          '¡Nuevo día, nueva aventura! Vamos a prepararnos y llegar a la escuela justo a tiempo.',
+          '¡Buenos días! Pequeños pasos, gran victoria. Salgamos de casa a tiempo hoy.',
+          '¡Despertad, superhéroes! Nuestra misión es una mañana tranquila y llegar puntuales.',
+          '¡Buenos días! Empecemos el día con sonrisas y lleguemos a la escuela justo a tiempo.',
+          '¡Familia, reunión! Trabajemos juntos para llegar a la escuela a tiempo.',
+          '¡Buenos días! Hagamos que el día de hoy sea fácil, divertido y lleguemos puntuales.',
+          '¡Es un nuevo día! Ayudémonos unos a otros a prepararnos y llegar a tiempo.',
+          '¡Buenos días a todos! Hoy es un día fantástico para llegar a la escuela a tiempo.',
+        ];
       case 'en':
       default:
-        return "Good morning! Today's mission is to arrive at school on time. Let's go!";
+        return [
+          "Today's mission is to arrive at school on time. Let's go!",
+          "Good morning, team! Today we're heading to school right on time—let's do it together!",
+          'Rise and shine! Our family mission today: calm, happy, and on time to school.',
+          "New day, new adventure! Let's get ready and arrive at school right on time.",
+          "Good morning! Small steps, big win—let's get out the door on time today.",
+          'Wake up, superheroes! Our mission is a smooth morning and an on-time arrival.',
+          "Good morning! Let's start the day with smiles and make it to school right on time.",
+          'Team family, assemble! Today we move together and arrive at school on time.',
+          "Good morning! Let's make today easy, fun, and right on schedule.",
+          "It's a brand new day! Let's help each other get ready and be on time.",
+          "Morning, everyone! Let's win the day early by arriving at school on time.",
+        ];
     }
   }
   

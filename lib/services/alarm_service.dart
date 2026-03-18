@@ -104,7 +104,8 @@ void alarmCallback() async {
   
   // Get localized messages
   final ttsLanguage = await LocalizationHelper.getTtsLanguage();
-  final wakeUpMessage = await LocalizationHelper.getWakeUpMessage();
+  final wakeUpMessages = await LocalizationHelper.getWakeUpMessages();
+  final wakeUpMessage = wakeUpMessages[Random().nextInt(wakeUpMessages.length)];
   final wakeUpTitle = await LocalizationHelper.getWakeUpTitle();
 
   // Persist for journey card banner
