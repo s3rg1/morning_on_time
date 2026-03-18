@@ -2,33 +2,41 @@
 
 ## **Table of Contents**
 
-1. [Product Name (Working Title)](#product-name-working-title)
+1. [Product Name](#product-name-working-title)
 2. [Product Vision](#product-vision)
 3. [Problem Statement](#problem-statement)
 4. [Target Users](#target-users)
-   - [Primary User](#primary-user)
-   - [Secondary User](#secondary-user)
 5. [Goals & Success Criteria](#goals--success-criteria)
-   - [User Goals](#user-goals)
-   - [Product Goals](#product-goals)
-   - [Success Metrics (MVP)](#success-metrics-mvp)
 6. [Core Principles](#core-principles)
 7. [MVP Scope](#mvp-scope)
 8. [User Flow (Daily)](#user-flow-daily)
-9. [Functional Requirements](#functional-requirements)
-   - [1. Initial Setup](#1-initial-setup)
-   - [2. Today's Mission Frame](#2-todays-mission-frame)
-   - [3. Automatic Morning Activation](#3-automatic-morning-activation)
-   - [4. Voice & Notification Engine](#4-voice--notification-engine)
-   - [5. Today's Result: Success or Failure](#5-todays-result-success-or-failure)
-   - [6. Streak System](#6-streak-system)
-   - [7. Rewards System (Parent‑Driven)](#7-rewards-system-parentdriven)
-10. [8. Testing Tools (Development Only)](#8-testing-tools-development-only---not-for-production)
-11. [9. Monthly History View](#9-monthly-history-view)
-12. [Non‑Functional Requirements](#nonfunctional-requirements)
-13. [Risks & Mitigations](#risks--mitigations)
-14. [MVP Definition of Done](#mvp-definition-of-done)
-15. [Product Statement](#product-statement)
+9. [Functional Requirements](#functional-requirements) (detailed in separate documents)
+10. [Non‑Functional Requirements](#nonfunctional-requirements)
+11. [Risks & Mitigations](#risks--mitigations)
+12. [MVP Definition of Done](#mvp-definition-of-done)
+13. [Product Statement](#product-statement)
+
+### **Functional Requirements Documents**
+
+Each section of the functional requirements is detailed in its own document:
+
+| # | Document | Description |
+|---|----------|-------------|
+| 1 | [Initial Setup](01-initial-setup.md) | Onboarding, permissions, configuration, modifying settings |
+| 2 | [Home Screen Journey Card](02-home-screen-journey.md) | Idle/Getting Ready/On the Way states, progress bar, notifications banner, visual design |
+| 3–4 | [Voice & Notification Engine](03-voice-notification-engine.md) | Automatic morning activation, all alarm types (wake-up, checkpoint, leave, pre-arrival, arrival), 7-day scheduling |
+| 5 | [Daily Result](04-daily-result.md) | Success/failure outcomes, confetti, state changes |
+| 6 | [Streak System](05-streak-system.md) | Streak tracking, level progression, character evolution |
+| 7 | [Rewards System](06-rewards-system.md) | Parent-defined rewards, progress states, achievement celebration |
+| 8 | [Testing Tools](07-testing-tools.md) | Dev-only test button, compressed journey simulation |
+| 9 | [Monthly History](08-monthly-history.md) | Calendar view, date markers, statistics |
+
+### **Other Documents**
+
+| Document | Description |
+|----------|-------------|
+| [Firebase Analytics KPIs](FirebaseAnalyticsKPIs.md) | Analytics events and KPI tracking |
+| [Notification Update Changelog](../CHANGELOG_NOTIFICATION_UPDATE.md) | DND/notification handling changes |
 
 ---
 
@@ -126,7 +134,7 @@ Families with school‑age children often arrive late despite good intentions. M
 
 ## **Functional Requirements**
 
-### **1\. Initial Setup**
+> **Note:** Each functional requirement section is maintained in its own document for easier management. See the [Functional Requirements Documents](#functional-requirements-documents) table above for links to each section.
 
 #### **First Launch Behavior**
 
