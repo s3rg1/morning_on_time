@@ -52,23 +52,40 @@ See below the diffent types of alarms:
    - The notification plays randomly one of the audio files found at sounds/checkpoints/ (even when app is closed)
    - TTS starts 5 seconds after notification sound playback begins
   - It plays a TTS message that includes the minutes left to go, so the message is dynamic.
-  - There are different types of notification message (TTS) depending on the time available. Choose one randomly from the right category based on minutes available.
+  - The notifications (TTS) depend on the time available. The app will choose one randomly from the right category based on minutes available.
     - if there is more than 75% of the time available from wake-up to leave time:
-      - "Come on! We've a streak to beat, we're leaving in {minutes left to go} minutes."
-      - "What, I won't be the first? Come on, we still have {minutes left to go} minutes to leave."
-      - "Today is a fantastic day to be first. We still have {minutes left to go} minutes."
-      - If there is a reward defined not achieved yet: "Come on, we have to leave in {minutes left to go} minutes if we want to win the {reward}"
+      - “We’re off to a great start—let’s keep the morning smooth and easy.”
+      - “Plenty of time ahead, team. Let’s enjoy getting ready together.”
+      - “Nice and steady—this is how we win our morning.”
+      - “We’ve got time on our side. Let’s keep moving with calm energy.”
+      - “Great job starting the day! Let’s keep things flowing.”
+      - “No rush, just progress—everything is going well.”
+      - “We’re doing great so far. Let’s keep the good rhythm.”
+      - “Calm mornings, happy mornings—let’s keep it up.”
+      - “Everything is under control. Let’s continue step by step.”
+      - “Good vibes only—let’s keep moving forward together.”
     - else if there is more than 50% of the time available from wake-up to leave time:
-      - "I've seen faster turtles. We have {minutes left to go} minutes left to leave."
-      - "Do you expect to arrive on time? Hurry, we only have {minutes left to go} minutes left."
-      - "Why are you moving so slowly? We need to leave in {minutes left to go} minutes."
-      - If there is a reward defined not achieved yet: "We need to leave in {minutes left to go} minutes if we want {reward}"
+      - “We’re doing well—{minutes} minutes left to keep things on track.”
+      - “Nice progress! {minutes} minutes to be ready to go.”
+      - “Let’s keep it going—{minutes} minutes left.”
+      - “We’re halfway there! {minutes} minutes remaining.”
+      - “Still in great shape—{minutes} minutes to go.”
+      - “Good pace, team—{minutes} minutes left to finish strong.”
+      - “We’ve got {minutes} minutes—let’s use them wisely.”
+      - “Everything’s on track—{minutes} minutes left.”
+      - “Keep the rhythm—{minutes} minutes to be ready.”
+      - “Looking good! {minutes} minutes until it’s time to leave.”
     - else
-      - "You look like sloths, run because you only have {minutes left to go} minutes left"
-      - "I've never seen a family this slow. You have {minutes left to go} minutes left."
-      - "Hurry up! We have {minutes left to go} minutes left to go"
-      - "Are you deaf? We have to leave in {minutes left to go} minutes"
-      - If there is a reward defined not achieved yet: "Do you still want the {reward}? If we don't leave the house in {minutes left to go} minutes, we won't get it.
+      - “Alright team, focus time—only {minutes} minutes left.”
+      - “Let’s go! We leave in {minutes} minutes—final stretch!”
+      - “This is the moment—{minutes} minutes left, let’s move!”
+      - “We’re entering the final phase—{minutes} minutes to go.”
+      - “No slowing down now—{minutes} minutes left!”
+      - “Let’s finish strong—{minutes} minutes until we head out.”
+      - “Quick focus! Only {minutes} minutes left to be ready.”
+      - “Come on! We’ve got a streak to beat—{minutes} minutes left.”
+      - “Time to wrap up—{minutes} minutes and we’re out the door.”
+      - “All hands on deck—{minutes} minutes left, let’s do this!”
   - It's triggered again every 5 minutes updating the TTS message with the minutes left to go.
   - The alarm doesn't trigger after 5 minutes before time to leave.
   - Each plays TTS message automatically in background. No need to open app.
@@ -77,14 +94,25 @@ See below the diffent types of alarms:
 #### **4.3. Leave Home Soon Alarm (ID: 3)**
 
 * **Trigger:** 5 minutes before leave home time
-* **Voice Message (TTS):** "In five minutes we must leave home, hurry up!!"
-* **Notification:** "🏃 Leave Home Soon!"
+* **Voice Message (TTS):** Different messages are available
+* **Notification:** Random message
 * **Behavior:**
   - The alarm is triggered 5 minutes before the time to leave
   - Creates sense of urgency as departure time approaches
-   - The notification plays randomly one of the audio files found at sounds/leave-soon/ (even when app is closed)
-   - TTS starts 5 seconds after notification sound playback begins
-  - Plays TTS message automatically
+  - The notification plays randomly one of the audio files found at sounds/leave-soon/ (even when app is closed)
+  - TTS starts 5 seconds after notification sound playback begins
+  - Plays TTS message automatically in background (even when app is closed)
+  - There are different notification message (TTS) available:
+    - "5 minutes to go! Shoes on, bags ready—let’s move, team!"
+    - “Final countdown! We leave in 5 minutes—let’s finish strong!”
+    - “Final call! Brush teeth, put your shoes on, grab your backpack—5 minutes!”
+    - “Only 5 minutes left! Let’s wrap things up and head out.”
+    - “Quick, team! In 5 minutes we’re out the door—almost there!”
+    - "Last 5 minutes! Let’s complete the mission and go!”
+    - "Speed mode ON! 5 minutes until we head out!”
+    - "Final stretch! In 5 minutes we leave—let’s do this together!”
+    - “Quick check! Teeth clean? Shoes on? Backpack ready? We leave in 5 minutes!”
+    - “Final call! Brush teeth, put your shoes on, grab your backpack—5 minutes!”
 * **Reliability:** High (AlarmManager-based)
 
 #### **4.4. Leave Home Alarm (ID: 4)**

@@ -88,27 +88,71 @@ class LocalizationHelper {
     }
   }
   
-  /// Get localized leave home soon message
-  static Future<String> getLeaveHomeSoonMessage() async {
+  /// Get localized leave home soon messages
+  static Future<List<String>> getLeaveHomeSoonMessages() async {
     final locale = await getLocale();
     switch (locale) {
       case 'es':
-        return '¡En cinco minutos debemos salir de casa, vamos!';
+        return [
+          '¡5 minutos! Zapatos puestos, mochilas listas. ¡Vamos, equipo!',
+          '¡Cuenta atrás! Salimos en 5 minutos. ¡Terminemos con fuerza!',
+          '¡Última llamada! Lavaos los dientes, poneos los zapatos, coged la mochila. ¡5 minutos!',
+          '¡Solo quedan 5 minutos! Terminemos y salgamos.',
+          '¡Rápido, equipo! En 5 minutos salimos por la puerta. ¡Ya casi estamos!',
+          '¡Últimos 5 minutos! ¡Completemos la misión y vámonos!',
+          '¡Modo turbo activado! ¡5 minutos para salir!',
+          '¡Recta final! En 5 minutos nos vamos. ¡Hagámoslo juntos!',
+          '¡Comprobación rápida! ¿Dientes limpios? ¿Zapatos puestos? ¿Mochila lista? ¡Salimos en 5 minutos!',
+          '¡Última llamada! Lavaos los dientes, poneos los zapatos, coged la mochila. ¡5 minutos!',
+        ];
       case 'en':
       default:
-        return 'In five minutes we must leave home, hurry up!';
+        return [
+          "5 minutes to go! Shoes on, bags ready—let's move, team!",
+          "Final countdown! We leave in 5 minutes—let's finish strong!",
+          'Final call! Brush teeth, put your shoes on, grab your backpack—5 minutes!',
+          "Only 5 minutes left! Let's wrap things up and head out.",
+          "Quick, team! In 5 minutes we're out the door—almost there!",
+          "Last 5 minutes! Let's complete the mission and go!",
+          'Speed mode ON! 5 minutes until we head out!',
+          "Final stretch! In 5 minutes we leave—let's do this together!",
+          'Quick check! Teeth clean? Shoes on? Backpack ready? We leave in 5 minutes!',
+          'Final call! Brush teeth, put your shoes on, grab your backpack—5 minutes!',
+        ];
     }
   }
   
-  /// Get localized leave home now message
-  static Future<String> getLeaveHomeNowMessage() async {
+  /// Get localized leave home now messages
+  static Future<List<String>> getLeaveHomeNowMessages() async {
     final locale = await getLocale();
     switch (locale) {
       case 'es':
-        return 'Salimos de casa ahora o llegaremos tarde.';
+        return [
+          '¡Es la hora! ¡Todos fuera, nos vamos ya!',
+          '¡Se acabó el tiempo, equipo! Zapatos puestos, mochilas listas. ¡Vamos!',
+          '¡Vamos! ¡Salimos ahora mismo, misión en marcha!',
+          '¿Todo listo? ¡Puerta abierta, nos vamos ya!',
+          '¡Este es el momento! ¡Coged vuestras cosas y vámonos!',
+          '¡No más esperas, equipo, nos vamos ya!',
+          '¡Empieza la misión! ¡Por la puerta, vamos!',
+          '¡Venga, equipo! ¡Mochilas, zapatos y a salir!',
+          '¡Hora de despegar! ¡Todos fuera, vamos!',
+          '¡En marcha! Es hora de salir. ¡Nos vemos fuera!',
+        ];
       case 'en':
       default:
-        return "We leave home now or we'll be late.";
+        return [
+          "It's go time! Everyone out—we're leaving now!",
+          "Time's up, team! Shoes on, backpacks ready—let's head out!",
+          "Let's go! We leave right now—mission in action!",
+          "All set? Doors open—we're heading out now!",
+          "This is it! Grab your things and let's go!",
+          "No more waiting—team, we're leaving now!",
+          "Mission start! Out the door, let's go!",
+          'Alright team—bags, shoes, and out we go!',
+          "Launch time! Everyone out, let's move!",
+          "Let's roll! It's time to leave—see you outside!",
+        ];
     }
   }
   
@@ -337,43 +381,83 @@ class LocalizationHelper {
     if (remainingRatio > 0.75) {
       return isSpanish
           ? [
-              '¡Vamos! Tenemos una racha que superar, salimos en {minutes} minutos.',
-              '¿Qué, hoy no voy a ser el primero? Vamos, aún tenemos {minutes} minutos para salir.',
-              'Hoy es un día fantástico para ser los primeros. Aún tenemos {minutes} minutos.',
+              'Hemos empezado genial, mantengamos la mañana tranquila y fácil.',
+              'Mucho tiempo por delante, equipo. Disfrutemos preparándonos juntos.',
+              'Sin prisa pero sin pausa, así es como ganamos nuestra mañana.',
+              'Tenemos el tiempo de nuestro lado. Sigamos con energía tranquila.',
+              '¡Buen trabajo empezando el día! Sigamos así.',
+              'Sin prisas, solo avances. Todo va bien.',
+              'Lo estamos haciendo genial hasta ahora. Mantengamos el buen ritmo.',
+              'Mañanas tranquilas, mañanas felices. ¡Sigamos así!',
+              'Todo bajo control. Continuemos paso a paso.',
+              'Solo buenas vibras. Sigamos avanzando juntos.',
             ]
           : [
-              "Come on! We've a streak to beat, we're leaving in {minutes} minutes.",
-              "What, I won't be the first? Come on, we still have {minutes} minutes to leave.",
-              'Today is a fantastic day to be first. We still have {minutes} minutes.',
+              "We're off to a great start—let's keep the morning smooth and easy.",
+              "Plenty of time ahead, team. Let's enjoy getting ready together.",
+              "Nice and steady—this is how we win our morning.",
+              "We've got time on our side. Let's keep moving with calm energy.",
+              "Great job starting the day! Let's keep things flowing.",
+              'No rush, just progress—everything is going well.',
+              "We're doing great so far. Let's keep the good rhythm.",
+              "Calm mornings, happy mornings—let's keep it up.",
+              "Everything is under control. Let's continue step by step.",
+              "Good vibes only—let's keep moving forward together.",
             ];
     }
 
     if (remainingRatio > 0.50) {
       return isSpanish
           ? [
-              'He visto tortugas más rápidas. Nos quedan {minutes} minutos para salir.',
-              '¿De verdad esperas llegar a tiempo? Date prisa, solo tenemos {minutes} minutos.',
-              '¿Por qué os movéis tan lento? Tenemos que salir en {minutes} minutos.',
+              'Lo estamos haciendo bien. Quedan {minutes} minutos para seguir en buen camino.',
+              '¡Buen progreso! {minutes} minutos para estar listos.',
+              'Sigamos así. Quedan {minutes} minutos.',
+              '¡Vamos por la mitad! Quedan {minutes} minutos.',
+              'Seguimos en buena forma. {minutes} minutos por delante.',
+              'Buen ritmo, equipo. Quedan {minutes} minutos para terminar bien.',
+              'Tenemos {minutes} minutos. Usémoslos bien.',
+              'Todo va según lo previsto. Quedan {minutes} minutos.',
+              'Mantengamos el ritmo. {minutes} minutos para estar listos.',
+              '¡Vamos bien! {minutes} minutos para salir.',
             ]
           : [
-              "I've seen faster turtles. We have {minutes} minutes left to leave.",
-              'Do you expect to arrive on time? Hurry, we only have {minutes} minutes left.',
-              'Why are you moving so slowly? We need to leave in {minutes} minutes.',
+              "We're doing well—{minutes} minutes left to keep things on track.",
+              'Nice progress! {minutes} minutes to be ready to go.',
+              "Let's keep it going—{minutes} minutes left.",
+              "We're halfway there! {minutes} minutes remaining.",
+              'Still in great shape—{minutes} minutes to go.',
+              'Good pace, team—{minutes} minutes left to finish strong.',
+              "We've got {minutes} minutes—let's use them wisely.",
+              "Everything's on track—{minutes} minutes left.",
+              'Keep the rhythm—{minutes} minutes to be ready.',
+              'Looking good! {minutes} minutes until it\'s time to leave.',
             ];
     }
 
     return isSpanish
         ? [
-            'Parecéis perezosos, corred porque solo os quedan {minutes} minutos.',
-            'Nunca he visto una familia tan lenta. Os quedan {minutes} minutos.',
-            '¡Rápido! Solo nos quedan {minutes} minutos.',
-            '¿No me escucháis? Tenemos que salir en {minutes} minutos.',
+            'Muy bien equipo, a concentrarse. ¡Solo quedan {minutes} minutos!',
+            '¡Vamos! Salimos en {minutes} minutos. ¡Recta final!',
+            '¡Este es el momento! Quedan {minutes} minutos. ¡A moverse!',
+            'Entramos en la fase final. {minutes} minutos por delante.',
+            '¡No bajemos el ritmo ahora! Quedan {minutes} minutos.',
+            'Terminemos con fuerza. {minutes} minutos para salir.',
+            '¡Concentración! Solo quedan {minutes} minutos para estar listos.',
+            '¡Vamos! Tenemos una racha que superar. Quedan {minutes} minutos.',
+            'Hora de terminar. {minutes} minutos y salimos por la puerta.',
+            '¡Todos a una! Quedan {minutes} minutos. ¡A por ello!',
           ]
         : [
-            'You look like sloths, run because you only have {minutes} minutes left.',
-            "I've never seen a family this slow. You have {minutes} minutes left.",
-            'Hurry up! We have {minutes} minutes left to go.',
-            'Are you deaf? We have to leave in {minutes} minutes.',
+            'Alright team, focus time—only {minutes} minutes left.',
+            "Let's go! We leave in {minutes} minutes—final stretch!",
+            "This is the moment—{minutes} minutes left, let's move!",
+            "We're entering the final phase—{minutes} minutes to go.",
+            'No slowing down now—{minutes} minutes left!',
+            "Let's finish strong—{minutes} minutes until we head out.",
+            'Quick focus! Only {minutes} minutes left to be ready.',
+            "Come on! We've got a streak to beat—{minutes} minutes left.",
+            "Time to wrap up—{minutes} minutes and we're out the door.",
+            "All hands on deck—{minutes} minutes left, let's do this!",
           ];
   }
 

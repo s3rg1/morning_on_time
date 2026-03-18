@@ -500,7 +500,8 @@ void leaveHomeSoonCallback() async {
   
   // Get localized messages
   final ttsLanguage = await LocalizationHelper.getTtsLanguage();
-  final leaveHomeSoonMessage = await LocalizationHelper.getLeaveHomeSoonMessage();
+  final leaveHomeSoonMessages = await LocalizationHelper.getLeaveHomeSoonMessages();
+  final leaveHomeSoonMessage = leaveHomeSoonMessages[Random().nextInt(leaveHomeSoonMessages.length)];
   final leaveHomeSoonTitle = await LocalizationHelper.getLeaveHomeSoonTitle();
 
   // Persist for journey card banner
@@ -606,7 +607,8 @@ void leaveHomeCallback() async {
   
   // Get localized messages
   final ttsLanguage = await LocalizationHelper.getTtsLanguage();
-  final leaveHomeNowMessage = await LocalizationHelper.getLeaveHomeNowMessage();
+  final leaveHomeNowMessages = await LocalizationHelper.getLeaveHomeNowMessages();
+  final leaveHomeNowMessage = leaveHomeNowMessages[Random().nextInt(leaveHomeNowMessages.length)];
   final leaveHomeNowTitle = await LocalizationHelper.getLeaveHomeNowTitle();
   final countdownTimerText = await LocalizationHelper.getOpenAppToSeeCountdown();
 
