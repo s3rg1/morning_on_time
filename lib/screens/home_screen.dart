@@ -336,6 +336,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
+  String _getTimeGreeting(BuildContext context) {
+    final hour = DateTime.now().hour;
+    final l10n = AppLocalizations.of(context)!;
+    if (hour >= 5 && hour < 12) return l10n.greetingMorning;
+    if (hour >= 12 && hour < 18) return l10n.greetingAfternoon;
+    return l10n.greetingEvening;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -343,13 +351,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         Scaffold(
           appBar: AppBar(
         title: Text(
-          AppLocalizations.of(context)!.appTitle,
+          _getTimeGreeting(context),
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         foregroundColor: Colors.black87,
         elevation: 0,
         shadowColor: Colors.transparent,
@@ -387,12 +395,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           // Monthly history view button
           IconButton(
             icon: Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.blue.shade100,
+                color: Colors.blue.shade50,
               ),
-              child: const Icon(Icons.calendar_month, color: Color(0xFF1CB0F6), size: 20),
+              child: const Icon(Icons.calendar_month, color: Color(0xFF1CB0F6), size: 18),
             ),
             tooltip: 'Monthly History',
             onPressed: () {
@@ -403,12 +411,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ),
           IconButton(
             icon: Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.grey.shade200,
               ),
-              child: Icon(Icons.settings, color: Colors.grey.shade700, size: 20),
+              child: Icon(Icons.tune, color: Colors.grey.shade600, size: 18),
             ),
             onPressed: () {
               Navigator.of(context).push(
@@ -416,7 +424,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               );
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
         ],
       ),
       body: Consumer<AppState>(

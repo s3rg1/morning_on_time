@@ -628,4 +628,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get bannerLastChance => '🚨 ¡Última oportunidad! ¡Confirma ahora!';
+
+  @override
+  String get greetingMorning => 'Buenos días ☀️';
+
+  @override
+  String get greetingAfternoon => 'Buenas tardes 🌤️';
+
+  @override
+  String get greetingEvening => 'Buenas noches 🌙';
 }

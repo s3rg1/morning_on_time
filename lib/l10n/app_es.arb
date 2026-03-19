@@ -179,5 +179,8 @@
   "bannerLeaveNow": "🚗 ¡Es hora de salir! ¡Vamos!",
   "bannerOnTheWay": "🚗 ¡En camino! Llegar antes de las {time}",
   "bannerAlmostThere": "🎯 ¡Casi llegamos! Confirma tu llegada",
-  "bannerLastChance": "🚨 ¡Última oportunidad! ¡Confirma ahora!"
+  "bannerLastChance": "🚨 ¡Última oportunidad! ¡Confirma ahora!",
+  "greetingMorning": "Buenos días ☀️",
+  "greetingAfternoon": "Buenas tardes 🌤️",
+  "greetingEvening": "Buenas noches 🌙"
 }

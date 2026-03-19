@@ -1171,6 +1171,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'🚨 Last chance! Confirm arrival now!'**
   String get bannerLastChance;
+
+  /// AppBar greeting shown during morning hours (5-12)
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning ☀️'**
+  String get greetingMorning;
+
+  /// AppBar greeting shown during afternoon hours (12-18)
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon 🌤️'**
+  String get greetingAfternoon;
+
+  /// AppBar greeting shown during evening/night hours (18-5)
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening 🌙'**
+  String get greetingEvening;
 }
 
 class _AppLocalizationsDelegate

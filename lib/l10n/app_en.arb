@@ -826,5 +826,17 @@
   "bannerLastChance": "🚨 Last chance! Confirm arrival now!",
   "@bannerLastChance": {
     "description": "Computed journey banner at the very end before deadline"
+  },
+  "greetingMorning": "Good morning ☀️",
+  "@greetingMorning": {
+    "description": "AppBar greeting shown during morning hours (5-12)"
+  },
+  "greetingAfternoon": "Good afternoon 🌤️",
+  "@greetingAfternoon": {
+    "description": "AppBar greeting shown during afternoon hours (12-18)"
+  },
+  "greetingEvening": "Good evening 🌙",
+  "@greetingEvening": {
+    "description": "AppBar greeting shown during evening/night hours (18-5)"
   }
 }
