@@ -118,14 +118,25 @@ See below the diffent types of alarms:
 #### **4.4. Leave Home Alarm (ID: 4)**
 
 * **Trigger:** Exactly at leave home time
-* **Voice Message (TTS):** "We leave home now or we'll be late."
-* **Notification:** "🚪 Leave Home Now!"
+* **Voice Message (TTS):** Different messages are available
+* **Notification:** Random message
 * **Behavior:**
   - The alarm is triggered at time to leave
   - Final reminder to depart
    - The notification plays sounds/leave-now/war-horn.wav (even when app is closed)
    - TTS starts 5 seconds after notification sound playback begins
-  - Plays TTS message automatically
+  - Plays TTS message automatically in background (even when app is closed)
+  - There are different notification message (TTS) available:
+    - "It’s go time! Everyone out—we’re leaving now!”
+    - “Time’s up, team! Shoes on, backpacks ready—let’s head out!”
+    - "Let’s go! We leave right now—mission in action!”
+    - “All set? Doors open—we’re heading out now!”
+    - "This is it! Grab your things and let’s go!”
+    - “No more waiting—team, we’re leaving now!”
+    - "Mission start! Out the door, let’s go!”
+    - “Alright team—bags, shoes, and out we go!”
+    - "Launch time! Everyone out, let’s move!”
+    - "Let’s roll! It’s time to leave—see you outside!”
   - A countdown timer begins from the leave home time to the arrival time so that the user can see how much time they have left
   - The coundown timer is shown in the home screen.
 * **Reliability:** High (AlarmManager-based)
