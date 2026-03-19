@@ -522,6 +522,10 @@
   "@noRecord": {
     "description": "Legend item for days without data"
   },
+  "rewardWon": "Reward won",
+  "@rewardWon": {
+    "description": "Legend item for days with a reward achievement"
+  },
   "manageReward": "Manage Reward",
   "@manageReward": {
     "description": "Reward dialog title"

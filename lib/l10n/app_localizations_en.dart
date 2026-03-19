@@ -423,6 +423,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noRecord => 'No record';
 
   @override
+  String get rewardWon => 'Reward won';
+
+  @override
   String get manageReward => 'Manage Reward';
 
   @override

@@ -30,7 +30,18 @@ class _MonthlyViewScreenState extends State<MonthlyViewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.monthlyView),
+        title: Text(
+          AppLocalizations.of(context)!.monthlyView,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        foregroundColor: Colors.black87,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
       ),
       body: Consumer<AppState>(
         builder: (context, appState, child) {
@@ -47,111 +58,172 @@ class _MonthlyViewScreenState extends State<MonthlyViewScreen> {
           final onTimeCount = records.where((r) => r.wasOnTime).length;
           final lateCount = records.where((r) => !r.wasOnTime).length;
 
-          return Column(
-            children: [
-              // Month selector
-              Container(
-                padding: const EdgeInsets.all(16),
-                color: Colors.blue.shade50,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.chevron_left),
-                      onPressed: _previousMonth,
+          return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              children: [
+                const SizedBox(height: 8),
+
+                // Month selector card
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.blue.shade50, Colors.blue.shade100],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    Text(
-                      DateFormat.yMMMM(Localizations.localeOf(context).toString()).format(_selectedMonth),
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blue.withOpacity(0.12),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.chevron_right),
-                      onPressed: _nextMonth,
-                    ),
-                  ],
-                ),
-              ),
-              
-              // Summary
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _SummaryItem(
-                      icon: Icons.check_circle,
-                      count: onTimeCount,
-                      label: AppLocalizations.of(context)!.onTimeArrival,
-                      color: Colors.green,
-                    ),
-                    _SummaryItem(
-                      icon: Icons.cancel,
-                      count: lateCount,
-                      label: AppLocalizations.of(context)!.lateArrival,
-                      color: Colors.red,
-                    ),
-                    _SummaryItem(
-                      icon: Icons.calendar_today,
-                      count: daysInMonth,
-                      label: AppLocalizations.of(context)!.totalDays,
-                      color: Colors.blue,
-                    ),
-                  ],
-                ),
-              ),
-
-              const Divider(),
-
-              // Calendar grid
-              Expanded(
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 7,
-                    childAspectRatio: 1,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
+                    ],
                   ),
-                  itemCount: daysInMonth,
-                  itemBuilder: (context, index) {
-                    final day = index + 1;
-                    final date = DateTime(_selectedMonth.year, _selectedMonth.month, day);
-                    
-                    final dayRecord = records.where((r) {
-                      return r.date.day == day;
-                    }).firstOrNull;
-
-                    final hasRewardAchievement = appState.hasRewardAchievementOnDate(date);
-
-                    return _DayCell(
-                      day: day,
-                      isOnTime: dayRecord?.wasOnTime,
-                      isToday: _isToday(date),
-                      hasRewardAchievement: hasRewardAchievement,
-                    );
-                  },
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.chevron_left),
+                        onPressed: _previousMonth,
+                      ),
+                      Text(
+                        DateFormat.yMMMM(Localizations.localeOf(context).toString()).format(_selectedMonth),
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.chevron_right),
+                        onPressed: _nextMonth,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
-              // Legend
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 16,
-                  runSpacing: 8,
-                  children: [
-                    _LegendItem(color: Colors.green.shade100, label: AppLocalizations.of(context)!.onTimeArrival),
-                    _LegendItem(color: Colors.red.shade100, label: AppLocalizations.of(context)!.lateArrival),
-                    _LegendItem(color: Colors.amber.shade100, label: 'Reward won'),
-                    _LegendItem(color: Colors.grey.shade200, label: AppLocalizations.of(context)!.noRecord),
-                  ],
+                const SizedBox(height: 16),
+
+                // Summary card
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _SummaryItem(
+                        icon: Icons.check_circle,
+                        count: onTimeCount,
+                        label: AppLocalizations.of(context)!.onTimeArrival,
+                        color: Colors.green,
+                      ),
+                      _SummaryItem(
+                        icon: Icons.cancel,
+                        count: lateCount,
+                        label: AppLocalizations.of(context)!.lateArrival,
+                        color: Colors.red,
+                      ),
+                      _SummaryItem(
+                        icon: Icons.calendar_today,
+                        count: daysInMonth,
+                        label: AppLocalizations.of(context)!.totalDays,
+                        color: Colors.blue,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+
+                const SizedBox(height: 16),
+
+                // Calendar grid card
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 7,
+                      childAspectRatio: 1,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                    ),
+                    itemCount: daysInMonth,
+                    itemBuilder: (context, index) {
+                      final day = index + 1;
+                      final date = DateTime(_selectedMonth.year, _selectedMonth.month, day);
+
+                      final dayRecord = records.where((r) {
+                        return r.date.day == day;
+                      }).firstOrNull;
+
+                      final hasRewardAchievement = appState.hasRewardAchievementOnDate(date);
+
+                      return _DayCell(
+                        day: day,
+                        isOnTime: dayRecord?.wasOnTime,
+                        isToday: _isToday(date),
+                        hasRewardAchievement: hasRewardAchievement,
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Legend card
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _LegendItem(color: Colors.green.shade100, label: AppLocalizations.of(context)!.onTimeArrival),
+                      const SizedBox(height: 10),
+                      _LegendItem(color: Colors.red.shade100, label: AppLocalizations.of(context)!.lateArrival),
+                      const SizedBox(height: 10),
+                      _LegendItem(color: Colors.amber.shade100, label: AppLocalizations.of(context)!.rewardWon),
+                      const SizedBox(height: 10),
+                      _LegendItem(color: Colors.grey.shade200, label: AppLocalizations.of(context)!.noRecord),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+              ],
+            ),
           );
         },
       ),
@@ -219,7 +291,7 @@ class _DayCell extends StatelessWidget {
   Widget build(BuildContext context) {
     Color backgroundColor;
     const textColor = Colors.black87;
-    
+
     if (isOnTime == null) {
       backgroundColor = Colors.grey.shade200;
     } else if (isOnTime!) {
@@ -293,11 +365,11 @@ class _LegendItem extends StatelessWidget {
           height: 20,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(8),
           ),
         ),
-        const SizedBox(width: 4),
-        Text(label, style: const TextStyle(fontSize: 12)),
+        const SizedBox(width: 8),
+        Text(label, style: const TextStyle(fontSize: 13)),
       ],
     );
   }

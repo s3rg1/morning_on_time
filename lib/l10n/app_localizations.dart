@@ -836,6 +836,12 @@ abstract class AppLocalizations {
   /// **'No record'**
   String get noRecord;
 
+  /// Legend item for days with a reward achievement
+  ///
+  /// In en, this message translates to:
+  /// **'Reward won'**
+  String get rewardWon;
+
   /// Reward dialog title
   ///
   /// In en, this message translates to:

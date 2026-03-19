@@ -427,6 +427,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get noRecord => 'Sin registro';
 
   @override
+  String get rewardWon => 'Recompensa ganada';
+
+  @override
   String get manageReward => 'Gestionar Recompensa';
 
   @override

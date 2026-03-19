@@ -123,6 +123,7 @@
   "onTimeArrival": "Llegada a tiempo",
   "lateArrival": "Llegada tarde",
   "noRecord": "Sin registro",
+  "rewardWon": "Recompensa ganada",
   "manageReward": "Gestionar Recompensa",
   "rewardName": "Nombre de la Recompensa",
   "rewardNameHint": "ej., Noche de pizza 🍕",
