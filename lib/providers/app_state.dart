@@ -361,6 +361,7 @@ class AppState extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
+    try {
     // Save device locale for background isolates to use
     // This is needed because background isolates don't have access to BuildContext
     await _saveDeviceLocale();
@@ -483,8 +484,12 @@ class AppState extends ChangeNotifier {
     // List all scheduled notifications on app launch
     await _notifications.listAllScheduledNotifications(_settings);
 
-    _isLoading = false;
-    notifyListeners();
+    } catch (e) {
+      print('❌ Error during initialization: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   /// Check and restore journey state - called when app resumes from background

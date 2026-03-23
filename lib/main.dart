@@ -91,9 +91,16 @@ class _InitScreenState extends State<_InitScreen> {
   void _navigate() async {
     final appState = Provider.of<AppState>(context, listen: false);
 
+    // Timeout after 15 seconds to prevent infinite splash if initialization stalls
+    int waited = 0;
     while (appState.isLoading) {
       await Future.delayed(const Duration(milliseconds: 100));
       if (!mounted) return;
+      waited += 100;
+      if (waited >= 15000) {
+        print('⚠️ Splash timeout reached — proceeding with navigation');
+        break;
+      }
     }
 
     // Remove the native splash now that we're ready to show real UI.

@@ -902,9 +902,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
-            onPressed: () {
-              appState.confirmArrival(isOnTime);
-              Navigator.of(ctx).pop();
+            onPressed: () async {
+              await appState.confirmArrival(isOnTime);
+              if (ctx.mounted) {
+                Navigator.of(ctx).pop();
+              }
               
               // Celebrate success with confetti!
               if (isOnTime) {
