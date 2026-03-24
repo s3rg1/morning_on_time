@@ -174,10 +174,10 @@ void alarmCallback() async {
   
   print('✅ Wake-up notification shown (silent channel)');
   
-  // Skip audio when Do Not Disturb is active (notification + vibration still fire)
-  final dndActive = await DndChecker.isDndActive();
-  if (dndActive) {
-    print('🔇 DND active — skipping wake-up sound & TTS');
+  // Skip audio when DND is active or user is on a phone/VoIP call
+  final shouldSuppressAudio = await DndChecker.isDndActive();
+  if (shouldSuppressAudio) {
+    print('🔇 DND or active call — skipping wake-up sound & TTS');
   } else {
     // Play notification sound on media stream (same stream as TTS)
     await _playNotificationSound('assets/sounds/wake-up/morning-rooster.wav');
@@ -472,10 +472,10 @@ void checkInAlarmCallback() async {
   
   print('✅ Checkpoint notification shown (silent channel)');
   
-  // Skip audio when Do Not Disturb is active
-  final dndActive = await DndChecker.isDndActive();
-  if (dndActive) {
-    print('🔇 DND active — skipping checkpoint sound & TTS');
+  // Skip audio when DND is active or user is on a phone/VoIP call
+  final shouldSuppressAudio = await DndChecker.isDndActive();
+  if (shouldSuppressAudio) {
+    print('🔇 DND or active call — skipping checkpoint sound & TTS');
   } else {
     // Play notification sound on media stream (same stream as TTS)
     await _playNotificationSound(soundAsset);
@@ -583,10 +583,10 @@ void leaveHomeSoonCallback() async {
   
   print('✅ Leave home soon notification shown (silent channel)');
   
-  // Skip audio when Do Not Disturb is active
-  final dndActive = await DndChecker.isDndActive();
-  if (dndActive) {
-    print('🔇 DND active — skipping leave-soon sound & TTS');
+  // Skip audio when DND is active or user is on a phone/VoIP call
+  final shouldSuppressAudio = await DndChecker.isDndActive();
+  if (shouldSuppressAudio) {
+    print('🔇 DND or active call — skipping leave-soon sound & TTS');
   } else {
     // Play notification sound on media stream (same stream as TTS)
     await _playNotificationSound(soundAsset);
@@ -684,10 +684,10 @@ void leaveHomeCallback() async {
   // No need to set journey flag - countdown now computed purely from time!
   print('🚀 Leave home time reached - countdown will appear automatically');
   
-  // Skip audio when Do Not Disturb is active
-  final dndActive = await DndChecker.isDndActive();
-  if (dndActive) {
-    print('🔇 DND active — skipping leave-home sound & TTS');
+  // Skip audio when DND is active or user is on a phone/VoIP call
+  final shouldSuppressAudio = await DndChecker.isDndActive();
+  if (shouldSuppressAudio) {
+    print('🔇 DND or active call — skipping leave-home sound & TTS');
   } else {
     // Play notification sound on media stream (same stream as TTS)
     await _playNotificationSound('assets/sounds/leave-now/war-horn.wav');
@@ -835,10 +835,10 @@ void preArrivalCheckCallback() async {
     notificationDetails,
   );
 
-  // Skip audio when Do Not Disturb is active
-  final dndActive = await DndChecker.isDndActive();
-  if (dndActive) {
-    print('🔇 DND active — skipping pre-arrival sound');
+  // Skip audio when DND is active or user is on a phone/VoIP call
+  final shouldSuppressAudio = await DndChecker.isDndActive();
+  if (shouldSuppressAudio) {
+    print('🔇 DND or active call — skipping pre-arrival sound');
   } else {
     // Play notification sound on media stream (same stream as TTS)
     await _playNotificationSound(soundAsset);
