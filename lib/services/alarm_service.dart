@@ -79,6 +79,7 @@ Future<void> _speakAfterStandardDelay({
   await tts.setPitch(1.0);
   await tts.setVolume(1.0);
   await tts.setSpeechRate(0.5);
+  await tts.awaitSpeakCompletion(true);
   await tts.speak(message);
 
   print(completionLog);
@@ -179,15 +180,22 @@ void alarmCallback() async {
   if (shouldSuppressAudio) {
     print('🔇 DND or active call — skipping wake-up sound & TTS');
   } else {
-    // Play notification sound on media stream (same stream as TTS)
-    await _playNotificationSound('assets/sounds/wake-up/morning-rooster.wav');
-    
-    await _speakAfterStandardDelay(
-      ttsLanguage: ttsLanguage,
-      message: wakeUpMessage,
-      delayLog: '⏳ Waiting 5 seconds before wake-up TTS...',
-      completionLog: '✅ Wake-up TTS message spoken',
-    );
+    // Pause the user's music while our notification plays
+    await NativeSoundPlayer.requestAudioFocus();
+    try {
+      // Play notification sound on media stream (same stream as TTS)
+      await _playNotificationSound('assets/sounds/wake-up/morning-rooster.wav');
+      
+      await _speakAfterStandardDelay(
+        ttsLanguage: ttsLanguage,
+        message: wakeUpMessage,
+        delayLog: '⏳ Waiting 5 seconds before wake-up TTS...',
+        completionLog: '✅ Wake-up TTS message spoken',
+      );
+    } finally {
+      // Let the user's music resume
+      await NativeSoundPlayer.abandonAudioFocus();
+    }
   }
   
   // === 7-DAY ROLLING WINDOW EXTENSION ===
@@ -477,19 +485,26 @@ void checkInAlarmCallback() async {
   if (shouldSuppressAudio) {
     print('🔇 DND or active call — skipping checkpoint sound & TTS');
   } else {
-    // Play notification sound on media stream (same stream as TTS)
-    await _playNotificationSound(soundAsset);
-    
-    // 🔊 Step 2: Play TTS message after notification sound
-    // Build dynamic TTS message with minutes left
-    final String ttsMessage = selectedMessage;
+    // Pause the user's music while our notification plays
+    await NativeSoundPlayer.requestAudioFocus();
+    try {
+      // Play notification sound on media stream (same stream as TTS)
+      await _playNotificationSound(soundAsset);
+      
+      // 🔊 Step 2: Play TTS message after notification sound
+      // Build dynamic TTS message with minutes left
+      final String ttsMessage = selectedMessage;
 
-    await _speakAfterStandardDelay(
-      ttsLanguage: ttsLanguage,
-      message: ttsMessage,
-      delayLog: '⏳ Waiting 5 seconds before checkpoint TTS...',
-      completionLog: '✅ Checkpoint TTS played: "$ttsMessage"',
-    );
+      await _speakAfterStandardDelay(
+        ttsLanguage: ttsLanguage,
+        message: ttsMessage,
+        delayLog: '⏳ Waiting 5 seconds before checkpoint TTS...',
+        completionLog: '✅ Checkpoint TTS played: "$ttsMessage"',
+      );
+    } finally {
+      // Let the user's music resume
+      await NativeSoundPlayer.abandonAudioFocus();
+    }
   }
   // Note: Checkpoint alarms don't auto-reschedule, they're scheduled fresh each day
 }
@@ -588,16 +603,23 @@ void leaveHomeSoonCallback() async {
   if (shouldSuppressAudio) {
     print('🔇 DND or active call — skipping leave-soon sound & TTS');
   } else {
-    // Play notification sound on media stream (same stream as TTS)
-    await _playNotificationSound(soundAsset);
-    
-    // 🔊 Step 2: Play TTS message after notification sound
-    await _speakAfterStandardDelay(
-      ttsLanguage: ttsLanguage,
-      message: leaveHomeSoonMessage,
-      delayLog: '⏳ Waiting 5 seconds before leave-soon TTS...',
-      completionLog: '✅ Leave home soon TTS played: "$leaveHomeSoonMessage"',
-    );
+    // Pause the user's music while our notification plays
+    await NativeSoundPlayer.requestAudioFocus();
+    try {
+      // Play notification sound on media stream (same stream as TTS)
+      await _playNotificationSound(soundAsset);
+      
+      // 🔊 Step 2: Play TTS message after notification sound
+      await _speakAfterStandardDelay(
+        ttsLanguage: ttsLanguage,
+        message: leaveHomeSoonMessage,
+        delayLog: '⏳ Waiting 5 seconds before leave-soon TTS...',
+        completionLog: '✅ Leave home soon TTS played: "$leaveHomeSoonMessage"',
+      );
+    } finally {
+      // Let the user's music resume
+      await NativeSoundPlayer.abandonAudioFocus();
+    }
   }
 }
 
@@ -689,15 +711,22 @@ void leaveHomeCallback() async {
   if (shouldSuppressAudio) {
     print('🔇 DND or active call — skipping leave-home sound & TTS');
   } else {
-    // Play notification sound on media stream (same stream as TTS)
-    await _playNotificationSound('assets/sounds/leave-now/war-horn.wav');
-    
-    await _speakAfterStandardDelay(
-      ttsLanguage: ttsLanguage,
-      message: leaveHomeNowMessage,
-      delayLog: '⏳ Waiting 5 seconds before leave-home TTS...',
-      completionLog: '✅ Leave-home TTS message spoken',
-    );
+    // Pause the user's music while our notification plays
+    await NativeSoundPlayer.requestAudioFocus();
+    try {
+      // Play notification sound on media stream (same stream as TTS)
+      await _playNotificationSound('assets/sounds/leave-now/war-horn.wav');
+      
+      await _speakAfterStandardDelay(
+        ttsLanguage: ttsLanguage,
+        message: leaveHomeNowMessage,
+        delayLog: '⏳ Waiting 5 seconds before leave-home TTS...',
+        completionLog: '✅ Leave-home TTS message spoken',
+      );
+    } finally {
+      // Let the user's music resume
+      await NativeSoundPlayer.abandonAudioFocus();
+    }
   }
 }
 
@@ -840,8 +869,15 @@ void preArrivalCheckCallback() async {
   if (shouldSuppressAudio) {
     print('🔇 DND or active call — skipping pre-arrival sound');
   } else {
-    // Play notification sound on media stream (same stream as TTS)
-    await _playNotificationSound(soundAsset);
+    // Pause the user's music while our notification plays
+    await NativeSoundPlayer.requestAudioFocus();
+    try {
+      // Play notification sound on media stream (same stream as TTS)
+      await _playNotificationSound(soundAsset);
+    } finally {
+      // Let the user's music resume
+      await NativeSoundPlayer.abandonAudioFocus();
+    }
   }
 
   print('✅ Pre-arrival check notification shown (ID: $notificationId)');

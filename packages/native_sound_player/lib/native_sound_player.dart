@@ -10,6 +10,11 @@ import 'package:flutter/services.dart';
 ///
 /// Registered as a proper Flutter plugin so it is automatically added to
 /// every FlutterEngine, including background engines.
+///
+/// ## Audio focus
+///
+/// Call [requestAudioFocus] before playing sounds to temporarily pause the
+/// user's music, then [abandonAudioFocus] when done so music resumes.
 class NativeSoundPlayer {
   static const _channel =
       MethodChannel('com.lagunitacrew.native_sound_player/player');
@@ -26,6 +31,34 @@ class NativeSoundPlayer {
       await _channel.invokeMethod('playAsset', {'assetPath': assetPath});
     } catch (e) {
       print('⚠️ Failed to play asset sound: $e');
+    }
+  }
+
+  /// Requests transient audio focus so other media apps (e.g. Spotify, YouTube
+  /// Music) pause playback while our notification sounds and TTS play.
+  ///
+  /// Returns `true` if focus was granted. Does nothing on iOS.
+  /// Call [abandonAudioFocus] when playback is complete to let music resume.
+  static Future<bool> requestAudioFocus() async {
+    if (!Platform.isAndroid) return false;
+    try {
+      final granted = await _channel.invokeMethod<bool>('requestAudioFocus');
+      return granted ?? false;
+    } catch (e) {
+      print('⚠️ Failed to request audio focus: $e');
+      return false;
+    }
+  }
+
+  /// Abandons audio focus so the user's music can resume.
+  ///
+  /// Safe to call even if focus was never requested. Does nothing on iOS.
+  static Future<void> abandonAudioFocus() async {
+    if (!Platform.isAndroid) return;
+    try {
+      await _channel.invokeMethod('abandonAudioFocus');
+    } catch (e) {
+      print('⚠️ Failed to abandon audio focus: $e');
     }
   }
 }
