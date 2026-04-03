@@ -34,16 +34,21 @@ class NativeSoundPlayer {
     }
   }
 
-  /// Requests transient audio focus so other media apps (e.g. Spotify, YouTube
-  /// Music) pause playback while our notification sounds and TTS play.
+  /// Requests that other media apps (e.g. Spotify, YouTube Music) pause
+  /// playback while our notification sounds and TTS play.
   ///
-  /// Returns `true` if focus was granted. Does nothing on iOS.
+  /// Uses audio focus if granted, otherwise falls back to sending a
+  /// MEDIA_PAUSE key event which directly pauses the active media session.
+  ///
+  /// Returns `true` if the pause was dispatched. Does nothing on iOS.
   /// Call [abandonAudioFocus] when playback is complete to let music resume.
   static Future<bool> requestAudioFocus() async {
     if (!Platform.isAndroid) return false;
     try {
       final granted = await _channel.invokeMethod<bool>('requestAudioFocus');
-      return granted ?? false;
+      final result = granted ?? false;
+      print('🔇 requestAudioFocus: ${result ? "OK (music paused)" : "FAILED"}');
+      return result;
     } catch (e) {
       print('⚠️ Failed to request audio focus: $e');
       return false;
@@ -57,6 +62,7 @@ class NativeSoundPlayer {
     if (!Platform.isAndroid) return;
     try {
       await _channel.invokeMethod('abandonAudioFocus');
+      print('🔊 abandonAudioFocus: music should resume');
     } catch (e) {
       print('⚠️ Failed to abandon audio focus: $e');
     }
