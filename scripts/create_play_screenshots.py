@@ -9,9 +9,11 @@ Google Play store images (1080x1920) with:
 - Rounded screenshot with shadow
 
 Usage:
-  1. Place raw screenshots in screenshots/raw/ named:
-     01_getting_ready.png, 02_on_the_way.png, 03_on_the_way_urgent.png,
-     04_success_idle.png, 05_settings.png
+  1. Place raw screenshots:
+     - English in screenshots/raw_en/
+     - Spanish in screenshots/raw_es/
+     Named: 01_getting_ready.png, 02_on_the_way.png, 03_on_the_way_urgent.png,
+            04_success_idle.png, 05_settings.png
 
   2. Run: python3 scripts/create_play_screenshots.py
 
@@ -303,29 +305,18 @@ def compose_screenshot(raw_path, output_path, config, lang):
     print(f"  Saved: {output_path}")
 
 
-def main():
-    project_root = Path(__file__).parent.parent
-    raw_dir = project_root / "screenshots" / "raw"
-    en_dir = project_root / "screenshots" / "final_en"
-    es_dir = project_root / "screenshots" / "final_es"
+def process_language(lang, raw_dir, output_dir):
+    """Process all screenshots for a single language.
 
-    # Create output directories
-    en_dir.mkdir(parents=True, exist_ok=True)
-    es_dir.mkdir(parents=True, exist_ok=True)
-
+    Returns (found_count, missing_filenames).
+    """
     if not raw_dir.exists():
         raw_dir.mkdir(parents=True, exist_ok=True)
         print(f"Created directory: {raw_dir}")
-        print()
-        print("Please place your raw screenshots in this folder:")
-        print(f"  {raw_dir}/")
-        print()
-        print("Expected filenames:")
-        for s in SCREENSHOTS:
-            print(f"  {s['filename']}")
-        print()
-        print("Then re-run this script.")
-        sys.exit(0)
+        print(f"  Place {lang} raw screenshots here and re-run.")
+        return 0, [s["filename"] for s in SCREENSHOTS]
+
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     found = 0
     missing = []
@@ -338,29 +329,48 @@ def main():
 
         found += 1
         name = config["filename"].replace(".png", "")
-        print(f"Processing {config['filename']}...")
+        output_path = output_dir / f"{name}_{lang}.png"
+        print(f"  [{lang}] Processing {config['filename']}...")
+        compose_screenshot(raw_path, output_path, config, lang)
 
-        # English
-        en_output = en_dir / f"{name}_en.png"
-        compose_screenshot(raw_path, en_output, config, "en")
+    return found, missing
 
-        # Spanish
-        es_output = es_dir / f"{name}_es.png"
-        compose_screenshot(raw_path, es_output, config, "es")
+
+def main():
+    project_root = Path(__file__).parent.parent
+    raw_en_dir = project_root / "screenshots" / "raw_en"
+    raw_es_dir = project_root / "screenshots" / "raw_es"
+    en_dir = project_root / "screenshots" / "final_en"
+    es_dir = project_root / "screenshots" / "final_es"
+
+    total_found = 0
+    all_missing = {}
+
+    # English
+    print("=== English ===")
+    found, missing = process_language("en", raw_en_dir, en_dir)
+    total_found += found
+    if missing:
+        all_missing["en"] = (raw_en_dir, missing)
+
+    # Spanish
+    print("=== Spanish ===")
+    found, missing = process_language("es", raw_es_dir, es_dir)
+    total_found += found
+    if missing:
+        all_missing["es"] = (raw_es_dir, missing)
 
     print()
-    print(f"Done! Processed {found} screenshot(s).")
+    print(f"Done! Processed {total_found} screenshot(s) total.")
 
-    if missing:
+    for lang, (raw_dir, filenames) in all_missing.items():
         print()
-        print(f"Missing {len(missing)} screenshot(s) - skipped:")
-        for m in missing:
+        print(f"Missing {len(filenames)} {lang} screenshot(s) - skipped:")
+        for m in filenames:
             print(f"  {m}")
-        print()
         print(f"Place them in: {raw_dir}/")
-        print("Then re-run this script to generate the remaining images.")
 
-    if found > 0:
+    if total_found > 0:
         print()
         print(f"English results: {en_dir}/")
         print(f"Spanish results: {es_dir}/")
